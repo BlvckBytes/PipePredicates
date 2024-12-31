@@ -9,9 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <output.path>${user.home}/Documents/Projects/MCServerLagersuche/plugins</output.path>
+        <compileSource>17</compileSource>
+        <testCompileSource>21</testCompileSource>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -43,46 +42,124 @@
         <dependency>
             <groupId>me.blvckbytes</groupId>
             <artifactId>ItemPredicateParser</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.16</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.blvckbytes</groupId>
+            <artifactId>SyllablesMatcher</artifactId>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>24.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>me.blvckbytes</groupId>
+            <artifactId>BukkitEvaluable</artifactId>
+            <version>0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>plugin.yml</include>
+                    <include>config/**</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
-            <!-- Install the final jar into the specified output path -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.4.0</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
-                        <id>copy</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy</goal>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <includes>
+                            <!-- Include all libs for shading -->
+                            <include>me.blvckbytes:BBConfigMapper</include>
+                            <include>me.blvckbytes:BukkitEvaluable</include>
+                            <include>me.blvckbytes:GPEEE</include>
+                            <include>me.blvckbytes:SyllablesMatcher</include>
+                            <!-- [1] Shouldn't be necessary anymore on newer versions of bukkit, but I prefer backwards-compatibility over file-size. -->
+                            <include>org.yaml:snakeyaml</include>
+                            <include>com.github.cryptomorin:XSeries</include>
+                        </includes>
+                    </artifactSet>
+
+                    <relocations>
+                        <!-- Relocate all libs into the root package -->
+                        <relocation>
+                            <pattern>me/blvckbytes/(bbconfigmapper|bukkitevaluable|gpeee|syllables_matcher)/(.*)</pattern>
+                            <shadedPattern>me/blvckbytes/craft_book_pipe_predicates/$1/$2</shadedPattern>
+                            <rawString>true</rawString>
+                        </relocation>
+
+                        <!-- See [1] -->
+                        <relocation>
+                            <pattern>org/yaml/snakeyaml/(.*)</pattern>
+                            <shadedPattern>me/blvckbytes/org/yaml/snakeyaml/$1</shadedPattern>
+                            <rawString>true</rawString>
+                        </relocation>
+                    </relocations>
+
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/license/**</exclude>
+                                <exclude>META-INF/*</exclude>
+                                <exclude>META-INF/maven/**</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>NOTICE</exclude>
+                                <exclude>/*.txt</exclude>
+                                <exclude>*.ebnf</exclude>
+                                <exclude>build.properties</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${compileSource}</source>
+                    <target>${compileSource}</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>${project.artifactId}</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-
-                                    <!-- Overwrite if already present -->
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${output.path}</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
+                            <source>${testCompileSource}</source>
+                            <target>${testCompileSource}</target>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.3.1</version>
             </plugin>
         </plugins>
     </build>

@@ -1,27 +1,25 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import me.blvckbytes.syllables_matcher.EnumMatcher;
+import me.blvckbytes.syllables_matcher.EnumPredicate;
+import org.bukkit.command.CommandSender;
 
 public enum CommandAction {
   GET,
   SET,
-  REMOVE
+  REMOVE,
+  RELOAD,
   ;
 
-  public static final List<String> NAMES = ImmutableList.copyOf(
-    Arrays.stream(values()).map(Enum::name).collect(Collectors.toList())
-  );
+  public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
 
-  public static @Nullable CommandAction fromString(String value) {
-    try {
-      return CommandAction.valueOf(value.toUpperCase());
-    } catch (IllegalArgumentException e) {
-      return null;
-    }
+  public static EnumPredicate<CommandAction> getPermissionFilterFor(CommandSender sender) {
+    return value -> (
+      switch (value.constant) {
+        case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
+        case SET, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
+        case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
+      }
+    );
   }
 }

@@ -1,9 +1,13 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
+import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -18,17 +22,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
   private final PredicateDataHandler dataHandler;
   private final PredicateHelper predicateHelper;
   private final TranslationLanguage language;
+  private final ConfigKeeper<MainSection> config;
+  private final Logger logger;
 
-  public PipePredicateCommand(PredicateDataHandler dataHandler, PredicateHelper predicateHelper, TranslationLanguage language) {
+  public PipePredicateCommand(
+    PredicateDataHandler dataHandler,
+    PredicateHelper predicateHelper,
+    TranslationLanguage language,
+    ConfigKeeper<MainSection> config,
+    Logger logger
+  ) {
     this.dataHandler = dataHandler;
     this.predicateHelper = predicateHelper;
     this.language = language;
+    this.config = config;
+    this.logger = logger;
   }
 
   @Override
@@ -36,10 +52,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
     if (!(sender instanceof Player player))
       return false;
 
-    CommandAction action;
+    var actionFilter = CommandAction.getPermissionFilterFor(sender);
+    NormalizedConstant<CommandAction> normalizedAction;
 
-    if (args.length == 0 || (action = CommandAction.fromString(args[0])) == null) {
-      player.sendMessage("§cUsage: /" + label + " <" + CommandAction.NAMES + "> [expression]");
+    if (args.length == 0 || (normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter)) == null) {
+      player.sendMessage("§cUsage: /" + label + " <" + CommandAction.matcher.createCompletions(null, actionFilter) + "> [expression]");
       return true;
     }
 
@@ -57,8 +74,13 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
       return true;
     }
 
-    switch (action) {
+    switch (normalizedAction.constant) {
       case REMOVE -> {
+        if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
+          sender.sendMessage("§cYou do not have permission to modify pipe-predicates!");
+          return false;
+        }
+
         PredicateData predicateData;
 
         if ((predicateData = dataHandler.remove(pistonSign)) == null) {
@@ -73,6 +95,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
       }
 
       case GET -> {
+        if (!PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender)) {
+          sender.sendMessage("§cYou do not have permission to read pipe-predicates!");
+          return false;
+        }
+
         var predicateData = dataHandler.access(pistonSign);
 
         if (predicateData == null) {
@@ -112,6 +139,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
       }
 
       case SET -> {
+        if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
+          sender.sendMessage("§cYou do not have permission to modify pipe-predicates!");
+          return false;
+        }
+
         ItemPredicate predicate;
 
         try {
@@ -143,7 +175,29 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
         dataHandler.store(newPredicateData, pistonSign);
 
-        player.sendMessage("§7Set predicate: §a" + predicate.stringify(true));
+        var stringifyState = new StringifyState(true);
+
+        predicate.stringify(stringifyState);
+
+        player.sendMessage("§7Set predicate: §a" + stringifyState);
+        return true;
+      }
+      case RELOAD -> {
+        if (!PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)) {
+          sender.sendMessage("§cYou do not have permission to reload the plugin!");
+          return false;
+        }
+
+        try {
+          this.config.reload();
+
+          sender.sendMessage("§aPlugin successfully reloaded.");
+        } catch (Exception e) {
+          logger.log(Level.SEVERE, "An error occurred while trying to reload the config", e);
+
+          sender.sendMessage("§cAn error occurred while trying to reload the plugin! Check out the console for more details.");
+        }
+
         return true;
       }
       default -> { return true; }
@@ -155,10 +209,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
     if (!(sender instanceof Player player))
       return null;
 
-    if (args.length == 1)
-      return CommandAction.NAMES;
+    var actionFilter = CommandAction.getPermissionFilterFor(sender);
 
-    if (CommandAction.fromString(args[0]) != CommandAction.SET)
+    if (args.length == 1)
+      return CommandAction.matcher.createCompletions(null, actionFilter);
+
+    var normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
+
+    if (normalizedAction == null || normalizedAction.constant != CommandAction.SET)
       return null;
 
     try {
