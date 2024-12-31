@@ -3,6 +3,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -38,7 +39,7 @@ public class PredicateDataHandler {
     var container = sign.getPersistentDataContainer();
 
     if (data.parsedPredicate() != null)
-      container.set(expandedPredicateKey, PersistentDataType.STRING, data.parsedPredicate().stringify(false));
+      container.set(expandedPredicateKey, PersistentDataType.STRING, new StringifyState(true).appendPredicate(data.parsedPredicate()).toString());
     else
       container.remove(expandedPredicateKey);
 

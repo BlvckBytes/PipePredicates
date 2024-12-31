@@ -175,11 +175,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
         dataHandler.store(newPredicateData, pistonSign);
 
-        var stringifyState = new StringifyState(true);
-
-        predicate.stringify(stringifyState);
-
-        player.sendMessage("§7Set predicate: §a" + stringifyState);
+        player.sendMessage("§7Set predicate: §a" + new StringifyState(true).appendPredicate(predicate));
         return true;
       }
       case RELOAD -> {

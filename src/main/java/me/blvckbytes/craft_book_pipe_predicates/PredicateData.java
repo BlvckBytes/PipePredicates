@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import org.bukkit.block.Sign;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +30,8 @@ public record PredicateData(
 
   public static PredicateData makeInitial(ItemPredicate predicate, Sign sign) {
     return new PredicateData(
-      predicate.stringify(true),
-      predicate.stringify(false),
+      new StringifyState(true).appendPredicate(predicate).toString(),
+      new StringifyState(false).appendPredicate(predicate).toString(),
       sign.getLine(0),
       sign.getLine(2),
       sign.getLine(3),
@@ -40,8 +41,8 @@ public record PredicateData(
 
   public static PredicateData makeUpdate(ItemPredicate predicate, PredicateData previous) {
     return new PredicateData(
-      predicate.stringify(true),
-      predicate.stringify(false),
+      new StringifyState(true).appendPredicate(predicate).toString(),
+      new StringifyState(false).appendPredicate(predicate).toString(),
       previous.signLine1,
       previous.signLine3,
       previous.signLine4,
