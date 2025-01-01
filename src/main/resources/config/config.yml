@@ -16,3 +16,29 @@ commands:
     name: 'pipepredicate'
     aliases:
       - pipr
+
+playerMessages:
+  manualEditWhileInPredicateMode: '@{MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateUsage: |
+    actions_list = iter_cat(action_names, (action) => @{MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-PREFIX} & action, @{MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-SEPARATOR})
+    @{MESSAGE-COMMAND-PIPE-PREDICATE-USAGE(prefix=lut["MESSAGE_PREFIX"])}
+  commandPipePredicateNoPiston: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateNoSign: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateNoPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateEmptyPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateRemoveSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSetSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateGetPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateGetPredicateHover: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateGetError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateReloadSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateReloadFailure: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE(prefix=lut["MESSAGE_PREFIX"])}'
+
+  missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
+  missingPermissionPipePredicateRead: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ(prefix=lut["MESSAGE_PREFIX"])}'
+  missingPermissionPipePredicateModify: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY(prefix=lut["MESSAGE_PREFIX"])}'
+  missingPermissionPipePredicateReload: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD(prefix=lut["MESSAGE_PREFIX"])}'
+
+# File-global lookup table
+lut:
+  MESSAGE_PREFIX: '@{MESSAGE-PREFIX}'

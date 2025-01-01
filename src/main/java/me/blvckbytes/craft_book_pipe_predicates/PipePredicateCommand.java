@@ -1,5 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
@@ -27,6 +28,8 @@ import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
+  // TODO: Check if the user can edit the sign (build-permissions) before allowing to modify
+
   private final PredicateDataHandler dataHandler;
   private final PredicateHelper predicateHelper;
   private final TranslationLanguage language;
@@ -52,95 +55,106 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
     if (!(sender instanceof Player player))
       return false;
 
+    if (!CommandAction.canExecuteAny(sender)) {
+      config.rootSection.playerMessages.missingPermissionPipePredicateCommand.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      return false;
+    }
+
     var actionFilter = CommandAction.getPermissionFilterFor(sender);
     NormalizedConstant<CommandAction> normalizedAction;
 
     if (args.length == 0 || (normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter)) == null) {
-      player.sendMessage("§cUsage: /" + label + " <" + CommandAction.matcher.createCompletions(null, actionFilter) + "> [expression]");
+      config.rootSection.playerMessages.commandPipePredicateUsage.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("label", label)
+          .withStaticVariable("action_names", CommandAction.matcher.createCompletions(null, actionFilter))
+          .build()
+      );
       return true;
     }
 
     var pistonBlock = BlockUtility.resolvePistonBlock(player.getTargetBlock(null, 5));
 
     if (pistonBlock == null) {
-      player.sendMessage("§cPlease look at a pipe-output (container, piston or sign)");
+      config.rootSection.playerMessages.commandPipePredicateNoPiston.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return true;
     }
 
     var pistonSign = BlockUtility.getPistonSign(pistonBlock);
 
     if (pistonSign == null) {
-      player.sendMessage("§cCould not locate pipe-sign");
+      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return true;
     }
 
     switch (normalizedAction.constant) {
       case REMOVE -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
-          sender.sendMessage("§cYou do not have permission to modify pipe-predicates!");
+          config.rootSection.playerMessages.missingPermissionPipePredicateModify.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
         }
 
         PredicateData predicateData;
 
         if ((predicateData = dataHandler.remove(pistonSign)) == null) {
-          player.sendMessage("§cHad no predicate stored");
+          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
           return true;
         }
 
         predicateData.restoreLines(pistonSign);
 
-        player.sendMessage("§aPredicate removed successfully");
+        config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
-      case GET -> {
+      case GET_ENTERED, GET_EXPANDED -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender)) {
-          sender.sendMessage("§cYou do not have permission to read pipe-predicates!");
+          config.rootSection.playerMessages.missingPermissionPipePredicateRead.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
         }
 
         var predicateData = dataHandler.access(pistonSign);
 
         if (predicateData == null) {
-          player.sendMessage("§cThere's currently no predicate stored on this pipe");
+          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
           return true;
         }
 
-        player.sendMessage("§8§m------------------------------");
+        if (predicateData.parseException() != null) {
+          config.rootSection.playerMessages.commandPipePredicateGetError.sendMessage(
+            player,
+            config.rootSection.getBaseEnvironment()
+              .withStaticVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
+              .build()
+          );
+        }
+
+        var isRequestingExpanded = normalizedAction.constant == CommandAction.GET_EXPANDED;
+        var requestedPredicate = isRequestingExpanded ? predicateData.expandedPredicate() : predicateData.tokensPredicate();
 
         player.spigot().sendMessage(
-          new ComponentBuilder("§7Current token predicate: ")
-            .append(
-              new ComponentBuilder("§a" + predicateData.tokensPredicate())
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + label + " set " + predicateData.tokensPredicate()))
-                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§aClick to suggest").create()))
-                .create()
+          new ComponentBuilder(
+            config.rootSection.playerMessages.commandPipePredicateGetPredicate.asScalar(
+              ScalarType.STRING,
+              config.rootSection.getBaseEnvironment()
+                .withStaticVariable("predicate", requestedPredicate)
+                .build()
             )
+          )
+            .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + label + " set " + requestedPredicate))
+            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
+              config.rootSection.playerMessages.commandPipePredicateGetPredicateHover.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment)
+            ).create()))
             .create()
         );
 
-        player.spigot().sendMessage(
-          new ComponentBuilder("§7Current expanded predicate: ")
-            .append(
-              new ComponentBuilder("§a" + predicateData.expandedPredicate())
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + label + " set " + predicateData.expandedPredicate()))
-                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§aClick to suggest").create()))
-                .create()
-            )
-            .create()
-        );
-
-        if (predicateData.parseException() != null)
-          player.sendMessage("§7Error: §c" + predicateHelper.createExceptionMessage(predicateData.parseException()));
-
-        player.sendMessage("§8§m------------------------------");
         return true;
       }
 
       case SET -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
-          sender.sendMessage("§cYou do not have permission to modify pipe-predicates!");
+          config.rootSection.playerMessages.missingPermissionPipePredicateModify.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
         }
 
@@ -155,7 +169,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
         }
 
         if (predicate == null) {
-          player.sendMessage("§cPlease provide a non-empty predicate");
+          config.rootSection.playerMessages.commandPipePredicateEmptyPredicate.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return true;
         }
 
@@ -175,23 +189,28 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
         dataHandler.store(newPredicateData, pistonSign);
 
-        player.sendMessage("§7Set predicate: §a" + new StringifyState(true).appendPredicate(predicate));
+        config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
+          sender,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicate))
+            .build()
+        );
         return true;
       }
       case RELOAD -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)) {
-          sender.sendMessage("§cYou do not have permission to reload the plugin!");
+          config.rootSection.playerMessages.missingPermissionPipePredicateReload.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
         }
 
         try {
           this.config.reload();
 
-          sender.sendMessage("§aPlugin successfully reloaded.");
+          config.rootSection.playerMessages.commandPipePredicateReloadSuccess.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         } catch (Exception e) {
           logger.log(Level.SEVERE, "An error occurred while trying to reload the config", e);
 
-          sender.sendMessage("§cAn error occurred while trying to reload the plugin! Check out the console for more details.");
+          config.rootSection.playerMessages.commandPipePredicateReloadFailure.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         }
 
         return true;
@@ -203,6 +222,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
   @Override
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     if (!(sender instanceof Player player))
+      return null;
+
+    if (!CommandAction.canExecuteAny(sender))
       return null;
 
     var actionFilter = CommandAction.getPermissionFilterFor(sender);

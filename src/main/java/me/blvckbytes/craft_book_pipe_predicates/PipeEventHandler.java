@@ -1,6 +1,8 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
 import com.sk89q.craftbook.mechanics.pipe.PipeFilterEvent;
+import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 import org.bukkit.event.EventHandler;
@@ -14,9 +16,11 @@ import java.util.*;
 public class PipeEventHandler implements Listener {
 
   private final PredicateDataHandler dataHandler;
+  private final ConfigKeeper<MainSection> config;
 
-  public PipeEventHandler(PredicateDataHandler dataHandler) {
+  public PipeEventHandler(PredicateDataHandler dataHandler, ConfigKeeper<MainSection> config) {
     this.dataHandler = dataHandler;
+    this.config = config;
   }
 
   @EventHandler(priority = EventPriority.LOWEST)
@@ -30,7 +34,7 @@ public class PipeEventHandler implements Listener {
       return;
 
     event.setCancelled(true);
-    event.getPlayer().sendMessage("§cPlease remove predicate mode before trying to manually edit the pipe");
+    config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer(), config.rootSection.builtBaseEnvironment);
   }
 
   @EventHandler

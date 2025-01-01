@@ -8,6 +8,7 @@ import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 public class MainSection extends AConfigSection {
 
   public CommandsSection commands;
+  public PlayerMessagesSection playerMessages;
 
   public MainSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

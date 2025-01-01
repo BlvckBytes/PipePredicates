@@ -18,8 +18,6 @@ import java.util.logging.Level;
 
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
-  // TODO: Add all various plugin-wide values to the configuration
-
   @Override
   public void onEnable() {
     var logger = getLogger();
@@ -43,7 +41,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var dataHandler = new PredicateDataHandler(this, predicateHelper, language);
 
-      var pipeEventHandler = new PipeEventHandler(dataHandler);
+      var pipeEventHandler = new PipeEventHandler(dataHandler, config);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
@@ -61,6 +59,8 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       updateCommands.run();
       config.registerReloadListener(updateCommands);
+
+      Bukkit.getServer().getPluginManager().registerEvents(new CommandSendListener(this, config), this);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Could not initialize plugin", e);
       Bukkit.getPluginManager().disablePlugin(this);

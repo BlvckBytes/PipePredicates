@@ -5,7 +5,8 @@ import me.blvckbytes.syllables_matcher.EnumPredicate;
 import org.bukkit.command.CommandSender;
 
 public enum CommandAction {
-  GET,
+  GET_ENTERED,
+  GET_EXPANDED,
   SET,
   REMOVE,
   RELOAD,
@@ -13,10 +14,18 @@ public enum CommandAction {
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
 
+  public static boolean canExecuteAny(CommandSender sender) {
+    return (
+      PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender) ||
+      PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender) ||
+      PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)
+    );
+  }
+
   public static EnumPredicate<CommandAction> getPermissionFilterFor(CommandSender sender) {
     return value -> (
       switch (value.constant) {
-        case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
+        case GET_ENTERED, GET_EXPANDED -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
         case SET, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
       }
