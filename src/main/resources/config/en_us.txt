@@ -6,6 +6,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-SEPARATOR &7, \
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                  {prefix}&cUsage: /{label} <{actions_list}&c> [&epredicate&c]
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON              {prefix}&cCould not locate an output-piston corresponding to the currently looked-at block!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                {prefix}&cThe corresponding output-piston has no valid pipe-sign attached to it!
+MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN       {prefix}&cYou have no permission to change this output-piston's sign!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE           {prefix}&cThe corresponding output-piston is not currently in predicate-mode!
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE        {prefix}&cPlease only input a valid, non-empty predicate!
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS         {prefix}&aSuccessfully removed &7the corresponding output-piston's predicate!

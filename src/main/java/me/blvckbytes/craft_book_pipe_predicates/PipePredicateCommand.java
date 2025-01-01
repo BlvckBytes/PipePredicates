@@ -28,9 +28,8 @@ import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
-  // TODO: Check if the user can edit the sign (build-permissions) before allowing to modify
-
   private final PredicateDataHandler dataHandler;
+  private final PipeEventHandler pipeEventHandler;
   private final PredicateHelper predicateHelper;
   private final TranslationLanguage language;
   private final ConfigKeeper<MainSection> config;
@@ -38,12 +37,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
   public PipePredicateCommand(
     PredicateDataHandler dataHandler,
+    PipeEventHandler pipeEventHandler,
     PredicateHelper predicateHelper,
     TranslationLanguage language,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
     this.dataHandler = dataHandler;
+    this.pipeEventHandler = pipeEventHandler;
     this.predicateHelper = predicateHelper;
     this.language = language;
     this.config = config;
@@ -86,6 +87,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
     if (pistonSign == null) {
       config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return true;
+    }
+
+    if (!pipeEventHandler.canEditSign(player, pistonSign)) {
+      config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      return false;
     }
 
     switch (normalizedAction.constant) {

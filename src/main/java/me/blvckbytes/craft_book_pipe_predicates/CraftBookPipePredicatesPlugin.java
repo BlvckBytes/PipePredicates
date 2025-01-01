@@ -46,7 +46,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
       var commandUpdater = new CommandUpdater(this);
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, predicateHelper, language, config, logger);
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, language, config, logger);
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
 
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);
