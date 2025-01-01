@@ -29,7 +29,3 @@ whatsoever, as stored predicate-strings are parsed once and cached until the cor
 garbage-collected again. Parsed predicates are naturally depicted as an Abstract Syntax Tree, which
 arguably executes even faster than standard filters within the same realm of functionality; complex
 filters may take a few more nanoseconds, :).
-
-## TODOs
-
-- Detect version of CraftBook and disable this plugin if the newly added event is not yet supported
