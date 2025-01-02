@@ -135,17 +135,34 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
 
         var isRequestingExpanded = normalizedAction.constant == CommandAction.GET_EXPANDED;
         var requestedPredicate = isRequestingExpanded ? predicateData.expandedPredicate() : predicateData.tokensPredicate();
+        var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
+        var isDefaultPredicateLanguage = predicateData.predicateLanguage().equals(config.rootSection.defaultPredicateLanguage);
+
+        var setCommand = "/" + label + " ";
+
+        if (isDefaultPredicateLanguage)
+          setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET);
+        else
+          setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET_LOCALIZED) + " " + predicateLanguageName;
+
+        setCommand += " " + requestedPredicate;
 
         player.spigot().sendMessage(
           new ComponentBuilder(
-            config.rootSection.playerMessages.commandPipePredicateGetPredicate.asScalar(
+            (
+              isDefaultPredicateLanguage
+                ? config.rootSection.playerMessages.commandPipePredicateGetPredicateDefaultLanguage
+                : config.rootSection.playerMessages.commandPipePredicateGetPredicateOtherLanguage
+            )
+            .asScalar(
               ScalarType.STRING,
               config.rootSection.getBaseEnvironment()
                 .withStaticVariable("predicate", requestedPredicate)
+                .withStaticVariable("predicate_language", predicateLanguageName)
                 .build()
             )
           )
-            .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + label + " set " + requestedPredicate))
+            .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, setCommand))
             .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
               config.rootSection.playerMessages.commandPipePredicateGetPredicateHover.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment)
             ).create()))

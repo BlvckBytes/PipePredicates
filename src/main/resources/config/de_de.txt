@@ -9,9 +9,11 @@ MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cDer zuge
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cDir fehlen die nötigen Rechte um das Schild dieses Ausgangskolbens zu editieren!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cDer zugehörige Ausgangskolben befindet sich aktuell nicht im Prädikat-Modus!
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cBitte gib nur valide, nicht-leere Prädikate ein!
-MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&7Das Prädikat des zugehörigen Ausgangskolbens wurde &aerfolgreich gesetzt&7!
+MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&7Das Prädikat des zugehörigen Ausgangskolbens wurde &aerfolgreich entfernt&7!
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&7Das Prädikat des zugehörigen Ausgangskolbens wurde &aerfolgreich gesetzt&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-UNKNOWN-LANGUAGE {prefix}&cDie Eingabe &4{input} &crepräsentiert keine bekannte Sprache!
-MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE                  {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-DEFAULT-LANGUAGE {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-OTHER-LANGUAGE   {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7, Sprache: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aKlicke auf diese Nachricht, um einen Editierungsbefehl vorgeschlagen zu bekommen.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7Der zugehörige Ausgangskolben befindet sich im Fehlerzustand: &c{predicate_error}
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS                 {prefix}&7Die Konfiguration des Plugins wurde &aerfolgreich neu geladen&7!
