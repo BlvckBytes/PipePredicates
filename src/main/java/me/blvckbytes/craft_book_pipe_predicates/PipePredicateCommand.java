@@ -182,9 +182,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
           language = languageSelection.constant;
         }
 
-        // TODO: Put default-language into config
         else
-          language = TranslationLanguage.ENGLISH_US;
+          language = config.rootSection.defaultPredicateLanguage;
 
         ItemPredicate predicate;
 
@@ -282,9 +281,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
       language = languageSelection.constant;
     }
 
-    // TODO: Put default-language into config
     else
-      language = TranslationLanguage.ENGLISH_US;
+      language = config.rootSection.defaultPredicateLanguage;
 
     try {
       var tokens = predicateHelper.parseTokens(args, predicateArgsOffset);
