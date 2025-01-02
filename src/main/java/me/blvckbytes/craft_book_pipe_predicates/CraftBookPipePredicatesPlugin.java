@@ -7,7 +7,6 @@ import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
-import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.Listener;
@@ -36,17 +35,16 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       if (parserPlugin == null)
         throw new IllegalStateException("Depending on ItemPredicateParser to be successfully loaded");
 
-      var language = TranslationLanguage.ENGLISH_US;
       var predicateHelper = parserPlugin.getPredicateHelper();
 
-      var dataHandler = new PredicateDataHandler(this, predicateHelper, language);
+      var dataHandler = new PredicateDataHandler(this, predicateHelper);
 
       var pipeEventHandler = new PipeEventHandler(dataHandler, config);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
       var commandUpdater = new CommandUpdater(this);
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, language, config, logger);
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, config, logger);
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
 
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);

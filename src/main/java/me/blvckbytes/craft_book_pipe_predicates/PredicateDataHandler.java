@@ -5,6 +5,7 @@ import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Sign;
@@ -19,17 +20,16 @@ public class PredicateDataHandler {
 
   private final Map<Location, PredicateData> dataCache;
   private final PredicateHelper predicateHelper;
-  private final TranslationLanguage language;
-  private final NamespacedKey tokensPredicateKey, expandedPredicateKey, signLine1Key, signLine3Key, signLine4Key;
+  private final NamespacedKey tokensPredicateKey, expandedPredicateKey, predicateLanguageKey, signLine1Key, signLine3Key, signLine4Key;
 
-  public PredicateDataHandler(Plugin plugin, PredicateHelper predicateHelper, TranslationLanguage language) {
+  public PredicateDataHandler(Plugin plugin, PredicateHelper predicateHelper) {
     this.dataCache = new HashMap<>();
 
     this.predicateHelper = predicateHelper;
-    this.language = language;
 
     this.tokensPredicateKey   = new NamespacedKey(plugin, "tokens-predicate");
     this.expandedPredicateKey = new NamespacedKey(plugin, "expanded-predicate");
+    this.predicateLanguageKey = new NamespacedKey(plugin, "predicate-language");
     this.signLine1Key = new NamespacedKey(plugin, "sign-line-1");
     this.signLine3Key = new NamespacedKey(plugin, "sign-line-3");
     this.signLine4Key = new NamespacedKey(plugin, "sign-line-4");
@@ -39,11 +39,12 @@ public class PredicateDataHandler {
     var container = sign.getPersistentDataContainer();
 
     if (data.parsedPredicate() != null)
-      container.set(expandedPredicateKey, PersistentDataType.STRING, new StringifyState(true).appendPredicate(data.parsedPredicate()).toString());
+      container.set(expandedPredicateKey, PersistentDataType.STRING, new StringifyState(false).appendPredicate(data.parsedPredicate()).toString());
     else
       container.remove(expandedPredicateKey);
 
     container.set(tokensPredicateKey, PersistentDataType.STRING, data.tokensPredicate());
+    container.set(predicateLanguageKey, PersistentDataType.STRING, data.predicateLanguage().name());
     container.set(signLine1Key, PersistentDataType.STRING, data.signLine1());
     container.set(signLine3Key, PersistentDataType.STRING, data.signLine3());
     container.set(signLine4Key, PersistentDataType.STRING, data.signLine4());
@@ -63,6 +64,7 @@ public class PredicateDataHandler {
 
     container.remove(expandedPredicateKey);
     container.remove(tokensPredicateKey);
+    container.remove(predicateLanguageKey);
     container.remove(signLine1Key);
     container.remove(signLine3Key);
     container.remove(signLine4Key);
@@ -77,8 +79,10 @@ public class PredicateDataHandler {
   public @Nullable PredicateData access(Sign sign) {
     PredicateData result;
 
-    if ((result = dataCache.get(sign.getLocation())) != null)
+    if ((result = dataCache.get(sign.getLocation())) != null) {
+      updateSignErrorMode(sign, result);
       return result;
+    }
 
     var container = sign.getPersistentDataContainer();
 
@@ -88,16 +92,25 @@ public class PredicateDataHandler {
       return null;
 
     var tokensPredicate = container.get(tokensPredicateKey, PersistentDataType.STRING);
+    var predicateLanguageName = container.get(predicateLanguageKey, PersistentDataType.STRING);
     var signLine1 = container.get(signLine1Key, PersistentDataType.STRING);
     var signLine3 = container.get(signLine3Key, PersistentDataType.STRING);
     var signLine4 = container.get(signLine4Key, PersistentDataType.STRING);
+
+    TranslationLanguage predicateLanguage;
+
+    try {
+      predicateLanguage = TranslationLanguage.valueOf(predicateLanguageName);
+    } catch (Exception e) {
+      predicateLanguage = TranslationLanguage.ENGLISH_US;
+    }
 
     ItemPredicate predicate = null;
     ItemPredicateParseException exception = null;
 
     try {
       var tokens = predicateHelper.parseTokens(expandedPredicate);
-      predicate = predicateHelper.parsePredicate(language, tokens);
+      predicate = predicateHelper.parsePredicate(predicateLanguage, tokens);
     } catch (ItemPredicateParseException e) {
       exception = e;
     }
@@ -105,6 +118,7 @@ public class PredicateDataHandler {
     result = new PredicateData(
       tokensPredicate == null ? "" : tokensPredicate,
       expandedPredicate,
+      predicateLanguage,
       signLine1 == null ? "" : signLine1,
       signLine3 == null ? "" : signLine3,
       signLine4 == null ? "" : signLine4,
@@ -113,6 +127,25 @@ public class PredicateDataHandler {
 
     dataCache.put(sign.getLocation(), result);
 
+    updateSignErrorMode(sign, result);
     return result;
+  }
+
+  private void updateSignErrorMode(Sign pistonSign, PredicateData predicateData) {
+    var firstLineContent = pistonSign.getLine(0);
+
+    if (predicateData.parsedPredicate() == null) {
+      if (!firstLineContent.startsWith("§" + MarkerConstants.PREDICATE_ERROR_COLOR)) {
+        pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_ERROR_COLOR + ChatColor.stripColor(firstLineContent));
+        pistonSign.update(true, false);
+      }
+
+      return;
+    }
+
+    if (!firstLineContent.startsWith("§" + MarkerConstants.PREDICATE_OK_COLOR)) {
+      pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + ChatColor.stripColor(firstLineContent));
+      pistonSign.update(true, false);
+    }
   }
 }

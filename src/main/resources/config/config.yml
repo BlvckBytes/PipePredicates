@@ -29,6 +29,7 @@ playerMessages:
   commandPipePredicateEmptyPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateRemoveSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSetSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSetLocalizedUnknownLanguage: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-UNKNOWN-LANGUAGE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateGetPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateGetPredicateHover: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateGetError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
