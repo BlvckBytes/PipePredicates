@@ -41,6 +41,12 @@ playerMessages:
   missingPermissionPipePredicateModify: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY(prefix=lut["MESSAGE_PREFIX"])}'
   missingPermissionPipePredicateReload: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD(prefix=lut["MESSAGE_PREFIX"])}'
 
+# Fully qualified names of classes which represent listeners for the SignChangeEvent - an event
+# called to determine whether the player has the privileges to alter a pipe's state.
+fakeEventSkippedListeners:
+  # Avoid the "Pipe created!" message; this listener has no say in protection either
+  - com.sk89q.craftbook.mechanics.pipe.Pipes
+
 # File-global lookup table
 lut:
   MESSAGE_PREFIX: '@{MESSAGE-PREFIX}'

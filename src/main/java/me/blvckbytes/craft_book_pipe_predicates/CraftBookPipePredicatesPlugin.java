@@ -39,7 +39,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var dataHandler = new PredicateDataHandler(this, predicateHelper);
 
-      var pipeEventHandler = new PipeEventHandler(dataHandler, config);
+      var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
