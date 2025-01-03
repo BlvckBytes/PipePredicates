@@ -182,6 +182,13 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
         TranslationLanguage language;
 
         if (normalizedAction.constant == CommandAction.SET_LOCALIZED) {
+          if (args.length < 2) {
+            config.rootSection.playerMessages.commandPipePredicateSetLocalizedMissingLanguage.sendMessage(
+              sender, config.rootSection.builtBaseEnvironment
+            );
+            return true;
+          }
+
           predicateArgsOffset = 2;
 
           var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);

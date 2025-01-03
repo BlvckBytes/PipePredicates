@@ -3,7 +3,7 @@ MESSAGE-PREFIX                              &7[&6PipePredicates&7] \
 MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE                   {prefix}&cDu kannst das Schild im Prädikat-Modus nicht manuell bearbeiten!
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-PREFIX            &e
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-SEPARATOR         &7, \
-MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cBenutze: /{label} <{actions_list}&c> [&ePrädikat&c]
+MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cBenutze: /{label} <{actions_list}&c> [&ePrädikat&c/&eSprache&c] [&ePrädikat&c]
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cKonnte keinen zum aktuell angesehenen Block zugehörigen Ausgangskolben auffinden.
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cDer zugehörige Ausgangskolben trägt kein valides Pipe-Schild an sich!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cDir fehlen die nötigen Rechte um das Schild dieses Ausgangskolbens zu editieren!
@@ -11,6 +11,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cDer zuge
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cBitte gib nur valide, nicht-leere Prädikate ein!
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&7Das Prädikat des zugehörigen Ausgangskolbens wurde &aerfolgreich entfernt&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&7Das Prädikat des zugehörigen Ausgangskolbens wurde &aerfolgreich gesetzt&7!
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-MISSING-LANGUAGE {prefix}&cBitte gib die Sprache des Prädikats als nächsten Parameter an!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-UNKNOWN-LANGUAGE {prefix}&cDie Eingabe &4{input} &crepräsentiert keine bekannte Sprache!
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-DEFAULT-LANGUAGE {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-OTHER-LANGUAGE   {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7, Sprache: &a{predicate_language}&7.

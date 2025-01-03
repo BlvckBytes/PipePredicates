@@ -15,6 +15,7 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateEmptyPredicate;
   public BukkitEvaluable commandPipePredicateRemoveSuccess;
   public BukkitEvaluable commandPipePredicateSetSuccess;
+  public BukkitEvaluable commandPipePredicateSetLocalizedMissingLanguage;
   public BukkitEvaluable commandPipePredicateSetLocalizedUnknownLanguage;
   public BukkitEvaluable commandPipePredicateGetPredicateDefaultLanguage;
   public BukkitEvaluable commandPipePredicateGetPredicateOtherLanguage;
