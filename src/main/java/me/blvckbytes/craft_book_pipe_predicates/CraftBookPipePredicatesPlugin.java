@@ -17,6 +17,8 @@ import java.util.logging.Level;
 
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
+  // TODO: Remove version-detection (too flaky) and check for presence of required event-class
+
   @Override
   public void onEnable() {
     var logger = getLogger();
@@ -44,7 +46,10 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
       var commandUpdater = new CommandUpdater(this);
+
       var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, config, logger);
+      getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
+
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
 
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);

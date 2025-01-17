@@ -8,11 +8,14 @@ MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cCould no
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cThe corresponding output-piston has no valid pipe-sign attached to it!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cYou have no permission to change this output-piston's sign!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cThe corresponding output-piston is not currently in predicate-mode!
+MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR                {prefix}&cMalformed predicate: {error_message}
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cPlease only input a valid, non-empty predicate!
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&aSuccessfully removed &7the corresponding output-piston's predicate!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&aSuccessfully set &7the corresponding output-piston's predicate!
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&aSuccessfully set &7the corresponding output-piston's predicate to &a{predicate}&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-MISSING-LANGUAGE {prefix}&cPlease provide a predicate-language as the next parameter!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-LOCALIZED-UNKNOWN-LANGUAGE {prefix}&cThe input &4{input} &cdoes not resemble a known language!
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-MANY-ENTERED               {prefix}&7Set the predicate &a{predicate} &7by interacting with output-pistons. Execute the command again in order to &aleave &7this mode.
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-MANY-EXITED                {prefix}&7The set-mode has been &aexited&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-DEFAULT-LANGUAGE {prefix}&7Currently active predicate: &a{predicate}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-OTHER-LANGUAGE   {prefix}&7Currently active predicate: &a{predicate}&7, language: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aClick onto this line to suggest an edit-command.
