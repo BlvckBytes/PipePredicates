@@ -74,7 +74,7 @@ public class PipeEventHandler implements Listener {
   @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
     var pistonBlock = event.getBlock();
-    var pistonSign = BlockUtility.getPistonSign(pistonBlock);
+    var pistonSign = BlockUtility.getPistonSignAndPossiblyInitialize(pistonBlock, false);
 
     if (pistonSign == null)
       return;

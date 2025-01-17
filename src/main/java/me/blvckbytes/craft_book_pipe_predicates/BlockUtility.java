@@ -22,20 +22,37 @@ public class BlockUtility {
     BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST
   };
 
-  public static @Nullable Sign getPistonSign(Block pistonBlock) {
+  public static @Nullable Sign getPistonSignAndPossiblyInitialize(Block pistonBlock, boolean allowInitialization) {
     for (var face : PISTON_SIGN_FACES) {
       var faceBlock = pistonBlock.getRelative(face);
 
       if (!(faceBlock.getState() instanceof Sign sign))
         continue;
 
-      if (!sign.getLine(1).equalsIgnoreCase(MarkerConstants.PIPE_MARKER))
+      if (sign.getLine(1).equalsIgnoreCase(MarkerConstants.PIPE_MARKER))
+        return sign;
+
+      if (!allowInitialization)
         continue;
 
-      return sign;
+      if (tryInitializeBlankSign(sign))
+        return sign;
     }
 
     return null;
+  }
+
+  private static boolean tryInitializeBlankSign(Sign sign) {
+    if (!(sign.getLine(0).isBlank() && sign.getLine(1).isBlank() && sign.getLine(2).isBlank() && sign.getLine(3).isBlank()))
+      return false;
+
+    sign.setLine(0, "");
+    sign.setLine(1, MarkerConstants.PIPE_MARKER);
+    sign.setLine(2, "");
+    sign.setLine(3, "");
+    sign.update(true, false);
+
+    return true;
   }
 
   public static @Nullable Block resolvePistonBlock(Block block) {

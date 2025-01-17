@@ -8,6 +8,7 @@ public enum PluginPermission {
   PIPE_PREDICATE_COMMAND_READ("command.pipepredicate.read"),
   PIPE_PREDICATE_COMMAND_MODIFY("command.pipepredicate.modify"),
   PIPE_PREDICATE_COMMAND_RELOAD("command.pipepredicate.reload"),
+  AUTO_INITIALIZE_SIGNS("auto-init-signs"),
   ;
 
   private static final String PREFIX = "craftbookpipepredicates";

@@ -79,7 +79,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter {
       return true;
     }
 
-    var pistonSign = BlockUtility.getPistonSign(pistonBlock);
+    var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(player);
+    var pistonSign = BlockUtility.getPistonSignAndPossiblyInitialize(pistonBlock, allowInitialize);
 
     if (pistonSign == null) {
       config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player, config.rootSection.builtBaseEnvironment);
