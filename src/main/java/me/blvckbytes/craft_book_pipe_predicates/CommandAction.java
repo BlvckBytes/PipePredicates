@@ -2,9 +2,10 @@ package me.blvckbytes.craft_book_pipe_predicates;
 
 import me.blvckbytes.syllables_matcher.EnumMatcher;
 import me.blvckbytes.syllables_matcher.EnumPredicate;
+import me.blvckbytes.syllables_matcher.MatchableEnum;
 import org.bukkit.command.CommandSender;
 
-public enum CommandAction {
+public enum CommandAction implements MatchableEnum {
   GET_ENTERED,
   GET_EXPANDED,
   SET,
