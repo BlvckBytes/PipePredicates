@@ -110,13 +110,16 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    if (normalizedAction.constant == CommandAction.SET_MANY || normalizedAction.constant == CommandAction.SET_MANY_LOCALIZED) {
+    // TODO: Handle this in a different way - having a separate sub-command needlessly clutters the experience
+    //       Possible idea: don't use ray-tracing, but make users interact with the target-sign, and allow to edit multiple
+    //       while in sneak-mode: sneak-on activates MULTI, sneak-off exits the mode.
+    if (normalizedAction.constant == CommandAction.SET_MANY) {
       if (setManyPredicateByPlayerId.remove(player.getUniqueId()) != null) {
         config.rootSection.playerMessages.commandPipePredicateSetManyExited.sendMessage(player, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
-      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, normalizedAction.constant == CommandAction.SET_MANY_LOCALIZED);
+      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
 
       if (predicateAndLanguage == null)
         return true;
@@ -159,7 +162,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
-      case GET_ENTERED, GET_EXPANDED -> {
+      case GET -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender)) {
           config.rootSection.playerMessages.missingPermissionPipePredicateRead.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
@@ -181,31 +184,17 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           );
         }
 
-        var isRequestingExpanded = normalizedAction.constant == CommandAction.GET_EXPANDED;
-        var requestedPredicate = isRequestingExpanded ? predicateData.expandedPredicate() : predicateData.tokensPredicate();
         var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
-        var isDefaultPredicateLanguage = predicateData.predicateLanguage().equals(config.rootSection.defaultPredicateLanguage);
-
-        var setCommand = "/" + label + " ";
-
-        if (isDefaultPredicateLanguage)
-          setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET);
-        else
-          setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET_LOCALIZED) + " " + predicateLanguageName;
-
-        setCommand += " " + requestedPredicate;
+        var predicateValue = predicateData.tokensPredicate();
+        var setCommand = "/" + label + " " + CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateLanguageName + " " + predicateValue;
 
         player.spigot().sendMessage(
           new ComponentBuilder(
-            (
-              isDefaultPredicateLanguage
-                ? config.rootSection.playerMessages.commandPipePredicateGetPredicateDefaultLanguage
-                : config.rootSection.playerMessages.commandPipePredicateGetPredicateOtherLanguage
-            )
+            config.rootSection.playerMessages.commandPipePredicateGetPredicate
             .asScalar(
               ScalarType.STRING,
               config.rootSection.getBaseEnvironment()
-                .withStaticVariable("predicate", requestedPredicate)
+                .withStaticVariable("predicate", predicateValue)
                 .withStaticVariable("predicate_language", predicateLanguageName)
                 .build()
             )
@@ -220,13 +209,13 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
-      case SET, SET_LOCALIZED -> {
+      case SET -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
           config.rootSection.playerMessages.missingPermissionPipePredicateModify.sendMessage(sender, config.rootSection.builtBaseEnvironment);
           return false;
         }
 
-        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, normalizedAction.constant == CommandAction.SET_LOCALIZED);
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
 
         if (predicateAndLanguage == null)
           return true;
@@ -254,40 +243,24 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     var normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
 
-    if (
-      normalizedAction == null ||
-      (
-        normalizedAction.constant != CommandAction.SET
-        && normalizedAction.constant != CommandAction.SET_LOCALIZED
-        && normalizedAction.constant != CommandAction.SET_MANY
-        && normalizedAction.constant != CommandAction.SET_MANY_LOCALIZED
-      )
-    ) {
+    if (normalizedAction == null || normalizedAction.constant != CommandAction.SET) {
       return null;
     }
 
-    int predicateArgsOffset = 1;
     TranslationLanguage language;
 
-    if (normalizedAction.constant == CommandAction.SET_LOCALIZED || normalizedAction.constant == CommandAction.SET_MANY_LOCALIZED) {
-      predicateArgsOffset = 2;
+    if (args.length == 2)
+      return TranslationLanguage.matcher.createCompletions(args[1]);
 
-      if (args.length == 2)
-        return TranslationLanguage.matcher.createCompletions(args[1]);
+    var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
 
-      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
+    if (languageSelection == null)
+      return null;
 
-      if (languageSelection == null)
-        return null;
-
-      language = languageSelection.constant;
-    }
-
-    else
-      language = config.rootSection.defaultPredicateLanguage;
+    language = languageSelection.constant;
 
     try {
-      var tokens = predicateHelper.parseTokens(args, predicateArgsOffset);
+      var tokens = predicateHelper.parseTokens(args, 2);
       var completions = predicateHelper.createCompletion(language, tokens);
 
       if (completions.expandedPreviewOrError() != null)
@@ -414,37 +387,28 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     );
   }
 
-  private @Nullable ItemPredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args, boolean localized) {
-    int predicateArgsOffset = 1;
-    TranslationLanguage language;
-
-    if (localized) {
-      if (args.length < 2) {
-        config.rootSection.playerMessages.commandPipePredicateSetLocalizedMissingLanguage.sendMessage(
-          executor, config.rootSection.builtBaseEnvironment
-        );
-        return null;
-      }
-
-      predicateArgsOffset = 2;
-
-      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
-
-      if (languageSelection == null) {
-        config.rootSection.playerMessages.commandPipePredicateSetLocalizedUnknownLanguage.sendMessage(
-          executor,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("input", args[1])
-            .build()
-        );
-        return null;
-      }
-
-      language = languageSelection.constant;
+  private @Nullable ItemPredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
+    if (args.length < 2) {
+      config.rootSection.playerMessages.commandPipePredicateSetMissingLanguage.sendMessage(
+        executor, config.rootSection.builtBaseEnvironment
+      );
+      return null;
     }
 
-    else
-      language = config.rootSection.defaultPredicateLanguage;
+    var predicateArgsOffset = 2;
+    var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
+
+    if (languageSelection == null) {
+      config.rootSection.playerMessages.commandPipePredicateSetUnknownLanguage.sendMessage(
+        executor,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("input", args[1])
+          .build()
+      );
+      return null;
+    }
+
+    var language = languageSelection.constant;
 
     ItemPredicate predicate;
 
