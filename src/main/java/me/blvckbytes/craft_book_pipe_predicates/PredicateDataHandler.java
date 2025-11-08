@@ -1,5 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
@@ -20,12 +22,18 @@ public class PredicateDataHandler {
 
   private final Map<Location, PredicateData> dataCache;
   private final PredicateHelper predicateHelper;
+  private final ConfigKeeper<MainSection> config;
   private final NamespacedKey tokensPredicateKey, expandedPredicateKey, predicateLanguageKey, signLine1Key, signLine3Key, signLine4Key;
 
-  public PredicateDataHandler(Plugin plugin, PredicateHelper predicateHelper) {
+  public PredicateDataHandler(
+    Plugin plugin,
+    PredicateHelper predicateHelper,
+    ConfigKeeper<MainSection> config
+  ) {
     this.dataCache = new HashMap<>();
 
     this.predicateHelper = predicateHelper;
+    this.config = config;
 
     this.tokensPredicateKey   = new NamespacedKey(plugin, "tokens-predicate");
     this.expandedPredicateKey = new NamespacedKey(plugin, "expanded-predicate");
@@ -102,7 +110,7 @@ public class PredicateDataHandler {
     try {
       predicateLanguage = TranslationLanguage.valueOf(predicateLanguageName);
     } catch (Exception e) {
-      predicateLanguage = TranslationLanguage.ENGLISH_US;
+      predicateLanguage = config.rootSection.defaultPredicateLanguage;
     }
 
     ItemPredicate predicate = null;

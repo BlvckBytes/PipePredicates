@@ -37,7 +37,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var predicateHelper = parserPlugin.getPredicateHelper();
 
-      var dataHandler = new PredicateDataHandler(this, predicateHelper);
+      var dataHandler = new PredicateDataHandler(this, predicateHelper, config);
 
       var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
 
