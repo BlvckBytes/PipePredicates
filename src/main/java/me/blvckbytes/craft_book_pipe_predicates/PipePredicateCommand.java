@@ -371,7 +371,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(executor);
-    var pistonSign = BlockUtility.getPistonSignAndPossiblyInitialize(pistonBlock, allowInitialize);
+    var pistonSign = BlockUtility.getPistonSign(pistonBlock, allowInitialize);
 
     if (pistonSign == null) {
       config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);
@@ -382,6 +382,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);
       return null;
     }
+
+    if (allowInitialize)
+      BlockUtility.initializeBlankSignIfApplicable(pistonSign);
 
     return pistonSign;
   }

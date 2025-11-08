@@ -22,7 +22,7 @@ public class BlockUtility {
     BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST
   };
 
-  public static @Nullable Sign getPistonSignAndPossiblyInitialize(Block pistonBlock, boolean allowInitialization) {
+  public static @Nullable Sign getPistonSign(Block pistonBlock, boolean allowBlank) {
     for (var face : PISTON_SIGN_FACES) {
       var faceBlock = pistonBlock.getRelative(face);
 
@@ -32,27 +32,31 @@ public class BlockUtility {
       if (sign.getLine(1).equalsIgnoreCase(MarkerConstants.PIPE_MARKER))
         return sign;
 
-      if (!allowInitialization)
-        continue;
-
-      if (tryInitializeBlankSign(sign))
+      if (allowBlank && isSignBlank(sign))
         return sign;
     }
 
     return null;
   }
 
-  private static boolean tryInitializeBlankSign(Sign sign) {
-    if (!(sign.getLine(0).isBlank() && sign.getLine(1).isBlank() && sign.getLine(2).isBlank() && sign.getLine(3).isBlank()))
-      return false;
+  private static boolean isSignBlank(Sign sign) {
+    for (var line : sign.getLines()) {
+      if (!line.isBlank())
+        return false;
+    }
+
+    return true;
+  }
+
+  public static void initializeBlankSignIfApplicable(Sign sign) {
+    if (!isSignBlank(sign))
+      return;
 
     sign.setLine(0, "");
     sign.setLine(1, MarkerConstants.PIPE_MARKER);
     sign.setLine(2, "");
     sign.setLine(3, "");
     sign.update(true, false);
-
-    return true;
   }
 
   public static @Nullable Block resolvePistonBlock(Block block) {
