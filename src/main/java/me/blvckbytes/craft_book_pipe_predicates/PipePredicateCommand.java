@@ -195,7 +195,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     var actionFilter = CommandAction.getPermissionFilterFor(sender);
 
     if (args.length == 1)
-      return CommandAction.matcher.createCompletions(null, actionFilter);
+      return CommandAction.matcher.createCompletions(args[0], actionFilter);
 
     var normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
 
