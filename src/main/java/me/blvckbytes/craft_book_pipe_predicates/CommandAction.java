@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 public enum CommandAction implements MatchableEnum {
   GET,
   SET,
-  SET_MANY,
   REMOVE,
   RELOAD,
   ;
@@ -27,7 +26,7 @@ public enum CommandAction implements MatchableEnum {
     return value -> (
       switch (value.constant) {
         case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
-        case SET, SET_MANY, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
+        case SET, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
       }
     );

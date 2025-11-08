@@ -3,6 +3,7 @@ package me.blvckbytes.craft_book_pipe_predicates.config;
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerMessagesSection extends AConfigSection {
 
@@ -14,12 +15,17 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateNoPredicate;
   public BukkitEvaluable commandPipePredicatePredicateError;
   public BukkitEvaluable commandPipePredicateEmptyPredicate;
+  public BukkitEvaluable commandPipePredicateRemoveInit;
   public BukkitEvaluable commandPipePredicateRemoveSuccess;
+  public BukkitEvaluable commandPipePredicateSetInit;
   public BukkitEvaluable commandPipePredicateSetSuccess;
   public BukkitEvaluable commandPipePredicateSetMissingLanguage;
   public BukkitEvaluable commandPipePredicateSetUnknownLanguage;
-  public BukkitEvaluable commandPipePredicateSetManyEntered;
-  public BukkitEvaluable commandPipePredicateSetManyExited;
+  public BukkitEvaluable commandPipePredicateInteractMultiEntered;
+  public BukkitEvaluable commandPipePredicateInteractMultiExited;
+  public @Nullable BukkitEvaluable commandPipePredicateInteractMultiActionBarSignal;
+  public BukkitEvaluable commandPipePredicateInteractExpired;
+  public BukkitEvaluable commandPipePredicateGetInit;
   public BukkitEvaluable commandPipePredicateGetPredicate;
   public BukkitEvaluable commandPipePredicateGetPredicateHover;
   public BukkitEvaluable commandPipePredicateGetError;

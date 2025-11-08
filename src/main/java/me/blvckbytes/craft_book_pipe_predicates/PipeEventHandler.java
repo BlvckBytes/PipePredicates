@@ -6,7 +6,6 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.inventory.ItemStack;
@@ -52,23 +51,6 @@ public class PipeEventHandler implements Listener {
     var fakeChangeEvent = new SignChangeEvent(sign.getBlock(), player, sign.getLines());
     callFakeEvent(fakeChangeEvent);
     return !fakeChangeEvent.isCancelled();
-  }
-
-  @EventHandler(priority = EventPriority.LOWEST)
-  public void onSignChange(SignChangeEvent event) {
-    if (!(event.getBlock().getState() instanceof Sign sign))
-      return;
-
-    if (!sign.getLine(1).equalsIgnoreCase(MarkerConstants.PIPE_MARKER))
-      return;
-
-    var predicateData = dataHandler.access(sign);
-
-    if (predicateData == null)
-      return;
-
-    event.setCancelled(true);
-    config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer(), config.rootSection.builtBaseEnvironment);
   }
 
   @EventHandler

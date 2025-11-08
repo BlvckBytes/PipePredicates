@@ -17,6 +17,8 @@ import java.util.logging.Level;
 
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
+  private int sessionTickerTaskId = -1;
+
   @Override
   public void onEnable() {
     var logger = getLogger();
@@ -48,6 +50,8 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, config, logger);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
+      sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);
+
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
 
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);
@@ -66,6 +70,12 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       logger.log(Level.SEVERE, "Could not initialize plugin", e);
       Bukkit.getPluginManager().disablePlugin(this);
     }
+  }
+
+  @Override
+  public void onDisable() {
+    if (sessionTickerTaskId >= 0)
+      Bukkit.getScheduler().cancelTask(sessionTickerTaskId);
   }
 
   private static void ensureCompatibleCraftBookVersion() {

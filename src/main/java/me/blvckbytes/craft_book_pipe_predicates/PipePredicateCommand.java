@@ -1,6 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
 import me.blvckbytes.bbconfigmapper.ScalarType;
+import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
@@ -29,6 +30,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,15 +44,13 @@ import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter, Listener {
 
-  private record ItemPredicateAndLanguage(ItemPredicate predicate, TranslationLanguage language) {}
-
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
   private final PredicateHelper predicateHelper;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final Map<UUID, ItemPredicateAndLanguage> setManyPredicateByPlayerId;
+  private final Map<UUID, PredicateInteractionSession> interactionSessionByPlayerId;
 
   public PipePredicateCommand(
     PredicateDataHandler dataHandler,
@@ -64,7 +64,30 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.predicateHelper = predicateHelper;
     this.config = config;
     this.logger = logger;
-    this.setManyPredicateByPlayerId = new HashMap<>();
+    this.interactionSessionByPlayerId = new HashMap<>();
+  }
+
+  public void tickSessions() {
+    for (var iterator = interactionSessionByPlayerId.values().iterator(); iterator.hasNext();) {
+      var session = iterator.next();
+
+      if (session.isExpired()) {
+        iterator.remove();
+        config.rootSection.playerMessages.commandPipePredicateInteractExpired.sendMessage(session.player, config.rootSection.builtBaseEnvironment);
+
+        if (session.allowMultiUse)
+          showActionBarMessage(session.player, ""); // Immediately clear action-bar signal
+
+        continue;
+      }
+
+      if (session.allowMultiUse) {
+        BukkitEvaluable message;
+
+        if ((message = config.rootSection.playerMessages.commandPipePredicateInteractMultiActionBarSignal) != null)
+          showActionBarMessage(session.player, message.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment));
+      }
+    }
   }
 
   @Override
@@ -110,38 +133,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    // TODO: Handle this in a different way - having a separate sub-command needlessly clutters the experience
-    //       Possible idea: don't use ray-tracing, but make users interact with the target-sign, and allow to edit multiple
-    //       while in sneak-mode: sneak-on activates MULTI, sneak-off exits the mode.
-    if (normalizedAction.constant == CommandAction.SET_MANY) {
-      if (setManyPredicateByPlayerId.remove(player.getUniqueId()) != null) {
-        config.rootSection.playerMessages.commandPipePredicateSetManyExited.sendMessage(player, config.rootSection.builtBaseEnvironment);
-        return true;
-      }
-
-      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
-
-      if (predicateAndLanguage == null)
-        return true;
-
-      setManyPredicateByPlayerId.put(player.getUniqueId(), predicateAndLanguage);
-
-      config.rootSection.playerMessages.commandPipePredicateSetManyEntered.sendMessage(
-        player,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate).toString())
-          .withStaticVariable("predicate_language", TranslationLanguage.matcher.getNormalizedName(predicateAndLanguage.language))
-          .build()
-      );
-
-      return true;
-    }
-
-    var pistonSign = tryResolvePistonSignFromTargetBlock(player, player.getTargetBlock(null, 5));
-
-    if (pistonSign == null)
-      return true;
-
     switch (normalizedAction.constant) {
       case REMOVE -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
@@ -149,16 +140,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           return false;
         }
 
-        PredicateData predicateData;
+        config.rootSection.playerMessages.commandPipePredicateRemoveInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
 
-        if ((predicateData = dataHandler.remove(pistonSign)) == null) {
-          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
-          return true;
-        }
-
-        predicateData.restoreLines(pistonSign);
-
-        config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, null));
         return true;
       }
 
@@ -168,44 +152,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           return false;
         }
 
-        var predicateData = dataHandler.access(pistonSign);
+        config.rootSection.playerMessages.commandPipePredicateGetInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
 
-        if (predicateData == null) {
-          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
-          return true;
-        }
-
-        if (predicateData.parseException() != null) {
-          config.rootSection.playerMessages.commandPipePredicateGetError.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
-              .build()
-          );
-        }
-
-        var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
-        var predicateValue = predicateData.tokensPredicate();
-        var setCommand = "/" + label + " " + CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateLanguageName + " " + predicateValue;
-
-        player.spigot().sendMessage(
-          new ComponentBuilder(
-            config.rootSection.playerMessages.commandPipePredicateGetPredicate
-            .asScalar(
-              ScalarType.STRING,
-              config.rootSection.getBaseEnvironment()
-                .withStaticVariable("predicate", predicateValue)
-                .withStaticVariable("predicate_language", predicateLanguageName)
-                .build()
-            )
-          )
-            .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, setCommand))
-            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-              config.rootSection.playerMessages.commandPipePredicateGetPredicateHover.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment)
-            ).create()))
-            .create()
-        );
-
+        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateGetSession(player));
         return true;
       }
 
@@ -220,7 +169,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         if (predicateAndLanguage == null)
           return true;
 
-        applyPredicateToPistonSign(player, pistonSign, predicateAndLanguage.predicate, predicateAndLanguage.language);
+        config.rootSection.playerMessages.commandPipePredicateSetInit.sendMessage(
+          sender,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
+            .build()
+        );
+
+        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, predicateAndLanguage));
         return true;
       }
 
@@ -275,7 +231,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
   @EventHandler
   public void onQuit(PlayerQuitEvent event) {
-    setManyPredicateByPlayerId.remove(event.getPlayer().getUniqueId());
+    interactionSessionByPlayerId.remove(event.getPlayer().getUniqueId());
   }
 
   @EventHandler
@@ -292,15 +248,32 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (clickedBlock == null)
       return;
 
-    if (tryApplySetManyMode(player, clickedBlock))
+    if (handleInteractionSessionAndGetIfCancel(player, clickedBlock)) {
       event.setCancelled(true);
+      return;
+    }
+
+    // If there was no cancellation, and we're about to edit a sign, check if it's in predicate-mode, as
+    // opening an editor for a locked sign (predicate-signs cannot be manually added) will frustrate the user.
+
+    if (event.getAction() != Action.RIGHT_CLICK_BLOCK || !(clickedBlock.getState() instanceof Sign sign))
+      return;
+
+    if (!sign.getLine(1).equalsIgnoreCase(MarkerConstants.PIPE_MARKER))
+      return;
+
+    if (dataHandler.access(sign) == null)
+      return;
+
+    event.setCancelled(true);
+    config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer(), config.rootSection.builtBaseEnvironment);
   }
 
   @EventHandler
   public void onBlockPlace(BlockPlaceEvent event) {
     var player = event.getPlayer();
 
-    if (tryApplySetManyMode(player, event.getBlockAgainst()))
+    if (handleInteractionSessionAndGetIfCancel(player, event.getBlockAgainst()))
       event.setCancelled(true);
   }
 
@@ -308,7 +281,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   public void onBlockBreak(BlockBreakEvent event) {
     var player = event.getPlayer();
 
-    if (tryApplySetManyMode(player, event.getBlock()))
+    if (handleInteractionSessionAndGetIfCancel(player, event.getBlock()))
       event.setCancelled(true);
   }
 
@@ -316,22 +289,143 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   public void onBucketEmpty(PlayerBucketEmptyEvent event) {
     var player = event.getPlayer();
 
-    if (tryApplySetManyMode(player, event.getBlockClicked()))
+    if (handleInteractionSessionAndGetIfCancel(player, event.getBlockClicked()))
       event.setCancelled(true);
   }
 
-  private boolean tryApplySetManyMode(Player player, Block target) {
-    var predicateAndLanguage = setManyPredicateByPlayerId.get(player.getUniqueId());
+  @EventHandler
+  public void onSneak(PlayerToggleSneakEvent event) {
+    var player = event.getPlayer();
 
-    if (predicateAndLanguage == null)
+    if (!event.isSneaking())
+      return;
+
+    var setSession = interactionSessionByPlayerId.get(player.getUniqueId());
+
+    if (setSession == null)
+      return;
+
+    if (!setSession.allowMultiUse) {
+      setSession.allowMultiUse = true;
+      setSession.touchExpiry();
+      config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      return;
+    }
+
+    interactionSessionByPlayerId.remove(player.getUniqueId());
+    showActionBarMessage(player, ""); // Immediately clear action-bar signal
+
+    config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player, config.rootSection.builtBaseEnvironment);
+  }
+
+  private boolean handleInteractionSessionAndGetIfCancel(Player player, Block target) {
+    var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
+
+    if (interactionSession == null)
       return false;
+
+    if (!interactionSession.allowMultiUse)
+      interactionSessionByPlayerId.remove(player.getUniqueId());
 
     var pistonSign = tryResolvePistonSignFromTargetBlock(player, target);
 
     if (pistonSign == null)
       return false;
 
-    applyPredicateToPistonSign(player, pistonSign, predicateAndLanguage.predicate, predicateAndLanguage.language);
+    interactionSession.touchExpiry();
+
+    if (interactionSession instanceof PredicateGetSession) {
+      var predicateData = dataHandler.access(pistonSign);
+
+      if (predicateData == null) {
+        config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
+      if (predicateData.parseException() != null) {
+        config.rootSection.playerMessages.commandPipePredicateGetError.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
+            .build()
+        );
+        return true;
+      }
+
+      var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
+      var predicateValue = predicateData.tokensPredicate();
+      var setCommand = "/" + config.rootSection.commands.pipePredicate.evaluatedName + " " + CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateLanguageName + " " + predicateValue;
+
+      player.spigot().sendMessage(
+        new ComponentBuilder(
+          config.rootSection.playerMessages.commandPipePredicateGetPredicate
+          .asScalar(
+            ScalarType.STRING,
+            config.rootSection.getBaseEnvironment()
+              .withStaticVariable("predicate", predicateValue)
+              .withStaticVariable("predicate_language", predicateLanguageName)
+              .build()
+          )
+        )
+          .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, setCommand))
+          .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
+            config.rootSection.playerMessages.commandPipePredicateGetPredicateHover.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment)
+          ).create()))
+          .create()
+      );
+
+      return true;
+    }
+
+    if (interactionSession instanceof PredicateSetSession setSession) {
+      if (setSession.valueToSet == null) {
+        PredicateData predicateData;
+
+        if ((predicateData = dataHandler.remove(pistonSign)) == null) {
+          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
+          return true;
+        }
+
+        predicateData.restoreLines(pistonSign);
+
+        config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("predicate", predicateData.tokensPredicate())
+            .build()
+        );
+
+        return true;
+      }
+
+      var predicate = setSession.valueToSet.predicate();
+      var language = setSession.valueToSet.language();
+      var existingPredicateData = dataHandler.access(pistonSign);
+
+      PredicateData newPredicateData;
+
+      if (existingPredicateData != null)
+        newPredicateData = PredicateData.makeUpdate(predicate, language, existingPredicateData);
+      else
+        newPredicateData = PredicateData.makeInitial(predicate, language, pistonSign);
+
+      pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
+      pistonSign.setLine(2, "");
+      pistonSign.setLine(3, "");
+      pistonSign.update(true, false);
+
+      dataHandler.store(newPredicateData, pistonSign);
+
+      config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+                .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicate))
+                .build()
+      );
+
+      return true;
+    }
+
     return true;
   }
 
@@ -362,32 +456,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return pistonSign;
   }
 
-  private void applyPredicateToPistonSign(Player executor, Sign pistonSign, ItemPredicate predicate, TranslationLanguage language) {
-    var existingPredicateData = dataHandler.access(pistonSign);
-
-    PredicateData newPredicateData;
-
-    if (existingPredicateData != null)
-      newPredicateData = PredicateData.makeUpdate(predicate, language, existingPredicateData);
-    else
-      newPredicateData = PredicateData.makeInitial(predicate, language, pistonSign);
-
-    pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
-    pistonSign.setLine(2, "");
-    pistonSign.setLine(3, "");
-    pistonSign.update(true, false);
-
-    dataHandler.store(newPredicateData, pistonSign);
-
-    config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
-      executor,
-      config.rootSection.getBaseEnvironment()
-        .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicate))
-        .build()
-    );
-  }
-
-  private @Nullable ItemPredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
+  private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
     if (args.length < 2) {
       config.rootSection.playerMessages.commandPipePredicateSetMissingLanguage.sendMessage(
         executor, config.rootSection.builtBaseEnvironment
@@ -431,7 +500,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return null;
     }
 
-    return new ItemPredicateAndLanguage(predicate, language);
+    return new PredicateAndLanguage(predicate, language);
   }
 
   private void showActionBarMessage(Player player, String message) {
