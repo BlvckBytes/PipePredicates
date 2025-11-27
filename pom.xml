@@ -30,7 +30,8 @@
         <dependency>
             <groupId>com.sk89q.craftbook</groupId>
             <artifactId>craftbook</artifactId>
-            <version>3.10.12-SNAPSHOT</version>
+            <!-- Custom fork, from maven-local: https://github.com/BlvckBytes/CraftBook -->
+            <version>3.10.13-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

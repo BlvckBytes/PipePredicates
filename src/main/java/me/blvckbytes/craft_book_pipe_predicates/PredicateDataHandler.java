@@ -57,7 +57,7 @@ public class PredicateDataHandler {
     container.set(signLine3Key, PersistentDataType.STRING, data.signLine3());
     container.set(signLine4Key, PersistentDataType.STRING, data.signLine4());
 
-    sign.update(true, false);
+    BlockUtility.updateSign(sign);
 
     dataCache.put(sign.getLocation(), data);
   }
@@ -77,7 +77,7 @@ public class PredicateDataHandler {
     container.remove(signLine3Key);
     container.remove(signLine4Key);
 
-    sign.update(true, false);
+    BlockUtility.updateSign(sign);
 
     dataCache.remove(sign.getLocation());
 
@@ -145,7 +145,7 @@ public class PredicateDataHandler {
     if (predicateData.parsedPredicate() == null) {
       if (!firstLineContent.startsWith("§" + MarkerConstants.PREDICATE_ERROR_COLOR)) {
         pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_ERROR_COLOR + ChatColor.stripColor(firstLineContent));
-        pistonSign.update(true, false);
+        BlockUtility.updateSign(pistonSign);
       }
 
       return;
@@ -153,7 +153,7 @@ public class PredicateDataHandler {
 
     if (!firstLineContent.startsWith("§" + MarkerConstants.PREDICATE_OK_COLOR)) {
       pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + ChatColor.stripColor(firstLineContent));
-      pistonSign.update(true, false);
+      BlockUtility.updateSign(pistonSign);
     }
   }
 }

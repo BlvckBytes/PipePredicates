@@ -412,8 +412,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
       pistonSign.setLine(2, "");
       pistonSign.setLine(3, "");
-      pistonSign.update(true, false);
 
+      // This call already saves the sign, so don't invoke saving twice
       dataHandler.store(newPredicateData, pistonSign);
 
       config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(

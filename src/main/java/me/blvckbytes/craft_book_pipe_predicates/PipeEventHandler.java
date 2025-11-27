@@ -1,14 +1,17 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
 import com.sk89q.craftbook.mechanics.pipe.PipeFilterEvent;
+import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheEvent;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -16,11 +19,18 @@ import java.util.logging.Logger;
 
 public class PipeEventHandler implements Listener {
 
+  private final Plugin plugin;
   private final PredicateDataHandler dataHandler;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  public PipeEventHandler(PredicateDataHandler dataHandler, ConfigKeeper<MainSection> config, Logger logger) {
+  public PipeEventHandler(
+    Plugin plugin,
+    PredicateDataHandler dataHandler,
+    ConfigKeeper<MainSection> config,
+    Logger logger
+  ) {
+    this.plugin = plugin;
     this.dataHandler = dataHandler;
     this.config = config;
     this.logger = logger;
@@ -54,25 +64,24 @@ public class PipeEventHandler implements Listener {
   }
 
   @EventHandler
+  public void onPipeSignCache(PipeSignCacheEvent event) {
+    var predicateData = dataHandler.access(event.sign);
+
+    if (predicateData != null)
+      event.pipeSign.setPluginData(plugin, predicateData.parsedPredicate());
+  }
+
+  @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
-    var pistonBlock = event.getBlock();
-    var pistonSign = BlockUtility.getPistonSign(pistonBlock, false);
+    var predicate = (ItemPredicate) event.getSign().getPluginData(plugin);
 
-    if (pistonSign == null)
-      return;
-
-    var predicateData = dataHandler.access(pistonSign);
-
-    if (predicateData == null)
-      return;
-
-    if (predicateData.parsedPredicate() == null)
+    if (predicate == null)
       return;
 
     var result = new ArrayList<ItemStack>();
 
     for (var item : event.getItems()) {
-      if (predicateData.parsedPredicate().test(item))
+      if (predicate.test(item))
         result.add(item);
     }
 

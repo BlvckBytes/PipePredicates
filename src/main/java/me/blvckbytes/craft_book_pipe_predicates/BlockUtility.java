@@ -1,5 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import com.sk89q.craftbook.mechanics.pipe.PipeSignUpdateEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -48,6 +50,11 @@ public class BlockUtility {
     return true;
   }
 
+  public static void updateSign(Sign sign) {
+    sign.update(true, false);
+    Bukkit.getServer().getPluginManager().callEvent(new PipeSignUpdateEvent(sign.getBlock()));
+  }
+
   public static void initializeBlankSignIfApplicable(Sign sign) {
     if (!isSignBlank(sign))
       return;
@@ -56,7 +63,7 @@ public class BlockUtility {
     sign.setLine(1, MarkerConstants.PIPE_MARKER);
     sign.setLine(2, "");
     sign.setLine(3, "");
-    sign.update(true, false);
+    updateSign(sign);
   }
 
   public static @Nullable Block resolvePistonBlock(Block block) {
