@@ -73,7 +73,12 @@ public class PipeEventHandler implements Listener {
 
   @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
-    var predicate = (ItemPredicate) event.getSign().getPluginData(plugin);
+    var sign = event.getSign();
+
+    if (sign == null)
+      return;
+
+    var predicate = (ItemPredicate) sign.getPluginData(plugin);
 
     if (predicate == null)
       return;
