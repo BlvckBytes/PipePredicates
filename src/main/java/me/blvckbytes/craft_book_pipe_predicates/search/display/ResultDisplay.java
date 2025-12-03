@@ -11,6 +11,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+
 public class ResultDisplay extends Display<ResultDisplayData> {
 
   private final AsyncTaskQueue asyncQueue;
@@ -135,11 +137,12 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   @Override
   protected void renderItems() {
-    var displaySlots = config.rootSection.resultDisplay.getPaginationSlots();
+    var displaySlots = new ArrayList<>(config.rootSection.resultDisplay.getPaginationSlots());
     var itemsIndex = (currentPage - 1) * displaySlots.size();
     var numberOfItems = displayData.items().size();
 
-    for (var slot : displaySlots) {
+    for (var paginationSlotIndex = 0; paginationSlotIndex < displaySlots.size(); ++paginationSlotIndex) {
+      var slot = displaySlots.get(paginationSlotIndex);
       var currentSlot = itemsIndex++;
 
       if (currentSlot >= numberOfItems) {
@@ -150,8 +153,23 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
       var itemAndSlot = displayData.items().get(currentSlot);
 
-      var representativeItem = new ItemBuilder(itemAndSlot.item(), itemAndSlot.item().getAmount())
-        .patch(config.rootSection.resultDisplay.items.representativePatch)
+      ItemBuilder itemBuilder;
+
+      try {
+        itemBuilder = new ItemBuilder(itemAndSlot.item(), itemAndSlot.item().getAmount());
+      }
+      // java.lang.IllegalStateException: Could not get meta of item
+      // The above occurs if the item has been moved; simply remove such items from the UI as well.
+      catch (IllegalStateException ignored) {
+        // Try again with the next item at the same slot
+        displayData.items().remove(itemAndSlot);
+        --itemsIndex;
+        --paginationSlotIndex;
+        --numberOfItems;
+        continue;
+      }
+
+      var representativeItem = itemBuilder.patch(config.rootSection.resultDisplay.items.representativePatch)
         .build(
           new EvaluationEnvironmentBuilder()
             .withStaticVariable("container_x", itemAndSlot.block().getX())

@@ -2,7 +2,9 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
+import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
+import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
@@ -19,13 +21,19 @@ import java.util.*;
 public class PipeSearchHandler implements Listener {
 
   private final ResultDisplayHandler resultDisplayHandler;
+  private final ConfigKeeper<MainSection> config;
   private final Plugin plugin;
   private final Pipes pipesMechanic;
 
   private final Map<UUID, SearchSession> searchSessionByPlayerId;
 
-  public PipeSearchHandler(ResultDisplayHandler resultDisplayHandler, Plugin plugin) {
+  public PipeSearchHandler(
+    ResultDisplayHandler resultDisplayHandler,
+    ConfigKeeper<MainSection> config,
+    Plugin plugin
+  ) {
     this.resultDisplayHandler = resultDisplayHandler;
+    this.config = config;
     this.plugin = plugin;
     this.pipesMechanic = (Pipes) CraftBookPlugin.inst().getMechanic(Pipes.class);
 
@@ -35,30 +43,46 @@ public class PipeSearchHandler implements Listener {
     this.searchSessionByPlayerId = new HashMap<>();
   }
 
-  // TODO: These messages should be configurable
-
   public void handleSearch(Player player, Block pistonBlock, PredicateAndLanguage query) {
     var playerId = player.getUniqueId();
 
     if (searchSessionByPlayerId.containsKey(playerId)) {
-      player.sendMessage("§cAlready in an active search-session");
+      config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return;
     }
 
     var pistonSearch = new PistonSearchSession(pistonBlock, pipesMechanic, plugin, (pistons, flags) -> {
       searchSessionByPlayerId.remove(playerId);
 
-      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_PIPE_COUNT))
-        player.sendMessage("§eStopping early: exceeded max pipe count of " + PistonSearchSession.MAX_PIPE_COUNT);
+      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_PIPE_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", PistonSearchSession.MAX_PIPE_COUNT)
+            .build()
+        );
+      }
 
-      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT))
-        player.sendMessage("§eStopping early: exceeded max piston count of " + PistonSearchSession.MAX_PISTON_COUNT);
+      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", PistonSearchSession.MAX_PISTON_COUNT)
+            .build()
+        );
+      }
 
-      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_RETRY_COUNT))
-        player.sendMessage("§Stopping early: exceeded max retry count of " + PistonSearchSession.MAX_RETRY_COUNT);
+      if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_RETRY_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", PistonSearchSession.MAX_RETRY_COUNT)
+            .build()
+        );
+      }
 
       if (pistons.isEmpty()) {
-        player.sendMessage("§cNo pistons found!");
+        config.rootSection.playerMessages.commandPipePredicateSearchNoPistons.sendMessage(player, config.rootSection.builtBaseEnvironment);
         return;
       }
 
@@ -66,11 +90,16 @@ public class PipeSearchHandler implements Listener {
         searchSessionByPlayerId.remove(playerId);
 
         if (containerResults.isEmpty()) {
-          player.sendMessage("§cNo containers found!");
+          config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(player, config.rootSection.builtBaseEnvironment);
           return;
         }
 
-        player.sendMessage("§aTesting all items of " + containerResults.size() + " containers (this could take a while)...");
+        config.rootSection.playerMessages.commandPipePredicateSearchBeginTesting.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("container_count", containerResults.size())
+            .build()
+        );
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
           var matches = new ArrayList<ItemAndSlot>();
@@ -98,23 +127,42 @@ public class PipeSearchHandler implements Listener {
           var predicateString = new StringifyState(true).appendPredicate(query.predicate()).toString();
 
           if (matches.isEmpty()) {
-            player.sendMessage("§cYour query of §4" + predicateString + " §cdidn't result in any matches!");
+            config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(
+              player,
+              config.rootSection.getBaseEnvironment()
+                .withStaticVariable("predicate", predicateString)
+                .withStaticVariable("item_count", resultCounter)
+                .build()
+            );
+
             return;
           }
 
-          player.sendMessage("§aYour query of §2" + predicateString + " §aresulted in §2" + matches.size() + "/" + resultCounter + " §amatches!");
+          config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(
+            player,
+            config.rootSection.getBaseEnvironment()
+              .withStaticVariable("predicate", predicateString)
+              .withStaticVariable("item_count", resultCounter)
+              .withStaticVariable("match_count", matches.size())
+              .build()
+          );
 
           resultDisplayHandler.show(player, new ResultDisplayData(matches));
         });
       });
 
-      player.sendMessage("§aAccessing attached containers of " + pistons.size () + " pistons (this could take a while)...");
+      config.rootSection.playerMessages.commandPipePredicateSearchBeginEnumerateContainers.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("piston_count", pistons.size())
+          .build()
+      );
 
       searchSessionByPlayerId.put(playerId, containerSearch);
       containerSearch.start();
     });
 
-    player.sendMessage("§aEnumerating all pistons (this could take a while)...");
+    config.rootSection.playerMessages.commandPipePredicateSearchBeginEnumeratePistons.sendMessage(player, config.rootSection.builtBaseEnvironment);
 
     searchSessionByPlayerId.put(playerId, pistonSearch);
     pistonSearch.start();

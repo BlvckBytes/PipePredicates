@@ -97,13 +97,16 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     world.getChunkAtAsync(chunkX, chunkZ, true, chunk -> _moveItemIntoInventory(resultDisplay, player, item));
   }
 
-  // TODO: These messages should be configurable
-
   private void _moveItemIntoInventory(ResultDisplay resultDisplay, Player player, ItemAndSlot item) {
     var blockState = item.block().getState();
 
+    var environment = config.rootSection.getBaseEnvironment()
+      .withStaticVariable("container_x", blockState.getX())
+      .withStaticVariable("container_y", blockState.getY())
+      .withStaticVariable("container_z", blockState.getZ());
+
     if (!(blockState instanceof Container container)) {
-      player.sendMessage("§cThe container no longer exists; cancelling!");
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment.build());
       return;
     }
 
@@ -111,7 +114,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     var blockContents = containerInventory.getStorageContents();
 
     if (item.slot() < 0 || item.slot() >= blockContents.length) {
-      player.sendMessage("§cThe container-size changed in the mean-time; cancelling!");
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment.build());
       return;
     }
 
@@ -119,23 +122,35 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
     resultDisplay.removeItem(item);
 
+    environment
+      .withStaticVariable("item_slot", item.slot() + 1)
+      .withStaticVariable("item_amount", item.item().getAmount())
+      .withStaticVariable("item_type", item.item().getType().name());
+
     if (!item.item().equals(targetItem)) {
-      player.sendMessage("§cThe item changed in the mean-time; cancelling!");
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment.build());
       return;
     }
 
     blockContents[item.slot()] = null;
     containerInventory.setStorageContents(blockContents);
 
-    player.sendMessage("§aHanded out the item!");
+    config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment.build());
 
     var remainders = player.getInventory().addItem(targetItem).values();
 
     if (!remainders.isEmpty()) {
-      player.sendMessage("§cSome item(s) didn't fit into your inventory; dropping!");
 
-      for (var remainder : remainders)
+      for (var remainder : remainders) {
         player.dropItem(remainder);
+
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemDropped.sendMessage(
+          player,
+          environment
+            .withStaticVariable("dropped_amount", remainder.getAmount())
+            .build()
+        );
+      }
     }
   }
 }

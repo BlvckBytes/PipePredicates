@@ -31,7 +31,24 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateGetError;
   public BukkitEvaluable commandPipePredicateReloadSuccess;
   public BukkitEvaluable commandPipePredicateReloadFailure;
+
   public BukkitEvaluable commandPipePredicateSearchInit;
+  public BukkitEvaluable commandPipePredicateSearchInSession;
+  public BukkitEvaluable commandPipePredicateSearchExceededPipes;
+  public BukkitEvaluable commandPipePredicateSearchExceededPistons;
+  public BukkitEvaluable commandPipePredicateSearchExceededRetry;
+  public BukkitEvaluable commandPipePredicateSearchNoPistons;
+  public BukkitEvaluable commandPipePredicateSearchNoContainers;
+  public BukkitEvaluable commandPipePredicateSearchBeginEnumeratePistons;
+  public BukkitEvaluable commandPipePredicateSearchBeginEnumerateContainers;
+  public BukkitEvaluable commandPipePredicateSearchBeginTesting;
+  public BukkitEvaluable commandPipePredicateSearchNoResults;
+  public BukkitEvaluable commandPipePredicateSearchShowingResults;
+  public BukkitEvaluable commandPipePredicateSearchGetItemContainerAbsent;
+  public BukkitEvaluable commandPipePredicateSearchGetItemContainerSizeChanged;
+  public BukkitEvaluable commandPipePredicateSearchGetItemMoved;
+  public BukkitEvaluable commandPipePredicateSearchGetItemSuccess;
+  public BukkitEvaluable commandPipePredicateSearchGetItemDropped;
 
   public BukkitEvaluable missingPermissionPipePredicateCommand;
   public BukkitEvaluable missingPermissionPipePredicateRead;
