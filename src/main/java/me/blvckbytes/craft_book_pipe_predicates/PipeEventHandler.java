@@ -5,11 +5,17 @@ import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheEvent;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockCanBuildEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -36,7 +42,7 @@ public class PipeEventHandler implements Listener {
     this.logger = logger;
   }
 
-  private void callFakeEvent(SignChangeEvent event) {
+  private void callFakeEvent(Event event) {
     for(var listener : event.getHandlers().getRegisteredListeners()) {
       if(!listener.getPlugin().isEnabled())
         continue;
@@ -55,6 +61,12 @@ public class PipeEventHandler implements Listener {
         logger.log(Level.SEVERE, "Could not pass event " + event.getEventName() + " to " + listener.getPlugin().getDescription().getFullName(), e);
       }
     }
+  }
+
+  public boolean canBuildAt(Player player, Block block) {
+    var fakePlaceEvent = new BlockPlaceEvent(block, block.getState(), block, new ItemStack(Material.DIRT), player, false, EquipmentSlot.HAND);
+    callFakeEvent(fakePlaceEvent);
+    return !fakePlaceEvent.isCancelled();
   }
 
   public boolean canEditSign(Player player, Sign sign) {

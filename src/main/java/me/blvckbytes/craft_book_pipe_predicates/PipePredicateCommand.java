@@ -362,6 +362,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       if (piston == null)
         return false;
 
+      if (!pipeEventHandler.canBuildAt(player, piston)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
       pipeSearchHandler.handleSearch(player, piston, searchSession.query);
       return true;
     }

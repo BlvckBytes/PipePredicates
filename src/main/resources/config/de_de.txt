@@ -7,6 +7,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cBenutze:
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cKonnte keinen zum aktuell angesehenen Block zugehörigen Kolben auffinden.
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cDer zugehörige Kolben trägt kein valides Pipe-Schild an sich!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cDir fehlen die nötigen Rechte um das Schild dieses Kolbens zu editieren!
+MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cDir fehlen die nötigen Rechte um auf die Blöcke zuzugreifen!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cDer zugehörige Kolben befindet sich aktuell nicht im Prädikat-Modus!
 MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR                {prefix}&cFehlerhaftes Prädikat: {error_message}
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cBitte gib nur valide, nicht-leere Prädikate ein!

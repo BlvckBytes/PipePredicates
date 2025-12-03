@@ -7,6 +7,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cUsage: /
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cCould not locate a piston corresponding to the currently looked-at block!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cThe corresponding piston has no valid pipe-sign attached to it!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cYou have no permission to change this piston's sign!
+MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cYou have no permission to modify blocks around here!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cThe corresponding piston is not currently in predicate-mode!
 MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR                {prefix}&cMalformed predicate: {error_message}
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cPlease only input a valid, non-empty predicate!

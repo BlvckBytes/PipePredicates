@@ -25,6 +25,7 @@ playerMessages:
   commandPipePredicateNoPiston: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateNoSign: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateCannotEditSign: '@{MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateCannotBuild: '@{MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateNoPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicatePredicateError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateEmptyPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'

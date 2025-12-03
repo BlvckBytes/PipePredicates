@@ -12,6 +12,7 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateNoPiston;
   public BukkitEvaluable commandPipePredicateNoSign;
   public BukkitEvaluable commandPipePredicateCannotEditSign;
+  public BukkitEvaluable commandPipePredicateCannotBuild;
   public BukkitEvaluable commandPipePredicateNoPredicate;
   public BukkitEvaluable commandPipePredicatePredicateError;
   public BukkitEvaluable commandPipePredicateEmptyPredicate;
