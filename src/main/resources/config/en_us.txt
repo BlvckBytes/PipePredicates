@@ -26,7 +26,44 @@ MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aClick onto this 
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7The corresponding piston is in error-mode: &c{predicate_error}
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS                 {prefix}&aSuccessfully reloaded &7the plugin's configuration!
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE                 {prefix}&cAn error occurred while trying to reload the plugin's configuration; please check the console!
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-INIT                    {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aSEARCH &7the predicate &a{predicate}&7.
+
+# TODO: Translate these whenever I feel like it...
+
+# - predicate: String
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-INIT                            {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aSEARCH &7the predicate &a{predicate}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-IN-SESSION                      {prefix}&cEs ist aktuell bereits eine Pipesuche im Gange!
+# - limit: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PIPES                  {prefix}&eDas Limit von &6{limit} Pipe-Blöcken &ewurde überschritten; stoppe vorzeitig!
+# - limit: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PISTONS                {prefix}&eDas Limit von &6{limit} Ausgangskolben &ewurde überschritten; stoppe vorzeitig!
+# - limit: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-RETRY                  {prefix}&eDas Limit von &6{limit} Ladeversuchen &ewurde überschritten; stoppe vorzeitig!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-PISTONS                      {prefix}&cEs konnten keine Ausgangskolben gefunden werden!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-CONTAINERS                   {prefix}&cEs konnten keine Behälter an Ausgangskolben gefunden werden!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-PISTONS         {prefix}&7Suche &aAusgangskolben&7... Bitte um eventuelle Geduld!
+# - piston_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-CONTAINERS      {prefix}&7Suche für &a{piston_count} Ausgangskolben &7zugehörige &aBehälter&7... Bitte um eventuelle Geduld!
+# - container_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-TESTING                   {prefix}&7Vergleiche die &aInhalte &7von &a{container_count} Behälter(n) &7mit der Suche...
+# - predicate: String
+# - item_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-RESULTS                      {prefix}&cDie Suche &4{predicate} &cergab bei &4{item_count} Item(s) &ckeine Ergebnisse!
+# - predicate: String
+# - item_count: Int
+# - match_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-SHOWING-RESULTS                 {prefix}&7Die Suche &a{predicate} &7lieferte bei insgesamt &a{item_count} &7Item(s) &a{match_count} &7Übereinstimmung(en).
+# - container_x: Int
+# - container_y: Int
+# - container_z: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-CONTAINER-ABSENT       {prefix}&cDer Behälter &4existiert &cinzwischen nicht mehr; breche ab!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-CONTAINER-SIZE-CHANGED {prefix}&cDie &4Größe &cdes Behälters hat sich inzwischen verändert; breche ab!
+# - item_slot: Int
+# - item_amount: Int
+# - item_type: String
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-MOVED                  {prefix}&cDas Item wurde inzwischen &4bewegt&c; breche ab!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS                {prefix}&7Das Item &a{item_amount}x {item_type} &7von Slot &a{item_slot} &7bei &a{container_x} {container_y} {container_z} &7wurde ausgehändigt.
+# - dropped_amount: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED                {prefix}&eInventar voll! Droppe &6{dropped_amount}x {item_type}&e!
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cYou are missing the permission to use this command!
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ     {prefix}&cYou are missing the permission to read pipe-predicates!
