@@ -19,7 +19,7 @@ public class PistonSearchSession implements SearchSession {
 
   // TODO: These limits should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
-  public static final int MAX_PISTON_COUNT = 2000;
+  public static final int MAX_PISTON_COUNT = 2500;
   public static final int MAX_PIPE_COUNT   = 10_000;
 
   private final Block origin;

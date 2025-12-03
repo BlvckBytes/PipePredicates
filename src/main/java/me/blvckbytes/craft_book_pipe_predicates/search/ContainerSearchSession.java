@@ -97,9 +97,22 @@ public class ContainerSearchSession implements SearchSession {
         if (type != Chest.Type.SINGLE) {
           int dx = 0, dz = 0;
 
+          // Left and right are relative to the chest itself, i.e. opposite to what
+          // a player placing the appropriate block would see.
+
           switch (chest.getFacing()) {
-            case NORTH, SOUTH -> dx = (type == Chest.Type.LEFT) ? -1 : 1;
-            case EAST, WEST   -> dz = (type == Chest.Type.LEFT) ? -1 : 1;
+            case NORTH: // -z
+              dx = (type == Chest.Type.LEFT) ? 1 : -1;
+              break;
+            case SOUTH: // +z
+              dx = (type == Chest.Type.LEFT) ? -1 : 1;
+              break;
+            case EAST: // +x
+              dz = (type == Chest.Type.LEFT) ? 1 : -1;
+              break;
+            case WEST: // -x
+              dz = (type == Chest.Type.LEFT) ? -1 : 1;
+              break;
           }
 
           // Avoid calling completion if the piston-loop is already done and this block is within
