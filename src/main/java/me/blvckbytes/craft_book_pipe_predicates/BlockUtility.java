@@ -66,8 +66,12 @@ public class BlockUtility {
     updateSign(sign);
   }
 
+  private static boolean isPiston(Material material) {
+    return material == Material.PISTON || material == Material.STICKY_PISTON;
+  }
+
   public static @Nullable Block resolvePistonBlock(Block block) {
-    if (block.getType() == Material.PISTON)
+    if (isPiston(block.getType()))
       return block;
 
     var blockData = block.getBlockData();
@@ -75,7 +79,7 @@ public class BlockUtility {
     if (blockData instanceof WallSign wallSign) {
       var mountingBlock = block.getRelative(wallSign.getFacing().getOppositeFace());
 
-      if (mountingBlock.getType() == Material.PISTON)
+      if (isPiston(mountingBlock.getType()))
         return mountingBlock;
 
       if (mountingBlock.getState() instanceof Container container)
@@ -84,7 +88,7 @@ public class BlockUtility {
 
     if (blockData instanceof org.bukkit.block.data.type.Sign) {
       var mountingBlock = block.getRelative(BlockFace.DOWN);
-      return mountingBlock.getType() == Material.PISTON ? mountingBlock : null;
+      return isPiston(mountingBlock.getType()) ? mountingBlock : null;
     }
 
     if (block.getState() instanceof Container container)
@@ -124,7 +128,7 @@ public class BlockUtility {
     for (var currentFace : POSSIBLE_CONTAINER_PISTON_FACES) {
       var currentBlock = containerBlock.getRelative(currentFace);
 
-      if (currentBlock.getType() != Material.PISTON)
+      if (!isPiston(currentBlock.getType()))
         continue;
 
       var pistonFacing = ((Piston) currentBlock.getBlockData()).getFacing();

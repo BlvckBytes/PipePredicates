@@ -8,6 +8,7 @@ public enum PluginPermission {
   PIPE_PREDICATE_COMMAND_READ("command.pipepredicate.read"),
   PIPE_PREDICATE_COMMAND_MODIFY("command.pipepredicate.modify"),
   PIPE_PREDICATE_COMMAND_RELOAD("command.pipepredicate.reload"),
+  PIPE_PREDICATE_COMMAND_SEARCH("command.pipepredicate.search"),
   AUTO_INITIALIZE_SIGNS("auto-init-signs"),
   ;
 

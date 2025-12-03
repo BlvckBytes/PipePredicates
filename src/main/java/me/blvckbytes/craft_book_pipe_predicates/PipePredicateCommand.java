@@ -4,6 +4,7 @@ import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
@@ -46,6 +47,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
+  private final PipeSearchHandler pipeSearchHandler;
   private final PredicateHelper predicateHelper;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
@@ -55,12 +57,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   public PipePredicateCommand(
     PredicateDataHandler dataHandler,
     PipeEventHandler pipeEventHandler,
+    PipeSearchHandler pipeSearchHandler,
     PredicateHelper predicateHelper,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
     this.dataHandler = dataHandler;
     this.pipeEventHandler = pipeEventHandler;
+    this.pipeSearchHandler = pipeSearchHandler;
     this.predicateHelper = predicateHelper;
     this.config = config;
     this.logger = logger;
@@ -133,6 +137,28 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
+    if (normalizedAction.constant == CommandAction.SEARCH) {
+      if (!PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender)) {
+        config.rootSection.playerMessages.missingPermissionPipePredicateSearch.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        return false;
+      }
+
+      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
+
+      if (predicateAndLanguage == null)
+        return true;
+
+      config.rootSection.playerMessages.commandPipePredicateSearchInit.sendMessage(
+        sender,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
+          .build()
+      );
+
+      interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSearchSession(player, predicateAndLanguage));
+      return true;
+    }
+
     switch (normalizedAction.constant) {
       case REMOVE -> {
         if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
@@ -199,9 +225,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     var normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
 
-    if (normalizedAction == null || normalizedAction.constant != CommandAction.SET) {
+    if (normalizedAction == null)
       return null;
-    }
+
+    if (normalizedAction.constant != CommandAction.SET && normalizedAction.constant != CommandAction.SEARCH)
+      return null;
 
     TranslationLanguage language;
 
@@ -300,14 +328,15 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (!event.isSneaking())
       return;
 
-    var setSession = interactionSessionByPlayerId.get(player.getUniqueId());
+    var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
 
-    if (setSession == null)
+    // Searches do not benefit from multi-use - would only be confusing to users.
+    if (interactionSession == null || interactionSession instanceof PredicateSearchSession)
       return;
 
-    if (!setSession.allowMultiUse) {
-      setSession.allowMultiUse = true;
-      setSession.touchExpiry();
+    if (!interactionSession.allowMultiUse) {
+      interactionSession.allowMultiUse = true;
+      interactionSession.touchExpiry();
       config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return;
     }
@@ -326,6 +355,16 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     if (!interactionSession.allowMultiUse)
       interactionSessionByPlayerId.remove(player.getUniqueId());
+
+    if (interactionSession instanceof PredicateSearchSession searchSession) {
+      var piston = tryResolvePistonFromTargetBlock(player, target);
+
+      if (piston == null)
+        return false;
+
+      pipeSearchHandler.handleSearch(player, piston, searchSession.query);
+      return true;
+    }
 
     var pistonSign = tryResolvePistonSignFromTargetBlock(player, target);
 
@@ -429,13 +468,22 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return true;
   }
 
-  private @Nullable Sign tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
+  private @Nullable Block tryResolvePistonFromTargetBlock(Player executor, Block target) {
     var pistonBlock = BlockUtility.resolvePistonBlock(target);
 
     if (pistonBlock == null) {
       config.rootSection.playerMessages.commandPipePredicateNoPiston.sendMessage(executor, config.rootSection.builtBaseEnvironment);
       return null;
     }
+
+    return pistonBlock;
+  }
+
+  private @Nullable Sign tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
+    var pistonBlock = tryResolvePistonFromTargetBlock(executor, target);
+
+    if (pistonBlock == null)
+      return null;
 
     var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(executor);
     var pistonSign = BlockUtility.getPistonSign(pistonBlock, allowInitialize);

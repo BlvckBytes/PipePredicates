@@ -44,11 +44,13 @@ playerMessages:
   commandPipePredicateGetError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateReloadSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateReloadFailure: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSearchInit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-INIT(prefix=lut["MESSAGE_PREFIX"])}'
 
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
   missingPermissionPipePredicateRead: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ(prefix=lut["MESSAGE_PREFIX"])}'
   missingPermissionPipePredicateModify: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY(prefix=lut["MESSAGE_PREFIX"])}'
   missingPermissionPipePredicateReload: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD(prefix=lut["MESSAGE_PREFIX"])}'
+  missingPermissionPipePredicateSearch: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-SEARCH(prefix=lut["MESSAGE_PREFIX"])}'
 
 defaultPredicateLanguage: 'ENGLISH_US'
 

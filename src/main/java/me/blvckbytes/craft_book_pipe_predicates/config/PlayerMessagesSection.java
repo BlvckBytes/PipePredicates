@@ -31,11 +31,13 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateGetError;
   public BukkitEvaluable commandPipePredicateReloadSuccess;
   public BukkitEvaluable commandPipePredicateReloadFailure;
+  public BukkitEvaluable commandPipePredicateSearchInit;
 
   public BukkitEvaluable missingPermissionPipePredicateCommand;
   public BukkitEvaluable missingPermissionPipePredicateRead;
   public BukkitEvaluable missingPermissionPipePredicateModify;
   public BukkitEvaluable missingPermissionPipePredicateReload;
+  public BukkitEvaluable missingPermissionPipePredicateSearch;
 
   public PlayerMessagesSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

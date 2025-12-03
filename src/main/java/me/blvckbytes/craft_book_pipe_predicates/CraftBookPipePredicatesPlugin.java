@@ -6,6 +6,7 @@ import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -45,9 +46,11 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
-      var commandUpdater = new CommandUpdater(this);
+      var pipeSearchHandler = new PipeSearchHandler(this);
 
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, predicateHelper, config, logger);
+      Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
+
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, config, logger);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
       sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);
@@ -55,6 +58,8 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
 
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);
+
+      var commandUpdater = new CommandUpdater(this);
 
       Runnable updateCommands = () -> {
         config.rootSection.commands.pipePredicate.apply(pipePredicateCommand, commandUpdater);

@@ -10,6 +10,7 @@ public enum CommandAction implements MatchableEnum {
   SET,
   REMOVE,
   RELOAD,
+  SEARCH,
   ;
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
@@ -28,6 +29,7 @@ public enum CommandAction implements MatchableEnum {
         case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
         case SET, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
+        case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
       }
     );
   }
