@@ -3,6 +3,9 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
+import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -11,18 +14,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PipeSearchHandler implements Listener {
 
+  private final ResultDisplayHandler resultDisplayHandler;
   private final Plugin plugin;
   private final Pipes pipesMechanic;
 
   private final Map<UUID, SearchSession> searchSessionByPlayerId;
 
-  public PipeSearchHandler(Plugin plugin) {
+  public PipeSearchHandler(ResultDisplayHandler resultDisplayHandler, Plugin plugin) {
+    this.resultDisplayHandler = resultDisplayHandler;
     this.plugin = plugin;
     this.pipesMechanic = (Pipes) CraftBookPlugin.inst().getMechanic(Pipes.class);
 
@@ -49,32 +52,37 @@ public class PipeSearchHandler implements Listener {
         player.sendMessage("§eStopping early: exceeded max pipe count of " + PistonSearchSession.MAX_PIPE_COUNT);
 
       if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT))
-        player.sendMessage("§eStopping early: exceeded max piston count" + PistonSearchSession.MAX_PISTON_COUNT);
+        player.sendMessage("§eStopping early: exceeded max piston count of " + PistonSearchSession.MAX_PISTON_COUNT);
 
       if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_RETRY_COUNT))
-        player.sendMessage("§Stopping early: exceeded max retry count" + PistonSearchSession.MAX_RETRY_COUNT);
+        player.sendMessage("§Stopping early: exceeded max retry count of " + PistonSearchSession.MAX_RETRY_COUNT);
 
       if (pistons.isEmpty()) {
         player.sendMessage("§cNo pistons found!");
         return;
       }
 
-      var containerSearch = new ContainerSearchSession(pistons, results -> {
+      var containerSearch = new ContainerSearchSession(pistons, containerResults -> {
         searchSessionByPlayerId.remove(playerId);
 
-        if (results.isEmpty()) {
+        if (containerResults.isEmpty()) {
           player.sendMessage("§cNo containers found!");
           return;
         }
 
-        player.sendMessage("§aTesting all items of " + results.size() + " containers (this could take a while)...");
+        player.sendMessage("§aTesting all items of " + containerResults.size() + " containers (this could take a while)...");
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-          var resultCounter = 0;
-          var matchCounter = 0;
+          var matches = new ArrayList<ItemAndSlot>();
 
-          for (var result : results) {
-            for (var item : result.inventory().getContents()) {
+          var resultCounter = 0;
+
+          for (var containerResult : containerResults) {
+            var blockContents = containerResult.inventory().getStorageContents();
+
+            for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
+              var item = blockContents[slotIndex];
+
               if (item == null || item.getType().isAir())
                 continue;
 
@@ -83,13 +91,20 @@ public class PipeSearchHandler implements Listener {
               if (!query.predicate().test(item))
                 continue;
 
-              player.sendMessage(item.getType().name() + " at " + result.block().getX() + " " + result.block().getY() + " " + result.block().getZ());
-
-              ++matchCounter;
+              matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex));
             }
           }
 
-          player.sendMessage("§aMatches total: " + matchCounter + ", results total: " + resultCounter);
+          var predicateString = new StringifyState(true).appendPredicate(query.predicate()).toString();
+
+          if (matches.isEmpty()) {
+            player.sendMessage("§cYour query of §4" + predicateString + " §cdidn't result in any matches!");
+            return;
+          }
+
+          player.sendMessage("§aYour query of §2" + predicateString + " §aresulted in §2" + matches.size() + "/" + resultCounter + " §amatches!");
+
+          resultDisplayHandler.show(player, new ResultDisplayData(matches));
         });
       });
 

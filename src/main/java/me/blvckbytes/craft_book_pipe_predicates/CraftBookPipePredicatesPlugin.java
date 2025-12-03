@@ -7,18 +7,21 @@ import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.logging.Level;
 
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
   private int sessionTickerTaskId = -1;
+  private @Nullable ResultDisplayHandler resultDisplayHandler;
 
   @Override
   public void onEnable() {
@@ -43,10 +46,12 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var dataHandler = new PredicateDataHandler(this, predicateHelper, config);
 
       var pipeEventHandler = new PipeEventHandler(this, dataHandler, config, logger);
-
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(this);
+      resultDisplayHandler = new ResultDisplayHandler(config, this);
+      Bukkit.getServer().getPluginManager().registerEvents(resultDisplayHandler, this);
+
+      var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
@@ -81,6 +86,11 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
   public void onDisable() {
     if (sessionTickerTaskId >= 0)
       Bukkit.getScheduler().cancelTask(sessionTickerTaskId);
+
+    if (resultDisplayHandler != null) {
+      resultDisplayHandler.onShutdown();
+      resultDisplayHandler = null;
+    }
   }
 
   private static void ensureCompatibleCraftBookVersion() {

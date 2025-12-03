@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates.config;
 
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bbconfigmapper.sections.CSAlways;
+import me.blvckbytes.craft_book_pipe_predicates.config.result_display.ResultDisplaySection;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 
@@ -13,6 +14,7 @@ public class MainSection extends AConfigSection {
 
   public CommandsSection commands;
   public PlayerMessagesSection playerMessages;
+  public ResultDisplaySection resultDisplay;
 
   public TranslationLanguage defaultPredicateLanguage;
   public List<String> fakeEventSkippedListeners;
