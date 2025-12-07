@@ -1,13 +1,14 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
+import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.CompactBlockId;
 import com.sk89q.craftbook.mechanics.pipe.PipeWalkResult;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
-import com.sk89q.craftbook.util.ItemUtil;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 
@@ -23,6 +24,9 @@ public class PistonSearchSession implements SearchSession {
   public static final int MAX_PIPE_COUNT   = 10_000;
 
   private final Block origin;
+  private final World originWorld;
+  private final long originCompactId;
+
   private final Pipes pipesMechanic;
   private final Plugin plugin;
   private final PistonSearchResultHandler resultHandler;
@@ -36,6 +40,9 @@ public class PistonSearchSession implements SearchSession {
 
   public PistonSearchSession(Block origin, Pipes pipesMechanic, Plugin plugin, PistonSearchResultHandler resultHandler) {
     this.origin = origin;
+    this.originWorld = origin.getWorld();
+    this.originCompactId = CompactBlockId.computeWorldfulId(origin);
+
     this.pipesMechanic = pipesMechanic;
     this.plugin = plugin;
     this.resultHandler = resultHandler;
@@ -55,13 +62,6 @@ public class PistonSearchSession implements SearchSession {
     _enumerateAllPistons(1);
   }
 
-  private boolean isPipeBlock(Material material) {
-    if (material == Material.GLASS || material == Material.GLASS_PANE)
-      return true;
-
-    return ItemUtil.isStainedGlass(material) || ItemUtil.isStainedGlassPane(material);
-  }
-
   private void _enumerateAllPistons(int retryCount) {
     if (retryCount >= MAX_RETRY_COUNT) {
       flags.add(PistonSearchFlag.EXCEEDED_MAX_RETRY_COUNT);
@@ -69,10 +69,10 @@ public class PistonSearchSession implements SearchSession {
       return;
     }
 
-    var result = pipesMechanic.enumeratePipeBlocks(origin, new LongOpenHashSet(), (block, cachedBlock) -> {
+    var result = pipesMechanic.enumeratePipeBlocks(originCompactId, originWorld, origin, new LongOpenHashSet(), (block, cachedBlock) -> {
       var compactId = CompactBlockId.computeWorldlessId(block);
 
-      if (isPipeBlock(cachedBlock.type)) {
+      if (CachedBlock.isGlassBlock(cachedBlock)) {
         seenPipes.add(compactId);
 
         if (seenPipes.size() >= MAX_PIPE_COUNT) {
@@ -83,7 +83,7 @@ public class PistonSearchSession implements SearchSession {
         return PipeWalkResult.CONTINUE;
       }
 
-      if (cachedBlock.type != Material.PISTON)
+      if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
         return PipeWalkResult.CONTINUE;
 
       if (seenPistons.add(compactId)) {

@@ -1,5 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
+import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import org.bukkit.World;
 import org.bukkit.block.*;
@@ -45,7 +46,7 @@ public class ContainerSearchSession implements SearchSession {
 
       if (world.isChunkLoaded(chunkX, chunkZ)) {
         var cachedPiston = Pipes.pipeBlockCache.getCachedBlock(piston);
-        handlePossibleContainer(piston.getRelative(cachedPiston.getFacing(piston)), true);
+        handlePossibleContainer(piston.getRelative(CachedBlock.getPistonFace(cachedPiston)), true);
         continue;
       }
 
@@ -57,7 +58,7 @@ public class ContainerSearchSession implements SearchSession {
         --chunksWaitingOn;
 
         var cachedPiston = Pipes.pipeBlockCache.getCachedBlock(piston);
-        handlePossibleContainer(piston.getRelative(cachedPiston.getFacing(piston)), true);
+        handlePossibleContainer(piston.getRelative(CachedBlock.getPistonFace(cachedPiston)), true);
       });
     }
   }
