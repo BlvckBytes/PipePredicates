@@ -4,7 +4,7 @@ MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE                   {prefix}&cDu kanns
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-PREFIX            &e
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-SEPARATOR         &7, \
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cBenutze: /{label} <{actions_list}&c>
-MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cKonnte keinen zum aktuell angesehenen Block zugehörigen Kolben auffinden.
+MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cKonnte keinen zum angeklickten Block zugehörigen Kolben auffinden.
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cDer zugehörige Kolben trägt kein valides Pipe-Schild an sich!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cDir fehlen die nötigen Rechte um das Schild dieses Kolbens zu editieren!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cDir fehlen die nötigen Rechte um auf die Blöcke zuzugreifen!
@@ -63,6 +63,8 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-MOVED                  {prefix}&c
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS                {prefix}&7Das Item &a{item_amount}x {item_type} &7von Slot &a{item_slot} &7bei &a{container_x} {container_y} {container_z} &7wurde ausgehändigt.
 # - dropped_amount: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED                {prefix}&eInventar voll! Droppe &6{dropped_amount}x {item_type}&e!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7Du hast nun Einsicht in den Behälter bei &a{container_x} {container_y} {container_z}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7Du wurdest zum Behälter bei &a{container_x} {container_y} {container_z} &7teleportiert.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cDir fehlen die nötigen Rechte um diesen Befehl zu benutzen!
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ     {prefix}&cDir fehlen die nötigen Rechte um Pipe-Prädikate zu lesen!
@@ -95,5 +97,6 @@ NEXT-PAGE-LORE-RIGHT-CLICK-DESCRIPTION  &8➥ &eRechtsklick &7Springe zur letzte
 REPRESENTATIVE-LORE-COORDINATES              &8♦ &7Koordinaten: &e{container_x} {container_y} {container_z}
 REPRESENTATIVE-LORE-LEFT-CLICK-DESCRIPTION   &8➥ &eLinksklick &7Hinteleportieren
 REPRESENTATIVE-LORE-DROP-ONE-DESCRIPTION     &8➥ &eWerfen &7Ins Inventar bewegen
+REPRESENTATIVE-LORE-DROP-ALL-DESCRIPTION     &8➥ &eAlle Werfen &7Behälter öffnen
 
 # ==================== END ResultDisplay ====================

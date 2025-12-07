@@ -4,7 +4,7 @@ MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE                   {prefix}&cYou cann
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-PREFIX            &e
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-SEPARATOR         &7, \
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE                          {prefix}&cUsage: /{label} <{actions_list}&c>
-MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cCould not locate a piston corresponding to the currently looked-at block!
+MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cCould not locate a piston corresponding to the clicked-at block!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cThe corresponding piston has no valid pipe-sign attached to it!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cYou have no permission to change this piston's sign!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cYou have no permission to modify blocks around here!
@@ -65,6 +65,8 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-MOVED                  {prefix}&c
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS                {prefix}&7Das Item &a{item_amount}x {item_type} &7von Slot &a{item_slot} &7bei &a{container_x} {container_y} {container_z} &7wurde ausgehändigt.
 # - dropped_amount: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED                {prefix}&eInventar voll! Droppe &6{dropped_amount}x {item_type}&e!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7You're now viewing the container at &a{container_x} {container_y} {container_z}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7You've been teleported to the container at &a{container_x} {container_y} {container_z}&7.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cYou are missing the permission to use this command!
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ     {prefix}&cYou are missing the permission to read pipe-predicates!
@@ -97,5 +99,6 @@ NEXT-PAGE-LORE-RIGHT-CLICK-DESCRIPTION  &8➥ &eRightclick &7Navigate to last pa
 REPRESENTATIVE-LORE-COORDINATES              &8♦ &7Coordinates: &e{container_x} {container_y} {container_z}
 REPRESENTATIVE-LORE-LEFT-CLICK-DESCRIPTION   &8➥ &eLeftclick &7Teleport to
 REPRESENTATIVE-LORE-DROP-ONE-DESCRIPTION     &8➥ &eDrop &7Move to inventory
+REPRESENTATIVE-LORE-DROP-ALL-DESCRIPTION     &8➥ &eDrop All &7Open container
 
 # ==================== END ResultDisplay ====================

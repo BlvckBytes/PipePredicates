@@ -1,14 +1,18 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
+import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.plugin.Plugin;
+
+import java.util.function.Consumer;
 
 public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDisplayData> {
 
@@ -45,9 +49,14 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       return;
     }
 
-    if (clickType == ClickType.DROP) {
-      if (targetItem != null) {
+    if (targetItem != null) {
+      if (clickType == ClickType.DROP) {
         moveItemIntoInventory(display, player, targetItem);
+        return;
+      }
+
+      if (clickType == ClickType.CONTROL_DROP) {
+        openContainer(player, targetItem);
         return;
       }
 
@@ -80,77 +89,88 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     footLocation.setDirection(direction);
 
     player.teleport(footLocation);
+
+    config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleported.sendMessage(player, getBlockEnvironment(block).build());
   }
 
   private void moveItemIntoInventory(ResultDisplay resultDisplay, Player player, ItemAndSlot item) {
-    var containerBlock = item.block();
-    var world = containerBlock.getWorld();
+    tryAccessContainer(player, item, container -> {
+      var environment = getBlockEnvironment(item.block());
 
-    var chunkX = containerBlock.getX() >> 4;
-    var chunkZ = containerBlock.getZ() >> 4;
+      var containerInventory = container.getInventory();
+      var blockContents = containerInventory.getStorageContents();
 
-    if (world.isChunkLoaded(chunkX, chunkZ)) {
-      _moveItemIntoInventory(resultDisplay, player, item);
-      return;
-    }
+      if (item.slot() < 0 || item.slot() >= blockContents.length) {
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment.build());
+        return;
+      }
 
-    world.getChunkAtAsync(chunkX, chunkZ, true, chunk -> _moveItemIntoInventory(resultDisplay, player, item));
+      var targetItem = blockContents[item.slot()];
+
+      resultDisplay.removeItem(item);
+
+      environment
+        .withStaticVariable("item_slot", item.slot() + 1)
+        .withStaticVariable("item_amount", item.item().getAmount())
+        .withStaticVariable("item_type", item.item().getType().name());
+
+      if (!item.item().equals(targetItem)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment.build());
+        return;
+      }
+
+      blockContents[item.slot()] = null;
+      containerInventory.setStorageContents(blockContents);
+
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment.build());
+
+      var remainders = player.getInventory().addItem(targetItem).values();
+
+      if (!remainders.isEmpty()) {
+
+        for (var remainder : remainders) {
+          player.dropItem(remainder);
+
+          config.rootSection.playerMessages.commandPipePredicateSearchGetItemDropped.sendMessage(
+            player,
+            environment
+              .withStaticVariable("dropped_amount", remainder.getAmount())
+              .build()
+          );
+        }
+      }
+    });
   }
 
-  private void _moveItemIntoInventory(ResultDisplay resultDisplay, Player player, ItemAndSlot item) {
-    var blockState = item.block().getState();
+  private void openContainer(Player player, ItemAndSlot item) {
+    tryAccessContainer(player, item, container -> {
+      config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, getBlockEnvironment(item.block()).build());
+      player.openInventory(container.getInventory());
+    });
+  }
 
-    var environment = config.rootSection.getBaseEnvironment()
-      .withStaticVariable("container_x", blockState.getX())
-      .withStaticVariable("container_y", blockState.getY())
-      .withStaticVariable("container_z", blockState.getZ());
+  private void tryAccessContainer(Player player, ItemAndSlot item, Consumer<Container> containerHandler) {
+    var block = item.block();
 
-    if (!(blockState instanceof Container container)) {
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment.build());
-      return;
-    }
-
-    var containerInventory = container.getInventory();
-    var blockContents = containerInventory.getStorageContents();
-
-    if (item.slot() < 0 || item.slot() >= blockContents.length) {
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment.build());
-      return;
-    }
-
-    var targetItem = blockContents[item.slot()];
-
-    resultDisplay.removeItem(item);
-
-    environment
-      .withStaticVariable("item_slot", item.slot() + 1)
-      .withStaticVariable("item_amount", item.item().getAmount())
-      .withStaticVariable("item_type", item.item().getType().name());
-
-    if (!item.item().equals(targetItem)) {
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment.build());
-      return;
-    }
-
-    blockContents[item.slot()] = null;
-    containerInventory.setStorageContents(blockContents);
-
-    config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment.build());
-
-    var remainders = player.getInventory().addItem(targetItem).values();
-
-    if (!remainders.isEmpty()) {
-
-      for (var remainder : remainders) {
-        player.dropItem(remainder);
-
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemDropped.sendMessage(
-          player,
-          environment
-            .withStaticVariable("dropped_amount", remainder.getAmount())
-            .build()
+    Runnable handler = () -> {
+      if (!(block.getState() instanceof Container container)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(
+          player, getBlockEnvironment(block).build()
         );
+        return;
       }
-    }
+
+      containerHandler.accept(container);
+    };
+
+    if (!Pipes.chunkTicketManager.requiresAsyncChunkLoading(block.getWorld(), block, null, handler))
+      handler.run();
+  }
+
+  private EvaluationEnvironmentBuilder getBlockEnvironment(Block block) {
+    return config.rootSection.getBaseEnvironment()
+      .withStaticVariable("container_x", block.getX())
+      .withStaticVariable("container_y", block.getY())
+      .withStaticVariable("container_z", block.getZ());
   }
 }

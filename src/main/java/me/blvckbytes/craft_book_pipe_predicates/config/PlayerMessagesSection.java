@@ -50,6 +50,8 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateSearchGetItemMoved;
   public BukkitEvaluable commandPipePredicateSearchGetItemSuccess;
   public BukkitEvaluable commandPipePredicateSearchGetItemDropped;
+  public BukkitEvaluable commandPipePredicateSearchContainerOpened;
+  public BukkitEvaluable commandPipePredicateSearchContainerTeleported;
 
   public BukkitEvaluable missingPermissionPipePredicateCommand;
   public BukkitEvaluable missingPermissionPipePredicateRead;

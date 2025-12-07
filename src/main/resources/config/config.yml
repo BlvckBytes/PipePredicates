@@ -63,6 +63,8 @@ playerMessages:
   commandPipePredicateSearchGetItemMoved: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-MOVED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchGetItemSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchGetItemDropped: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSearchContainerOpened: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSearchContainerTeleported: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED(prefix=lut["MESSAGE_PREFIX"])}'
 
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
   missingPermissionPipePredicateRead: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ(prefix=lut["MESSAGE_PREFIX"])}'
@@ -116,6 +118,7 @@ resultDisplay:
         - '@{ANY-CONTROL-LORE-SPACER}'
         - '@{REPRESENTATIVE-LORE-LEFT-CLICK-DESCRIPTION}'
         - '@{REPRESENTATIVE-LORE-DROP-ONE-DESCRIPTION}'
+        - '@{REPRESENTATIVE-LORE-DROP-ALL-DESCRIPTION}'
         - '@{ANY-CONTROL-LORE-SPACER}'
     # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
     filler:
