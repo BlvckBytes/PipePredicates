@@ -27,7 +27,7 @@ public record PredicateData(
     if (!signLine4.isBlank())
       sign.setLine(3, signLine4);
 
-    BlockUtility.updateSign(sign);
+    sign.update(true, false);
   }
 
   public static PredicateData makeInitial(ItemPredicate predicate, TranslationLanguage language, Sign sign) {

@@ -1,14 +1,9 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
-import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
-import com.sk89q.craftbook.mechanics.pipe.CompactBlockId;
-import com.sk89q.craftbook.mechanics.pipe.PipeWalkResult;
-import com.sk89q.craftbook.mechanics.pipe.Pipes;
+import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 
@@ -24,31 +19,26 @@ public class PistonSearchSession implements SearchSession {
   public static final int MAX_PIPE_COUNT   = 10_000;
 
   private final Block origin;
-  private final World originWorld;
-  private final long originCompactId;
 
   private final Pipes pipesMechanic;
   private final Plugin plugin;
   private final PistonSearchResultHandler resultHandler;
 
-  private final LongSet seenPistons;
-  private final LongSet seenPipes;
   private final List<Block> pistonBlocks;
   private final EnumSet<PistonSearchFlag> flags;
+
+  int pipeCounter;
+  int pistonCounter;
 
   private boolean terminated;
 
   public PistonSearchSession(Block origin, Pipes pipesMechanic, Plugin plugin, PistonSearchResultHandler resultHandler) {
     this.origin = origin;
-    this.originWorld = origin.getWorld();
-    this.originCompactId = CompactBlockId.computeWorldfulId(origin);
 
     this.pipesMechanic = pipesMechanic;
     this.plugin = plugin;
     this.resultHandler = resultHandler;
 
-    this.seenPistons = new LongOpenHashSet();
-    this.seenPipes = new LongOpenHashSet();
     this.pistonBlocks = new ArrayList<>();
     this.flags = EnumSet.noneOf(PistonSearchFlag.class);
   }
@@ -69,36 +59,38 @@ public class PistonSearchSession implements SearchSession {
       return;
     }
 
-    var result = pipesMechanic.enumeratePipeBlocks(originCompactId, originWorld, origin, new LongOpenHashSet(), (block, cachedBlock) -> {
-      var compactId = CompactBlockId.computeWorldlessId(block);
+    EnumerationResult result;
 
-      if (CachedBlock.isGlassBlock(cachedBlock)) {
-        seenPipes.add(compactId);
+    try {
+      pistonCounter = pipeCounter = 0;
 
-        if (seenPipes.size() >= MAX_PIPE_COUNT) {
-          flags.add(PistonSearchFlag.EXCEEDED_MAX_PIPE_COUNT);
-          return PipeWalkResult.DONE;
+      result = pipesMechanic.enumeratePipeBlocks(origin, new LongOpenHashSet(), (block, cachedBlock) -> {
+        if (CachedBlock.isTube(cachedBlock)) {
+          if (++pipeCounter >= MAX_PIPE_COUNT) {
+            flags.add(PistonSearchFlag.EXCEEDED_MAX_PIPE_COUNT);
+            return EnumerationHandleResult.DONE;
+          }
+
+          return EnumerationHandleResult.CONTINUE;
         }
 
-        return PipeWalkResult.CONTINUE;
-      }
+        if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
+          return EnumerationHandleResult.CONTINUE;
 
-      if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
-        return PipeWalkResult.CONTINUE;
+        if (++pistonCounter >= MAX_PISTON_COUNT) {
+          flags.add(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT);
+          return EnumerationHandleResult.DONE;
+        }
 
-      if (seenPistons.add(compactId)) {
         pistonBlocks.add(block);
 
-        if (pistonBlocks.size() >= MAX_PISTON_COUNT) {
-          flags.add(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT);
-          return PipeWalkResult.DONE;
-        }
-      }
+        return EnumerationHandleResult.CONTINUE;
+      });
+    } catch (LoadingChunkException e) {
+      result = EnumerationResult.STOPPED_EARLY;
+    }
 
-      return PipeWalkResult.CONTINUE;
-    });
-
-    if (!terminated && (result == PipeWalkResult.EXCEEDED_CACHE_MISSES || result == PipeWalkResult.NEEDS_CHUNK_LOADING)) {
+    if (!terminated && result != EnumerationResult.COMPLETED) {
       Bukkit.getScheduler().runTaskLater(plugin, () -> _enumerateAllPistons(retryCount + 1), 1);
       return;
     }

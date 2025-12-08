@@ -1,5 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheInvalidedEvent;
 import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
@@ -44,6 +45,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter, Listener {
+
+  private record SignAndPiston(Sign sign, Block piston) {}
 
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
@@ -371,10 +374,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    var pistonSign = tryResolvePistonSignFromTargetBlock(player, target);
+    var resolveResult = tryResolvePistonSignFromTargetBlock(player, target);
 
-    if (pistonSign == null)
+    if (resolveResult == null)
       return false;
+
+    var pistonSign = resolveResult.sign();
 
     interactionSession.touchExpiry();
 
@@ -431,6 +436,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         }
 
         predicateData.restoreLines(pistonSign);
+        pipeEventHandler.onPipeSignCacheInvalidated(new PipeSignCacheInvalidedEvent(resolveResult.piston()));
 
         config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(
           player,
@@ -459,6 +465,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       // This call already saves the sign, so don't invoke saving twice
       dataHandler.store(newPredicateData, pistonSign);
+      pipeEventHandler.onPipeSignCacheInvalidated(new PipeSignCacheInvalidedEvent(resolveResult.piston()));
 
       config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
         player,
@@ -484,7 +491,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return pistonBlock;
   }
 
-  private @Nullable Sign tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
+  // TODO: This does not resolve to the right sign on a double-chest... Look into it!
+  private @Nullable SignAndPiston tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
     var pistonBlock = tryResolvePistonFromTargetBlock(executor, target);
 
     if (pistonBlock == null)
@@ -506,7 +514,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (allowInitialize)
       BlockUtility.initializeBlankSignIfApplicable(pistonSign);
 
-    return pistonSign;
+    return new SignAndPiston(pistonSign, pistonBlock);
   }
 
   private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {

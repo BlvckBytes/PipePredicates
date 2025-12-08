@@ -1,6 +1,5 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
-import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
@@ -152,19 +151,14 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   private void tryAccessContainer(Player player, ItemAndSlot item, Consumer<Container> containerHandler) {
     var block = item.block();
 
-    Runnable handler = () -> {
-      if (!(block.getState() instanceof Container container)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(
-          player, getBlockEnvironment(block).build()
-        );
-        return;
-      }
+    if (!(block.getState() instanceof Container container)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(
+        player, getBlockEnvironment(block).build()
+      );
+      return;
+    }
 
-      containerHandler.accept(container);
-    };
-
-    if (!Pipes.chunkTicketManager.requiresAsyncChunkLoading(block.getWorld(), block, null, handler))
-      handler.run();
+    containerHandler.accept(container);
   }
 
   private EvaluationEnvironmentBuilder getBlockEnvironment(Block block) {

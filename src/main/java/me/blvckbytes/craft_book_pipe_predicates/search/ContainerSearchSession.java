@@ -1,16 +1,19 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
-import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
-import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import org.bukkit.World;
 import org.bukkit.block.*;
 import org.bukkit.block.data.type.Chest;
+import org.bukkit.block.data.type.Piston;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class ContainerSearchSession implements SearchSession {
+
+  // TODO: At this point, chunks should most definitely be loaded, since the enumerator within
+  //       craftbook retains them for a configured amount of time. Simply ignore unloaded chunks,
+  //       but log about them.
 
   private final List<Block> pistons;
   private final World world;
@@ -36,17 +39,17 @@ public class ContainerSearchSession implements SearchSession {
     var lastIndex = pistons.size() - 1;
 
     for (var i = 0; i <= lastIndex; ++i) {
-      var piston = pistons.get(i);
+      var pistonBlock = pistons.get(i);
 
       if (i == lastIndex)
         completedPistonLoop = true;
 
-      var chunkX = piston.getX() >> 4;
-      var chunkZ = piston.getZ() >> 4;
+      var chunkX = pistonBlock.getX() >> 4;
+      var chunkZ = pistonBlock.getZ() >> 4;
 
       if (world.isChunkLoaded(chunkX, chunkZ)) {
-        var cachedPiston = Pipes.pipeBlockCache.getCachedBlock(piston);
-        handlePossibleContainer(piston.getRelative(CachedBlock.getPistonFace(cachedPiston)), true);
+        if (pistonBlock.getBlockData() instanceof Piston piston)
+          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true);
         continue;
       }
 
@@ -57,8 +60,8 @@ public class ContainerSearchSession implements SearchSession {
 
         --chunksWaitingOn;
 
-        var cachedPiston = Pipes.pipeBlockCache.getCachedBlock(piston);
-        handlePossibleContainer(piston.getRelative(CachedBlock.getPistonFace(cachedPiston)), true);
+        if (pistonBlock.getBlockData() instanceof Piston piston)
+          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true);
       });
     }
   }

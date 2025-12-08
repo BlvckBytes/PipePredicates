@@ -1,7 +1,11 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import com.sk89q.craftbook.mechanics.pipe.CompactId;
 import com.sk89q.craftbook.mechanics.pipe.PipeFilterEvent;
-import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheEvent;
+import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheCreatedEvent;
+import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheInvalidedEvent;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
@@ -12,12 +16,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -25,21 +27,22 @@ import java.util.logging.Logger;
 
 public class PipeEventHandler implements Listener {
 
-  private final Plugin plugin;
   private final PredicateDataHandler dataHandler;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
+  private final Long2ObjectMap<ItemPredicate> pipePredicateByPistonBlockCompactId;
+
   public PipeEventHandler(
-    Plugin plugin,
     PredicateDataHandler dataHandler,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
-    this.plugin = plugin;
     this.dataHandler = dataHandler;
     this.config = config;
     this.logger = logger;
+
+    this.pipePredicateByPistonBlockCompactId = new Long2ObjectOpenHashMap<>();
   }
 
   private void callFakeEvent(Event event) {
@@ -70,27 +73,30 @@ public class PipeEventHandler implements Listener {
   }
 
   public boolean canEditSign(Player player, Sign sign) {
+    //noinspection removal
     var fakeChangeEvent = new SignChangeEvent(sign.getBlock(), player, sign.getLines());
     callFakeEvent(fakeChangeEvent);
     return !fakeChangeEvent.isCancelled();
   }
 
   @EventHandler
-  public void onPipeSignCache(PipeSignCacheEvent event) {
-    var predicateData = dataHandler.access(event.sign);
+  public void onPipeSignCache(PipeSignCacheCreatedEvent event) {
+    var predicateData = dataHandler.access(event.getPipeSign());
 
-    if (predicateData != null)
-      event.pipeSign.setPluginData(plugin, predicateData.parsedPredicate());
+    if (predicateData != null) {
+      var compactId = CompactId.computeWorldfulBlockId(event.getPistonBlock());
+      pipePredicateByPistonBlockCompactId.put(compactId, predicateData.parsedPredicate());
+    }
+  }
+
+  @EventHandler
+  public void onPipeSignCacheInvalidated(PipeSignCacheInvalidedEvent event) {
+    pipePredicateByPistonBlockCompactId.remove(CompactId.computeWorldfulBlockId(event.getPistonBlock()));
   }
 
   @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
-    var sign = event.getSign();
-
-    if (sign == null)
-      return;
-
-    var predicate = (ItemPredicate) sign.getPluginData(plugin);
+    var predicate = pipePredicateByPistonBlockCompactId.get(CompactId.computeWorldfulBlockId(event.getBlock()));
 
     if (predicate == null)
       return;
