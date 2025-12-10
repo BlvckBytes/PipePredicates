@@ -15,8 +15,6 @@ public class PistonSearchSession implements SearchSession {
 
   // TODO: These limits should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
-  public static final int MAX_PISTON_COUNT = 2500;
-  public static final int MAX_PIPE_COUNT   = 10_000;
 
   private final Block origin;
 
@@ -65,29 +63,25 @@ public class PistonSearchSession implements SearchSession {
       pistonCounter = pipeCounter = 0;
 
       result = pipesMechanic.enumeratePipeBlocks(origin, new LongOpenHashSet(), (block, cachedBlock) -> {
-        if (CachedBlock.isTube(cachedBlock)) {
-          if (++pipeCounter >= MAX_PIPE_COUNT) {
-            flags.add(PistonSearchFlag.EXCEEDED_MAX_PIPE_COUNT);
-            return EnumerationHandleResult.DONE;
-          }
-
-          return EnumerationHandleResult.CONTINUE;
-        }
-
         if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
           return EnumerationHandleResult.CONTINUE;
-
-        if (++pistonCounter >= MAX_PISTON_COUNT) {
-          flags.add(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT);
-          return EnumerationHandleResult.DONE;
-        }
 
         pistonBlocks.add(block);
 
         return EnumerationHandleResult.CONTINUE;
       });
     } catch (LoadingChunkException e) {
-      result = EnumerationResult.STOPPED_EARLY;
+      result = EnumerationResult.STILL_WARMING_UP;
+    }
+
+    if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
+      flags.add(PistonSearchFlag.EXCEEDED_MAX_TUBE_COUNT);
+      return;
+    }
+
+    if (result == EnumerationResult.EXCEEDED_PISTON_COUNT_LIMIT) {
+      flags.add(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT);
+      return;
     }
 
     if (!terminated && result != EnumerationResult.COMPLETED) {

@@ -11,10 +11,6 @@ import java.util.function.Consumer;
 
 public class ContainerSearchSession implements SearchSession {
 
-  // TODO: At this point, chunks should most definitely be loaded, since the enumerator within
-  //       craftbook retains them for a configured amount of time. Simply ignore unloaded chunks,
-  //       but log about them.
-
   private final List<Block> pistons;
   private final World world;
   private final Consumer<List<InventoryAndBlock>> completion;
