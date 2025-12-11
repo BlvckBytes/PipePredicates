@@ -31,7 +31,7 @@ public class PipeEventHandler implements Listener {
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final Long2ObjectMap<ItemPredicate> pipePredicateByPistonBlockCompactId;
+  private final Map<UUID, Long2ObjectMap<ItemPredicate>> pipePredicateByPistonIdByWorldId;
 
   public PipeEventHandler(
     PredicateDataHandler dataHandler,
@@ -42,7 +42,7 @@ public class PipeEventHandler implements Listener {
     this.config = config;
     this.logger = logger;
 
-    this.pipePredicateByPistonBlockCompactId = new Long2ObjectOpenHashMap<>();
+    this.pipePredicateByPistonIdByWorldId = new HashMap<>();
   }
 
   private void callFakeEvent(Event event) {
@@ -84,19 +84,31 @@ public class PipeEventHandler implements Listener {
     var predicateData = dataHandler.access(event.getPipeSign());
 
     if (predicateData != null) {
-      var compactId = CompactId.computeWorldfulBlockId(event.getPistonBlock());
-      pipePredicateByPistonBlockCompactId.put(compactId, predicateData.parsedPredicate());
+      var worldId = event.getPistonBlock().getWorld().getUID();
+      var predicateCache = pipePredicateByPistonIdByWorldId.computeIfAbsent(worldId, k -> new Long2ObjectOpenHashMap<>());
+      var compactId = CompactId.computeWorldlessBlockId(event.getPistonBlock());
+      predicateCache.put(compactId, predicateData.parsedPredicate());
     }
   }
 
   @EventHandler
   public void onPipeSignCacheInvalidated(PipeSignCacheInvalidedEvent event) {
-    pipePredicateByPistonBlockCompactId.remove(CompactId.computeWorldfulBlockId(event.getPistonBlock()));
+    var worldId = event.getPistonBlock().getWorld().getUID();
+    var predicateCache = pipePredicateByPistonIdByWorldId.get(worldId);
+
+    if (predicateCache != null)
+      predicateCache.remove(CompactId.computeWorldlessBlockId(event.getPistonBlock()));
   }
 
   @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
-    var predicate = pipePredicateByPistonBlockCompactId.get(CompactId.computeWorldfulBlockId(event.getBlock()));
+    var worldId = event.getBlock().getWorld().getUID();
+    var predicateCache = pipePredicateByPistonIdByWorldId.get(worldId);
+
+    if (predicateCache == null)
+      return;
+
+    var predicate = predicateCache.get(CompactId.computeWorldlessBlockId(event.getBlock()));
 
     if (predicate == null)
       return;
