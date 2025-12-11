@@ -1,7 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import com.sk89q.craftbook.mechanics.pipe.*;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -13,7 +12,7 @@ import java.util.List;
 
 public class PistonSearchSession implements SearchSession {
 
-  // TODO: These limits should be configurable
+  // TODO: This limit should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
 
   private final Block origin;
@@ -56,32 +55,26 @@ public class PistonSearchSession implements SearchSession {
       return;
     }
 
-    EnumerationResult result;
+    tubeCount = 0;
 
-    try {
-      tubeCount = 0;
+    // We'll be walking the pipe from the very get-go again next tick, so clear the list of pistons.
+    // This is a lot faster than having to use a set. Blocks are guaranteed to be unique during a session
+    // of enumerating blocks, so the additional set would be rather superfluous.
+    pistonBlocks.clear();
 
-      // We'll be walking the pipe from the very get-go again next tick, so clear the list of pistons.
-      // This is a lot faster than having to use a set. Blocks are guaranteed to be unique during a session
-      // of enumerating blocks, so the additional set would be rather superfluous.
-      pistonBlocks.clear();
+    var result = pipesMechanic.enumeratePipeBlocks(origin, null, (block, cachedBlock) -> {
+      if (CachedBlock.isTube(cachedBlock)) {
+        ++tubeCount;
+        return EnumerationDecision.CONTINUE;
+      }
 
-      result = pipesMechanic.enumeratePipeBlocks(origin, new LongOpenHashSet(), (block, cachedBlock) -> {
-        if (CachedBlock.isTube(cachedBlock)) {
-          ++tubeCount;
-          return EnumerationHandleResult.CONTINUE;
-        }
+      if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
+        return EnumerationDecision.CONTINUE;
 
-        if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
-          return EnumerationHandleResult.CONTINUE;
+      pistonBlocks.add(block);
 
-        pistonBlocks.add(block);
-
-        return EnumerationHandleResult.CONTINUE;
-      });
-    } catch (LoadingChunkException e) {
-      result = EnumerationResult.STILL_WARMING_UP;
-    }
+      return EnumerationDecision.CONTINUE;
+    });
 
     if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
       flags.add(PistonSearchFlag.EXCEEDED_MAX_TUBE_COUNT);
