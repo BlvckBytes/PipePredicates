@@ -491,7 +491,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return pistonBlock;
   }
 
-  // TODO: This does not resolve to the right sign on a double-chest... Look into it!
   private @Nullable SignAndPiston tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
     var pistonBlock = tryResolvePistonFromTargetBlock(executor, target);
 
