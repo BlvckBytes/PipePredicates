@@ -51,7 +51,7 @@ public class PipeSearchHandler implements Listener {
       return;
     }
 
-    var pistonSearch = new PistonSearchSession(pistonBlock, pipesMechanic, plugin, (pistons, flags) -> {
+    var pistonSearch = new PistonSearchSession(pistonBlock, pipesMechanic, plugin, (pistons, tubeCount, flags) -> {
       searchSessionByPlayerId.remove(playerId);
 
       if (flags.contains(PistonSearchFlag.EXCEEDED_MAX_TUBE_COUNT)) {
@@ -155,6 +155,7 @@ public class PipeSearchHandler implements Listener {
         player,
         config.rootSection.getBaseEnvironment()
           .withStaticVariable("piston_count", pistons.size())
+          .withStaticVariable("tube_count", tubeCount)
           .build()
       );
 

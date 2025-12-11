@@ -8,6 +8,6 @@ import java.util.List;
 @FunctionalInterface
 public interface PistonSearchResultHandler {
 
-  void handle(List<Block> pistons, EnumSet<PistonSearchFlag> flags);
+  void handle(List<Block> pistons, int tubeCount, EnumSet<PistonSearchFlag> flags);
 
 }

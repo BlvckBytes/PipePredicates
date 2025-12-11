@@ -25,8 +25,7 @@ public class PistonSearchSession implements SearchSession {
   private final List<Block> pistonBlocks;
   private final EnumSet<PistonSearchFlag> flags;
 
-  int pipeCounter;
-  int pistonCounter;
+  int tubeCount;
 
   private boolean terminated;
 
@@ -53,16 +52,26 @@ public class PistonSearchSession implements SearchSession {
   private void _enumerateAllPistons(int retryCount) {
     if (retryCount >= MAX_RETRY_COUNT) {
       flags.add(PistonSearchFlag.EXCEEDED_MAX_RETRY_COUNT);
-      resultHandler.handle(pistonBlocks, flags);
+      resultHandler.handle(pistonBlocks, tubeCount, flags);
       return;
     }
 
     EnumerationResult result;
 
     try {
-      pistonCounter = pipeCounter = 0;
+      tubeCount = 0;
+
+      // We'll be walking the pipe from the very get-go again next tick, so clear the list of pistons.
+      // This is a lot faster than having to use a set. Blocks are guaranteed to be unique during a session
+      // of enumerating blocks, so the additional set would be rather superfluous.
+      pistonBlocks.clear();
 
       result = pipesMechanic.enumeratePipeBlocks(origin, new LongOpenHashSet(), (block, cachedBlock) -> {
+        if (CachedBlock.isTube(cachedBlock)) {
+          ++tubeCount;
+          return EnumerationHandleResult.CONTINUE;
+        }
+
         if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
           return EnumerationHandleResult.CONTINUE;
 
@@ -89,6 +98,6 @@ public class PistonSearchSession implements SearchSession {
       return;
     }
 
-    resultHandler.handle(pistonBlocks, flags);
+    resultHandler.handle(pistonBlocks, tubeCount, flags);
   }
 }

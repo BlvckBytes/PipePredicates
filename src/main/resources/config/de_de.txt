@@ -41,7 +41,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-PISTONS                      {prefix}&c
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-CONTAINERS                   {prefix}&cEs konnten keine Behälter an Ausgangskolben gefunden werden!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-PISTONS         {prefix}&7Suche &aAusgangskolben&7... Bitte um eventuelle Geduld!
 # - piston_count: Int
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-CONTAINERS      {prefix}&7Suche für &a{piston_count} Ausgangskolben &7zugehörige &aBehälter&7... Bitte um eventuelle Geduld!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-CONTAINERS      {prefix}&7Suche für &a{piston_count} Ausgangskolben &7(verteilt über &a{tube_count} Rohrblöcke&7) zugehörige &aBehälter&7... Bitte um eventuelle Geduld!
 # - container_count: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-TESTING                   {prefix}&7Vergleiche die &aInhalte &7von &a{container_count} Behälter(n) &7mit der Suche...
 # - predicate: String
