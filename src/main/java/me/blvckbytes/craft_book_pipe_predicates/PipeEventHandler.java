@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import me.blvckbytes.item_predicate_parser.translation.PredicateSourcesReloadEvent;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -77,6 +78,11 @@ public class PipeEventHandler implements Listener {
     var fakeChangeEvent = new SignChangeEvent(sign.getBlock(), player, sign.getLines());
     callFakeEvent(fakeChangeEvent);
     return !fakeChangeEvent.isCancelled();
+  }
+
+  @EventHandler
+  public void onPredicateSourcesReload(PredicateSourcesReloadEvent event) {
+    this.pipePredicateByPistonIdByWorldId.clear();
   }
 
   @EventHandler
