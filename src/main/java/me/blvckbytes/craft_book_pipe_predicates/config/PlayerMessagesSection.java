@@ -20,8 +20,8 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateRemoveSuccess;
   public BukkitEvaluable commandPipePredicateSetInit;
   public BukkitEvaluable commandPipePredicateSetSuccess;
-  public BukkitEvaluable commandPipePredicateSetMissingLanguage;
-  public BukkitEvaluable commandPipePredicateSetUnknownLanguage;
+  public BukkitEvaluable commandPipePredicateMissingLanguage;
+  public BukkitEvaluable commandPipePredicateUnknownLanguage;
   public BukkitEvaluable commandPipePredicateInteractMultiEntered;
   public BukkitEvaluable commandPipePredicateInteractMultiExited;
   public @Nullable BukkitEvaluable commandPipePredicateInteractMultiActionBarSignal;
@@ -54,10 +54,6 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateSearchContainerTeleported;
 
   public BukkitEvaluable missingPermissionPipePredicateCommand;
-  public BukkitEvaluable missingPermissionPipePredicateRead;
-  public BukkitEvaluable missingPermissionPipePredicateModify;
-  public BukkitEvaluable missingPermissionPipePredicateReload;
-  public BukkitEvaluable missingPermissionPipePredicateSearch;
 
   public PlayerMessagesSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

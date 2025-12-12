@@ -15,8 +15,8 @@ MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interact
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&aSuccessfully removed &7the corresponding piston's predicate of &a{predicate}&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&aSuccessfully set &7the corresponding piston's predicate to &a{predicate}&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aSET &7its predicate &7to &a{predicate}&7; &asneak &7to enter &amultiple-mode&7.
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-MISSING-LANGUAGE           {prefix}&cPlease provide a predicate-language as the next parameter!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-UNKNOWN-LANGUAGE           {prefix}&cThe input &4{input} &cdoes not resemble a known language!
+MESSAGE-COMMAND-PIPE-PREDICATE-MISSING-LANGUAGE               {prefix}&cPlease provide a predicate-language as the next parameter!
+MESSAGE-COMMAND-PIPE-PREDICATE-UNKNOWN-LANGUAGE               {prefix}&cThe input &4{input} &cdoes not resemble a known language!
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ENTERED         {prefix}&7You've &aentered multiple-mode &7by &asneaking &7- you may now apply your action to many pistons one after another; &asneak again to exit&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-EXITED          {prefix}&7You've &aexited multiple-mode &7by &asneaking &7again.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ACTION-BAR-SIGNAL &a&lYou're in a multiple-mode session; exit by sneaking
@@ -69,10 +69,6 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7You've been teleported to the container at &a{container_x} {container_y} {container_z}&7.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cYou are missing the permission to use this command!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ     {prefix}&cYou are missing the permission to read pipe-predicates!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY   {prefix}&cYou are missing the permission to modify pipe-predicates!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD   {prefix}&cYou are missing the permission to reload the plugin's configuration!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-SEARCH   {prefix}&cYou are missing the permission to search through pipes!
 
 # ==================== BEGIN ResultDisplay ====================
 

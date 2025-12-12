@@ -15,8 +15,8 @@ MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interagi
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&7Das Prädikat &a{predicate} &7des zugehörigen Kolbens wurde &aerfolgreich entfernt&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interagiere mit einem &aKolben, einer Truhe oder einem Schild &7um dessen Prädikat auf &a{predicate} &7zu &aSETZEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&7Das Prädikat des zugehörigen Kolbens wurde &aerfolgreich &7auf &a{predicate} &7gesetzt&7!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-MISSING-LANGUAGE           {prefix}&cBitte gib die Sprache des Prädikats als nächsten Parameter an!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-UNKNOWN-LANGUAGE           {prefix}&cDie Eingabe &4{input} &crepräsentiert keine bekannte Sprache!
+MESSAGE-COMMAND-PIPE-PREDICATE-MISSING-LANGUAGE               {prefix}&cBitte gib die Sprache des Prädikats als nächsten Parameter an!
+MESSAGE-COMMAND-PIPE-PREDICATE-UNKNOWN-LANGUAGE               {prefix}&cDie Eingabe &4{input} &crepräsentiert keine bekannte Sprache!
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ENTERED         {prefix}&7Du hast den &aMehrfachmodus &7durch &asneaking &7aktiviert - nun kann deine Aktion auf mehrere Kolben nacheinander angewandt werden; &asneake erneut um den Modus zu verlassen&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-EXITED          {prefix}&7Du hast den &aMehrfachmodus &7durch &aerneutes sneaken &7wieder &averlassen.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ACTION-BAR-SIGNAL &a&lDu befindest dich im Mehrfachmodus; verlasse durchs sneaken.
@@ -67,10 +67,6 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7Du wurdest zum Behälter bei &a{container_x} {container_y} {container_z} &7teleportiert.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cDir fehlen die nötigen Rechte um diesen Befehl zu benutzen!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ     {prefix}&cDir fehlen die nötigen Rechte um Pipe-Prädikate zu lesen!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY   {prefix}&cDir fehlen die nötigen Rechte um Pipe-Prädikate zu modifizieren!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD   {prefix}&cDir fehlen die nötigen Rechte um die Konfiguration des Plugins neu zu laden!
-MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-SEARCH   {prefix}&cDir fehlen die nötigen Rechte um Pipes zu durchsuchen!
 
 # ==================== BEGIN ResultDisplay ====================
 

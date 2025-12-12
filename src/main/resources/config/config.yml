@@ -33,8 +33,8 @@ playerMessages:
   commandPipePredicateRemoveSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSetInit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSetSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateSetMissingLanguage: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-MISSING-LANGUAGE(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateSetUnknownLanguage: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SET-UNKNOWN-LANGUAGE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateMissingLanguage: '@{MESSAGE-COMMAND-PIPE-PREDICATE-MISSING-LANGUAGE(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateUnknownLanguage: '@{MESSAGE-COMMAND-PIPE-PREDICATE-UNKNOWN-LANGUAGE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateInteractMultiEntered: '@{MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ENTERED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateInteractMultiExited: '@{MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-EXITED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateInteractMultiActionBarSignal: '@{MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ACTION-BAR-SIGNAL(prefix=lut["MESSAGE_PREFIX"])}'
@@ -67,10 +67,6 @@ playerMessages:
   commandPipePredicateSearchContainerTeleported: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED(prefix=lut["MESSAGE_PREFIX"])}'
 
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
-  missingPermissionPipePredicateRead: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-READ(prefix=lut["MESSAGE_PREFIX"])}'
-  missingPermissionPipePredicateModify: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-MODIFY(prefix=lut["MESSAGE_PREFIX"])}'
-  missingPermissionPipePredicateReload: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-RELOAD(prefix=lut["MESSAGE_PREFIX"])}'
-  missingPermissionPipePredicateSearch: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-SEARCH(prefix=lut["MESSAGE_PREFIX"])}'
 
 # - current_page: Integer
 # - number_pages: Integer

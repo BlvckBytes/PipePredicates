@@ -122,11 +122,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.RELOAD) {
-      if (!PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)) {
-        config.rootSection.playerMessages.missingPermissionPipePredicateReload.sendMessage(sender, config.rootSection.builtBaseEnvironment);
-        return false;
-      }
-
       try {
         this.config.reload();
 
@@ -141,12 +136,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.SEARCH) {
-      if (!PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender)) {
-        config.rootSection.playerMessages.missingPermissionPipePredicateSearch.sendMessage(sender, config.rootSection.builtBaseEnvironment);
-        return false;
-      }
-
-      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
+      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
 
       if (predicateAndLanguage == null)
         return true;
@@ -164,11 +154,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     switch (normalizedAction.constant) {
       case REMOVE -> {
-        if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
-          config.rootSection.playerMessages.missingPermissionPipePredicateModify.sendMessage(sender, config.rootSection.builtBaseEnvironment);
-          return false;
-        }
-
         config.rootSection.playerMessages.commandPipePredicateRemoveInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, null));
@@ -176,24 +161,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       }
 
       case GET -> {
-        if (!PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender)) {
-          config.rootSection.playerMessages.missingPermissionPipePredicateRead.sendMessage(sender, config.rootSection.builtBaseEnvironment);
-          return false;
-        }
-
         config.rootSection.playerMessages.commandPipePredicateGetInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateGetSession(player));
         return true;
       }
 
-      case SET -> {
-        if (!PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)) {
-          config.rootSection.playerMessages.missingPermissionPipePredicateModify.sendMessage(sender, config.rootSection.builtBaseEnvironment);
-          return false;
-        }
-
-        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
+      case SET, SET_LANGUAGE -> {
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, normalizedAction.constant == CommandAction.SET);
 
         if (predicateAndLanguage == null)
           return true;
@@ -231,23 +206,32 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (normalizedAction == null)
       return null;
 
-    if (normalizedAction.constant != CommandAction.SET && normalizedAction.constant != CommandAction.SEARCH)
+    if (normalizedAction.constant != CommandAction.SET && normalizedAction.constant != CommandAction.SEARCH && normalizedAction.constant != CommandAction.SET_LANGUAGE)
       return null;
 
     TranslationLanguage language;
+    int argsOffset;
 
-    if (args.length == 2)
-      return TranslationLanguage.matcher.createCompletions(args[1]);
+    if (normalizedAction.constant == CommandAction.SET_LANGUAGE) {
+      if (args.length == 2)
+        return TranslationLanguage.matcher.createCompletions(args[1]);
 
-    var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
+      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
 
-    if (languageSelection == null)
-      return null;
+      if (languageSelection == null)
+        return null;
 
-    language = languageSelection.constant;
+      language = languageSelection.constant;
+      argsOffset = 2;
+    }
+
+    else {
+      language = predicateHelper.getSelectedLanguage(player);
+      argsOffset = 1;
+    }
 
     try {
-      var tokens = predicateHelper.parseTokens(args, 2);
+      var tokens = predicateHelper.parseTokens(args, argsOffset);
       var completions = predicateHelper.createCompletion(language, tokens);
 
       if (completions.expandedPreviewOrError() != null)
@@ -403,7 +387,15 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
       var predicateValue = predicateData.tokensPredicate();
-      var setCommand = "/" + config.rootSection.commands.pipePredicate.evaluatedName + " " + CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateLanguageName + " " + predicateValue;
+
+      var setCommand = "/" + config.rootSection.commands.pipePredicate.evaluatedName + " ";
+
+      if (predicateData.predicateLanguage() == predicateHelper.getSelectedLanguage(player)) {
+        setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateValue;
+      }
+      else {
+        setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET_LANGUAGE) + " " + predicateLanguageName + " " + predicateValue;
+      }
 
       player.spigot().sendMessage(
         new ComponentBuilder(
@@ -516,28 +508,38 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return new SignAndPiston(pistonSign, pistonBlock);
   }
 
-  private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
-    if (args.length < 2) {
-      config.rootSection.playerMessages.commandPipePredicateSetMissingLanguage.sendMessage(
-        executor, config.rootSection.builtBaseEnvironment
-      );
-      return null;
+  private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args, boolean useSelectedLanguage) {
+    int predicateArgsOffset;
+    TranslationLanguage language;
+
+    if (useSelectedLanguage) {
+      language = predicateHelper.getSelectedLanguage(executor);
+      predicateArgsOffset = 1;
     }
 
-    var predicateArgsOffset = 2;
-    var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
+    else {
+      if (args.length < 2) {
+        config.rootSection.playerMessages.commandPipePredicateMissingLanguage.sendMessage(
+          executor, config.rootSection.builtBaseEnvironment
+        );
+        return null;
+      }
 
-    if (languageSelection == null) {
-      config.rootSection.playerMessages.commandPipePredicateSetUnknownLanguage.sendMessage(
-        executor,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("input", args[1])
-          .build()
-      );
-      return null;
+      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
+
+      if (languageSelection == null) {
+        config.rootSection.playerMessages.commandPipePredicateUnknownLanguage.sendMessage(
+          executor,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("input", args[1])
+            .build()
+        );
+        return null;
+      }
+
+      language = languageSelection.constant;
+      predicateArgsOffset = 2;
     }
-
-    var language = languageSelection.constant;
 
     ItemPredicate predicate;
 
@@ -563,6 +565,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return new PredicateAndLanguage(predicate, language);
   }
 
+  @SuppressWarnings("deprecation")
   private void showActionBarMessage(Player player, String message) {
     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
   }

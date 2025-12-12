@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 public enum CommandAction implements MatchableEnum {
   GET,
   SET,
+  SET_LANGUAGE,
   REMOVE,
   RELOAD,
   SEARCH,
@@ -19,7 +20,8 @@ public enum CommandAction implements MatchableEnum {
     return (
       PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender) ||
       PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender) ||
-      PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)
+      PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender) ||
+      PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender)
     );
   }
 
@@ -27,7 +29,7 @@ public enum CommandAction implements MatchableEnum {
     return value -> (
       switch (value.constant) {
         case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
-        case SET, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
+        case SET, SET_LANGUAGE, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
         case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
       }
