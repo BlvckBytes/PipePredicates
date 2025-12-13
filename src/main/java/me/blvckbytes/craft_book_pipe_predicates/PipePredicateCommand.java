@@ -1,6 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
-import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheInvalidedEvent;
+import com.sk89q.craftbook.mechanics.pipe.InvalidateCachedBlockEvent;
 import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
@@ -17,6 +17,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
@@ -428,7 +429,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         }
 
         predicateData.restoreLines(pistonSign);
-        pipeEventHandler.onPipeSignCacheInvalidated(new PipeSignCacheInvalidedEvent(resolveResult.piston()));
+        Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(resolveResult.sign().getBlock()));
 
         config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(
           player,
@@ -457,7 +458,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       // This call already saves the sign, so don't invoke saving twice
       dataHandler.store(newPredicateData, pistonSign);
-      pipeEventHandler.onPipeSignCacheInvalidated(new PipeSignCacheInvalidedEvent(resolveResult.piston()));
+      Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(resolveResult.sign().getBlock()));
 
       config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
         player,
