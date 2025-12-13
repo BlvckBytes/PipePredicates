@@ -8,19 +8,14 @@ import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Sign;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class PredicateDataHandler {
 
-  private final Map<Location, PredicateData> dataCache;
   private final PredicateHelper predicateHelper;
   private final ConfigKeeper<MainSection> config;
   private final NamespacedKey tokensPredicateKey, expandedPredicateKey, predicateLanguageKey, signLine1Key, signLine3Key, signLine4Key;
@@ -30,8 +25,6 @@ public class PredicateDataHandler {
     PredicateHelper predicateHelper,
     ConfigKeeper<MainSection> config
   ) {
-    this.dataCache = new HashMap<>();
-
     this.predicateHelper = predicateHelper;
     this.config = config;
 
@@ -58,8 +51,6 @@ public class PredicateDataHandler {
     container.set(signLine4Key, PersistentDataType.STRING, data.signLine4());
 
     sign.update(true, false);
-
-    dataCache.put(sign.getLocation(), data);
   }
 
   public @Nullable PredicateData remove(Sign sign) {
@@ -79,21 +70,11 @@ public class PredicateDataHandler {
 
     sign.update(true, false);
 
-    dataCache.remove(sign.getLocation());
-
     return predicateData;
   }
 
   public @Nullable PredicateData access(Sign sign) {
-    PredicateData result;
-
-    if ((result = dataCache.get(sign.getLocation())) != null) {
-      updateSignErrorMode(sign, result);
-      return result;
-    }
-
     var container = sign.getPersistentDataContainer();
-
     var expandedPredicate = container.get(expandedPredicateKey, PersistentDataType.STRING);
 
     if (expandedPredicate == null)
@@ -123,7 +104,7 @@ public class PredicateDataHandler {
       exception = e;
     }
 
-    result = new PredicateData(
+    var result = new PredicateData(
       tokensPredicate == null ? "" : tokensPredicate,
       expandedPredicate,
       predicateLanguage,
@@ -132,8 +113,6 @@ public class PredicateDataHandler {
       signLine4 == null ? "" : signLine4,
       predicate, exception
     );
-
-    dataCache.put(sign.getLocation(), result);
 
     updateSignErrorMode(sign, result);
     return result;

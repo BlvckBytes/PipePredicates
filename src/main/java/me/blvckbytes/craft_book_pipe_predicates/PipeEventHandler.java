@@ -1,15 +1,13 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
-import com.sk89q.craftbook.mechanics.pipe.CompactId;
-import com.sk89q.craftbook.mechanics.pipe.PipeFilterEvent;
-import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheCreatedEvent;
-import com.sk89q.craftbook.mechanics.pipe.PipeSignCacheInvalidedEvent;
+import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.translation.PredicateSourcesReloadEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -28,11 +26,13 @@ import java.util.logging.Logger;
 
 public class PipeEventHandler implements Listener {
 
+  private record CachedSign(ItemPredicate predicate, int x, int y, int z) {}
+
   private final PredicateDataHandler dataHandler;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final Map<UUID, Long2ObjectMap<ItemPredicate>> pipePredicateByPistonIdByWorldId;
+  private final Map<UUID, Long2ObjectMap<CachedSign>> cachedSignByPistonIdByWorldId;
 
   public PipeEventHandler(
     PredicateDataHandler dataHandler,
@@ -43,7 +43,7 @@ public class PipeEventHandler implements Listener {
     this.config = config;
     this.logger = logger;
 
-    this.pipePredicateByPistonIdByWorldId = new HashMap<>();
+    this.cachedSignByPistonIdByWorldId = new HashMap<>();
   }
 
   private void callFakeEvent(Event event) {
@@ -82,25 +82,39 @@ public class PipeEventHandler implements Listener {
 
   @EventHandler
   public void onPredicateSourcesReload(PredicateSourcesReloadEvent event) {
-    this.pipePredicateByPistonIdByWorldId.clear();
+    for (var entry : cachedSignByPistonIdByWorldId.entrySet()) {
+      var world = Bukkit.getWorld(entry.getKey());
+
+      if (world == null)
+        continue;
+
+      for (var cachedSign : entry.getValue().values()) {
+        var signBlock = world.getBlockAt(cachedSign.x, cachedSign.y, cachedSign.z);
+        Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(signBlock));
+      }
+    }
+
+    this.cachedSignByPistonIdByWorldId.clear();
   }
 
   @EventHandler
   public void onPipeSignCache(PipeSignCacheCreatedEvent event) {
-    var predicateData = dataHandler.access(event.getPipeSign());
+    var sign = event.getPipeSign();
+    var predicateData = dataHandler.access(sign);
 
     if (predicateData != null) {
       var worldId = event.getPistonBlock().getWorld().getUID();
-      var predicateCache = pipePredicateByPistonIdByWorldId.computeIfAbsent(worldId, k -> new Long2ObjectOpenHashMap<>());
+      var predicateCache = cachedSignByPistonIdByWorldId.computeIfAbsent(worldId, k -> new Long2ObjectOpenHashMap<>());
       var compactId = CompactId.computeWorldlessBlockId(event.getPistonBlock());
-      predicateCache.put(compactId, predicateData.parsedPredicate());
+      var cachedSign = new CachedSign(predicateData.parsedPredicate(), sign.getX(), sign.getY(), sign.getZ());
+      predicateCache.put(compactId, cachedSign);
     }
   }
 
   @EventHandler
   public void onPipeSignCacheInvalidated(PipeSignCacheInvalidedEvent event) {
     var worldId = event.getPistonBlock().getWorld().getUID();
-    var predicateCache = pipePredicateByPistonIdByWorldId.get(worldId);
+    var predicateCache = cachedSignByPistonIdByWorldId.get(worldId);
 
     if (predicateCache != null)
       predicateCache.remove(CompactId.computeWorldlessBlockId(event.getPistonBlock()));
@@ -109,20 +123,20 @@ public class PipeEventHandler implements Listener {
   @EventHandler
   public void onPipeFilter(PipeFilterEvent event) {
     var worldId = event.getBlock().getWorld().getUID();
-    var predicateCache = pipePredicateByPistonIdByWorldId.get(worldId);
+    var signCache = cachedSignByPistonIdByWorldId.get(worldId);
 
-    if (predicateCache == null)
+    if (signCache == null)
       return;
 
-    var predicate = predicateCache.get(CompactId.computeWorldlessBlockId(event.getBlock()));
+    var cachedSign = signCache.get(CompactId.computeWorldlessBlockId(event.getBlock()));
 
-    if (predicate == null)
+    if (cachedSign == null)
       return;
 
     var result = new ArrayList<ItemStack>();
 
     for (var item : event.getItems()) {
-      if (predicate.test(item))
+      if (cachedSign.predicate.test(item))
         result.add(item);
     }
 
