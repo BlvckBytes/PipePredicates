@@ -78,11 +78,13 @@ public class PistonSearchSession implements SearchSession {
 
     if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
       flags.add(PistonSearchFlag.EXCEEDED_MAX_TUBE_COUNT);
+      resultHandler.handle(pistonBlocks, tubeCount, flags);
       return;
     }
 
     if (result == EnumerationResult.EXCEEDED_PISTON_COUNT_LIMIT) {
       flags.add(PistonSearchFlag.EXCEEDED_MAX_PISTON_COUNT);
+      resultHandler.handle(pistonBlocks, tubeCount, flags);
       return;
     }
 

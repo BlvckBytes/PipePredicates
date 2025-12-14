@@ -175,6 +175,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
             .withStaticVariable("container_x", itemAndSlot.block().getX())
             .withStaticVariable("container_y", itemAndSlot.block().getY())
             .withStaticVariable("container_z", itemAndSlot.block().getZ())
+            .withStaticVariable("slot", itemAndSlot.slot() + 1)
             .build(pageEnvironment)
         );
 

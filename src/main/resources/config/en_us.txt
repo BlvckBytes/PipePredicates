@@ -89,10 +89,12 @@ NEXT-PAGE-NAME-HAS-NOT                  &8» &cNo next Page &8«
 NEXT-PAGE-LORE-LEFT-CLICK-DESCRIPTION   &8➥ &eLeftclick &7Navigate to next page
 NEXT-PAGE-LORE-RIGHT-CLICK-DESCRIPTION  &8➥ &eRightclick &7Navigate to last page
 
-# - container_x: String
-# - container_y: String
-# - container_z: String
+# - container_x: Int
+# - container_y: Int
+# - container_z: Int
 REPRESENTATIVE-LORE-COORDINATES              &8♦ &7Coordinates: &e{container_x} {container_y} {container_z}
+# - slot: Int
+REPRESENTATIVE-LORE-SLOT                     &8♦ &7Slot: &e{slot}
 REPRESENTATIVE-LORE-LEFT-CLICK-DESCRIPTION   &8➥ &eLeftclick &7Teleport to
 REPRESENTATIVE-LORE-DROP-ONE-DESCRIPTION     &8➥ &eDrop &7Move to inventory
 REPRESENTATIVE-LORE-DROP-ALL-DESCRIPTION     &8➥ &eDrop All &7Open container
