@@ -39,20 +39,23 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PIPES                  {prefix}&e
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PISTONS                {prefix}&eDas Limit von &6{limit} Ausgangskolben &ewurde überschritten; stoppe vorzeitig!
 # - limit: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-RETRY                  {prefix}&eDas Limit von &6{limit} Ladeversuchen &ewurde überschritten; stoppe vorzeitig!
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-PISTONS                      {prefix}&cEs konnten keine Ausgangskolben gefunden werden!
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-CONTAINERS                   {prefix}&cEs konnten keine Behälter an Ausgangskolben gefunden werden!
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-PISTONS         {prefix}&7Suche &aAusgangskolben&7... Bitte um eventuelle Geduld!
 # - piston_count: Int
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-CONTAINERS      {prefix}&7Suche für &a{piston_count} Ausgangskolben &7(verteilt über &a{tube_count} Rohrblöcke&7) zugehörige &aBehälter&7... Bitte um eventuelle Geduld!
-# - container_count: Int
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-TESTING                   {prefix}&7Vergleiche die &aInhalte &7von &a{container_count} Behälter(n) &7mit der Suche...
+# - tube_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-CONTAINERS                   {prefix}&cEs konnten keine Behälter an Ausgangskolben gefunden werden (&4{piston_count} Kolben&c, &4{tube_count} Rohrblöcke&c)!
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-PISTONS         {prefix}&7Suche &aAusgangskolben&7... Bitte um eventuelle Geduld!
 # - predicate: String
 # - item_count: Int
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-RESULTS                      {prefix}&cDie Suche &4{predicate} &cergab bei &4{item_count} Item(s) &ckeine Ergebnisse!
+# - container_count: Int
+# - piston_count: Int
+# - tube_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-RESULTS                      {prefix}&cDie Suche &4{predicate} &cergab bei &4{item_count} Items &ckeine Ergebnisse (&4{piston_count} Kolben&c, &4{tube_count} Rohrblöcke&c, &4{container_count} Behälter&c)!
 # - predicate: String
 # - item_count: Int
 # - match_count: Int
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-SHOWING-RESULTS                 {prefix}&7Die Suche &a{predicate} &7lieferte bei insgesamt &a{item_count} &7Item(s) &a{match_count} &7Übereinstimmung(en).
+# - container_count: Int
+# - piston_count: Int
+# - tube_count: Int
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-SHOWING-RESULTS                 {prefix}&7Die Suche &a{predicate} &7lieferte bei insgesamt &a{item_count} &7Items &a{match_count} &7Übereinstimmungen (&a{piston_count} Kolben&7, &a{tube_count} Rohrblöcke&7, &a{container_count} Behälter&7).
 # - container_x: Int
 # - container_y: Int
 # - container_z: Int

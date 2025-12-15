@@ -38,11 +38,8 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateSearchExceededPipes;
   public BukkitEvaluable commandPipePredicateSearchExceededPistons;
   public BukkitEvaluable commandPipePredicateSearchExceededRetry;
-  public BukkitEvaluable commandPipePredicateSearchNoPistons;
   public BukkitEvaluable commandPipePredicateSearchNoContainers;
   public BukkitEvaluable commandPipePredicateSearchBeginEnumeratePistons;
-  public BukkitEvaluable commandPipePredicateSearchBeginEnumerateContainers;
-  public BukkitEvaluable commandPipePredicateSearchBeginTesting;
   public BukkitEvaluable commandPipePredicateSearchNoResults;
   public BukkitEvaluable commandPipePredicateSearchShowingResults;
   public BukkitEvaluable commandPipePredicateSearchGetItemContainerAbsent;
