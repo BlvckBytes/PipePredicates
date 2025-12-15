@@ -9,6 +9,7 @@ import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
@@ -26,6 +27,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDisplayData> {
+
+  private static final BlockFace[] DIRECT_FACES = {
+    BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST,
+    BlockFace.UP, BlockFace.DOWN
+  };
 
   private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
 
@@ -98,17 +104,61 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   }
 
   private void teleportPlayerToContainer(Player player, Block block) {
-    var blockCenter = block.getLocation().add(.5, .5, .5);
+    var destinationBlock = block;
+    var targetContainer = block;
 
     if (block.getBlockData() instanceof Directional directional) {
       var facing = directional.getFacing();
-      block = block.getRelative(facing.getModX() * 2, facing.getModY() * 2, facing.getModZ() * 2);
+      destinationBlock = block.getRelative(facing.getModX(), facing.getModY(), facing.getModZ());
+
+      // [1] Move one more away in this direction if possible, to allow for some breathing-space.
+      if (destinationBlock.isPassable())
+        destinationBlock = destinationBlock.getRelative(facing.getModX(), facing.getModY(), facing.getModZ());
     }
 
-    var footLocation = block.getLocation();
+    if (!destinationBlock.isPassable() && block.getState() instanceof Container container) {
+      var blocks = new Block[]{ block, null };
+
+      if (container.getInventory() instanceof DoubleChestInventory doubleInventory) {
+        if (doubleInventory.getRightSide().getHolder() instanceof Container rightContainer)
+          blocks[0] = rightContainer.getBlock();
+
+        if (doubleInventory.getLeftSide().getHolder() instanceof Container leftContainer)
+          blocks[1] = leftContainer.getBlock();
+      }
+
+      blockLoop: for (var currentBlock : blocks) {
+        for (var nextFacing : DIRECT_FACES) {
+          var nextDestinationBlock = currentBlock.getRelative(nextFacing.getModX(), nextFacing.getModY(), nextFacing.getModZ());
+
+          if (!nextDestinationBlock.isPassable())
+            continue;
+
+          // Ensure that the player looks at the closest container to them, in case of a double-chest
+          // with the short-side pointing outwards to where they'll be teleported.
+          targetContainer = currentBlock;
+
+          // Same as [1]
+          var oneMoreApart = nextDestinationBlock.getRelative(nextFacing.getModX(), nextFacing.getModY(), nextFacing.getModZ());
+
+          if (oneMoreApart.isPassable())
+            destinationBlock = oneMoreApart;
+          else
+            destinationBlock = nextDestinationBlock;
+
+          break blockLoop;
+        }
+      }
+    }
+
+    var lookedAtCenter = targetContainer.getLocation().add(.5, .5, .5);
+
+    // Center up on the destination-block; otherwise, the player will be partially
+    // stuck in a block in tight spaces.
+    var footLocation = destinationBlock.getLocation().add(.5, 0, .5);
 
     var eyeLocation = footLocation.clone().add(0, 1.6, 0);
-    var direction = blockCenter.toVector().subtract(eyeLocation.toVector()).normalize();
+    var direction = lookedAtCenter.toVector().subtract(eyeLocation.toVector()).normalize();
     footLocation.setDirection(direction);
 
     player.teleport(footLocation);
