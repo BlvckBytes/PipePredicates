@@ -389,7 +389,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
       var predicateValue = predicateData.tokensPredicate();
 
-      var setCommand = "/" + config.rootSection.commands.pipePredicate.evaluatedName + " ";
+      var setCommand = "/" + config.rootSection.commands.pipePredicate.getShortestNameOrAlias() + " ";
 
       if (predicateData.predicateLanguage() == predicateHelper.getSelectedLanguage(player)) {
         setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateValue;
