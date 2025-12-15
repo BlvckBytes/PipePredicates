@@ -1,22 +1,38 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import com.sk89q.craftbook.mechanics.pipe.CompactId;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.DoubleChestInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDisplayData> {
 
+  private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
+
   public ResultDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
     super(config, plugin);
+
+    this.viewCountByChunkHashByWorldId = new HashMap<>();
   }
 
   @Override
@@ -71,6 +87,14 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       if (config.rootSection.resultDisplay.items.nextPage.getDisplaySlots().contains(slot))
         display.lastPage();
     }
+  }
+
+  @EventHandler
+  public void onInventoryClose(InventoryCloseEvent event) {
+    // DisplayHandler - of utmost importance to call it as well!
+    super.onInventoryClose(event);
+
+    modifyInventoryViewCounter(event.getPlayer().getOpenInventory().getTopInventory(), false);
   }
 
   private void teleportPlayerToContainer(Player player, Block block) {
@@ -143,9 +167,67 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
   private void openContainer(Player player, ItemAndSlot item) {
     tryAccessContainer(player, item, container -> {
+      var containerInventory = container.getInventory();
+
       config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, getBlockEnvironment(item.block()).build());
-      player.openInventory(container.getInventory());
+      player.openInventory(containerInventory);
+
+      modifyInventoryViewCounter(containerInventory, true);
     });
+  }
+
+  private void modifyInventoryViewCounter(Inventory inventory, boolean increment) {
+    if (inventory instanceof DoubleChestInventory doubleInventory) {
+      if (doubleInventory.getRightSide().getHolder() instanceof Container rightContainer)
+        modifyBlockViewCounter(rightContainer.getBlock(), increment);
+
+      if (doubleInventory.getLeftSide().getHolder() instanceof Container leftContainer)
+        modifyBlockViewCounter(leftContainer.getBlock(), increment);
+
+      return;
+    }
+
+    if (inventory.getHolder() instanceof Container container)
+      modifyBlockViewCounter(container.getBlock(), increment);
+  }
+
+  private void modifyBlockViewCounter(Block block, boolean increment) {
+    var location = block.getLocation();
+    var world = location.getWorld();
+
+    if (world == null) {
+      plugin.getLogger().log(Level.WARNING, "Could not get world of block within #modifyBlockViewCounter");
+      return;
+    }
+
+    var worldBucket = viewCountByChunkHashByWorldId.computeIfAbsent(world.getUID(), k -> new Long2ObjectOpenHashMap<>());
+    var chunkId = CompactId.computeWorldlessChunkId(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+
+    var viewCount = worldBucket.get(chunkId);
+
+    if (viewCount == null) {
+      if (increment) {
+        worldBucket.put(chunkId, new MutableInt(1));
+
+        if (!block.getChunk().addPluginChunkTicket(plugin))
+          plugin.getLogger().log(Level.WARNING, "Could not add chunk-ticket for block at " + block.getLocation());
+      }
+
+      return;
+    }
+
+    if (increment) {
+      viewCount.increment();
+      return;
+    }
+
+    if (viewCount.decrementAndGet() != 0)
+      return;
+
+    worldBucket.remove(chunkId);
+
+    if (!block.getChunk().removePluginChunkTicket(plugin))
+      plugin.getLogger().log(Level.WARNING, "Could not remove chunk-ticket for block at " + block.getLocation());
   }
 
   private void tryAccessContainer(Player player, ItemAndSlot item, Consumer<Container> containerHandler) {
