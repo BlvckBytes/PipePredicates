@@ -45,7 +45,7 @@ public class ContainerSearchSession implements SearchSession {
 
       if (world.isChunkLoaded(chunkX, chunkZ)) {
         if (pistonBlock.getBlockData() instanceof Piston piston)
-          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true);
+          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true, 0);
         continue;
       }
 
@@ -57,7 +57,7 @@ public class ContainerSearchSession implements SearchSession {
         --chunksWaitingOn;
 
         if (pistonBlock.getBlockData() instanceof Piston piston)
-          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true);
+          handlePossibleContainer(pistonBlock.getRelative(piston.getFacing()), true, 0);
       });
     }
   }
@@ -67,12 +67,12 @@ public class ContainerSearchSession implements SearchSession {
     this.terminated = true;
   }
 
-  private void handlePossibleContainer(Block container, boolean checkForDoubleChests) {
+  private void handlePossibleContainer(Block container, boolean checkForDoubleChests, int slotOffset) {
     var chunkX = container.getX() >> 4;
     var chunkZ = container.getZ() >> 4;
 
     if (world.isChunkLoaded(chunkX, chunkZ)) {
-      handleState(container, container.getState(false), checkForDoubleChests);
+      handleState(container, container.getState(false), checkForDoubleChests, slotOffset);
       return;
     }
 
@@ -82,11 +82,11 @@ public class ContainerSearchSession implements SearchSession {
         return;
 
       --chunksWaitingOn;
-      handleState(container, container.getState(false), checkForDoubleChests);
+      handleState(container, container.getState(false), checkForDoubleChests, slotOffset);
     });
   }
 
-  private void handleState(Block block, BlockState state, boolean checkForDoubleChests) {
+  private void handleState(Block block, BlockState state, boolean checkForDoubleChests, int slotOffset) {
     if (terminated)
       return;
 
@@ -118,12 +118,12 @@ public class ContainerSearchSession implements SearchSession {
           // Avoid calling completion if the piston-loop is already done and this block is within
           // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
           ++chunksWaitingOn;
-          handlePossibleContainer(block.getRelative(dx, 0, dz), false);
+          handlePossibleContainer(block.getRelative(dx, 0, dz), false, type == Chest.Type.LEFT ? 0 : 3 * 9);
           --chunksWaitingOn;
         }
       }
 
-      containerInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block));
+      containerInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
     }
 
     if (completedPistonLoop && chunksWaitingOn == 0)

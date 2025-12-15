@@ -120,7 +120,7 @@ public class PipeSearchHandler implements Listener {
               if (!query.predicate().test(item))
                 continue;
 
-              matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex));
+              matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex + containerResult.slotOffset()));
             }
           }
 
