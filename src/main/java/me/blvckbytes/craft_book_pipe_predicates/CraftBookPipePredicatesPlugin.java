@@ -6,6 +6,7 @@ import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
+import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
@@ -61,13 +62,17 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);
 
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
-
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);
+
+      var pipeSearchCommandHandler = new PipeSearchCommand(pipePredicateCommandExecutor, pipePredicateCommand);
+      var pipeSearchCommand = Objects.requireNonNull(getCommand(PipeSearchCommandSection.INITIAL_NAME));
+      pipeSearchCommand.setExecutor(pipeSearchCommandHandler);
 
       var commandUpdater = new CommandUpdater(this);
 
       Runnable updateCommands = () -> {
         config.rootSection.commands.pipePredicate.apply(pipePredicateCommand, commandUpdater);
+        config.rootSection.commands.pipeSearch.apply(pipeSearchCommand, commandUpdater);
 
         commandUpdater.trySyncCommands();
       };

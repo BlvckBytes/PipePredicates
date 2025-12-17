@@ -16,6 +16,8 @@ commands:
     name: 'pipepredicate'
     aliases:
       - pipr
+  pipeSearch:
+    name: 'pps'
 
 playerMessages:
   manualEditWhileInPredicateMode: '@{MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE(prefix=lut["MESSAGE_PREFIX"])}'

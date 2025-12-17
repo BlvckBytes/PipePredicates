@@ -8,6 +8,7 @@ import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 public class CommandsSection extends AConfigSection {
 
   public PipePredicateCommandSection pipePredicate;
+  public PipeSearchCommandSection pipeSearch;
 
   public CommandsSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

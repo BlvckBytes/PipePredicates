@@ -6,6 +6,7 @@ api-version: 1.14
 depend: [CraftBook, ItemPredicateParser]
 commands:
   pipepredicate:
+  pipesearch:
 permissions:
   craftbookpipepredicates.command.pipepredicate.read:
     description: 'Read predicates on pipe outputs'
@@ -15,4 +16,10 @@ permissions:
     default: op
   craftbookpipepredicates.command.pipepredicate.reload:
     description: 'Reload the plugin''s configuration'
+    default: op
+  craftbookpipepredicates.command.pipepredicate.search:
+    description: 'Search the whole pipe using predicates'
+    default: op
+  craftbookpipepredicates.auto-init-signs:
+    description: 'Automatically initialize blank signs to a valid pipe sign'
     default: op
