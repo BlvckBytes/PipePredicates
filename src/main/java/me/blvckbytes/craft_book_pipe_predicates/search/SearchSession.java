@@ -197,8 +197,9 @@ public class SearchSession {
         }
       }
 
-      // Do not count individual double-chest halves
-      if (slotOffset == 0)
+      // Do not count individual double-chest halves; if we're not checking for double-chests,
+      // that means we're coming from one (as to prevent recursion), so don't increment again.
+      if (checkForDoubleChests)
         ++containerCount;
 
       snapshotInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
