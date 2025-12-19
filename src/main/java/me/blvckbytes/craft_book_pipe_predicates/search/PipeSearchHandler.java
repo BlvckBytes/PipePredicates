@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -43,7 +44,7 @@ public class PipeSearchHandler implements Listener {
     this.searchSessionByPlayerId = new HashMap<>();
   }
 
-  public void handleSearch(Player player, Block pistonBlock, PredicateAndLanguage query) {
+  public void handleSearch(Player player, Block pistonBlock, @Nullable PredicateAndLanguage query) {
     var playerId = player.getUniqueId();
 
     if (searchSessionByPlayerId.containsKey(playerId)) {
@@ -95,7 +96,7 @@ public class PipeSearchHandler implements Listener {
           return;
         }
 
-        var predicateString = new StringifyState(true).appendPredicate(query.predicate()).toString();
+        var predicateString = query == null ? "/" : new StringifyState(true).appendPredicate(query.predicate()).toString();
 
         var matches = new ArrayList<ItemAndSlot>();
 
@@ -112,7 +113,7 @@ public class PipeSearchHandler implements Listener {
 
             ++resultCounter;
 
-            if (!query.predicate().test(item))
+            if (query != null && !query.predicate().test(item))
               continue;
 
             matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex + containerResult.slotOffset()));

@@ -82,19 +82,30 @@ public class PipeEventHandler implements Listener {
 
   @EventHandler
   public void onPredicateSourcesReload(PredicateSourcesReloadEvent event) {
-    for (var entry : cachedSignByPistonIdByWorldId.entrySet()) {
-      var world = Bukkit.getWorld(entry.getKey());
+    for (var worldBucketEntry : cachedSignByPistonIdByWorldId.entrySet()) {
+      var signByPistonId = worldBucketEntry.getValue();
+      var world = Bukkit.getWorld(worldBucketEntry.getKey());
 
-      if (world == null)
+      if (world == null) {
+        signByPistonId.clear();
         continue;
-
-      for (var cachedSign : entry.getValue().values()) {
-        var signBlock = world.getBlockAt(cachedSign.x, cachedSign.y, cachedSign.z);
-        Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(signBlock));
       }
-    }
 
-    this.cachedSignByPistonIdByWorldId.clear();
+      var cachedSigns = signByPistonId.values();
+
+      // Avoid 1) concurrent modification and 2) needless hash-lookups for invalidation
+      var invalidateEvents = new ArrayList<InvalidateCachedBlockEvent>(cachedSigns.size());
+
+      for (var cachedSign : cachedSigns) {
+        var signBlock = world.getBlockAt(cachedSign.x, cachedSign.y, cachedSign.z);
+        invalidateEvents.add(new InvalidateCachedBlockEvent(signBlock));
+      }
+
+      signByPistonId.clear();
+
+      for (var invalidateEvent : invalidateEvents)
+        Bukkit.getPluginManager().callEvent(invalidateEvent);
+    }
   }
 
   @EventHandler

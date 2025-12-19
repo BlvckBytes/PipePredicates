@@ -137,15 +137,21 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.SEARCH) {
-      var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+      PredicateAndLanguage predicateAndLanguage = null;
 
-      if (predicateAndLanguage == null)
-        return true;
+      if (args.length > 1) {
+        predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+
+        if (predicateAndLanguage == null)
+          return true;
+      }
+
+      var predicateString = predicateAndLanguage == null ? "/" : new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString();
 
       config.rootSection.playerMessages.commandPipePredicateSearchInit.sendMessage(
         sender,
         config.rootSection.getBaseEnvironment()
-          .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
+          .withStaticVariable("predicate", predicateString)
           .build()
       );
 

@@ -72,6 +72,17 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   public void removeItem(ItemAndSlot itemAndSlot) {
     displayData.items().remove(itemAndSlot);
+
+    var priorNumberOfPages = numberOfPages;
+
+    updateNumberOfPages();
+
+    // Avoid reopening the inventory if the title did not change
+    if (priorNumberOfPages == numberOfPages) {
+      renderItems();
+      return;
+    }
+
     show();
   }
 
@@ -120,11 +131,14 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     });
   }
 
+  private void updateNumberOfPages() {
+    var numberOfDisplaySlots = config.rootSection.resultDisplay.getPaginationSlots().size();
+    this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.items().size() / (double) numberOfDisplaySlots));
+  }
+
   @Override
   public void show() {
-    var numberOfDisplaySlots = config.rootSection.resultDisplay.getPaginationSlots().size();
-
-    this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.items().size() / (double) numberOfDisplaySlots));
+    updateNumberOfPages();
 
     // Since we're removing items when handing them out, automatically page back if it was the last on the current page
     if (currentPage > numberOfPages)
