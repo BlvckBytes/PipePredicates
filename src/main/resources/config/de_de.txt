@@ -8,12 +8,13 @@ MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cKonnte k
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cDer zugehörige Kolben trägt kein valides Pipe-Schild an sich!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cDir fehlen die nötigen Rechte um das Schild dieses Kolbens zu editieren!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cDir fehlen die nötigen Rechte um auf die Blöcke zuzugreifen!
+MESSAGE-COMMAND-PIPE-PREDICATE-NOT-LOOKING-AT-PIPE            {prefix}&cDu schaust aktuell keine Pipe-Blöcke an; bitte schaue auf einen Kolben, einen Behälter, ein Schild oder ein Rohr!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cDer zugehörige Kolben befindet sich aktuell nicht im Prädikat-Modus!
 MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR                {prefix}&cFehlerhaftes Prädikat: {error_message}
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cBitte gib nur valide, nicht-leere Prädikate ein!
-MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interagiere mit einem &aKolben, einer Truhe oder einem Schild &7um dessen Prädikat zu &aENTFERNEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um dessen Prädikat zu &aENTFERNEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&7Das Prädikat &a{predicate} &7des zugehörigen Kolbens wurde &aerfolgreich entfernt&7!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interagiere mit einem &aKolben, einer Truhe oder einem Schild &7um dessen Prädikat auf &a{predicate} &7zu &aSETZEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um dessen Prädikat auf &a{predicate} &7zu &aSETZEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&7Das Prädikat des zugehörigen Kolbens wurde &aerfolgreich &7auf &a{predicate} &7gesetzt&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-MISSING-LANGUAGE               {prefix}&cBitte gib die Sprache des Prädikats als nächsten Parameter an!
 MESSAGE-COMMAND-PIPE-PREDICATE-UNKNOWN-LANGUAGE               {prefix}&cDie Eingabe &4{input} &crepräsentiert keine bekannte Sprache!
@@ -21,7 +22,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ENTERED         {prefix}&7Du hast 
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-EXITED          {prefix}&7Du hast den &aMehrfachmodus &7durch &aerneutes sneaken &7wieder &averlassen.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ACTION-BAR-SIGNAL &a&lDu befindest dich im Mehrfachmodus; verlasse durchs sneaken.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-EXPIRED                 {prefix}&cDeine ausstehende Interaktion ist aufgrund von Inaktivität ausgelaufen.
-MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interagiere mit einem &aKolben, einer Truhe oder einem Schild &7um dessen Prädikat &7zu &aLESEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um dessen Prädikat &7zu &aLESEN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE                  {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7, Sprache: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aKlicke auf diese Nachricht, um einen Editierungsbefehl vorgeschlagen zu bekommen.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7Der zugehörige Kolben befindet sich im Fehlerzustand: &c{predicate_error}
@@ -29,7 +30,6 @@ MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS                 {prefix}&7Die Konf
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE                 {prefix}&cWährend des Neuladeprozesses der Konfiguration trat ein Fehler auf; bitte überprüfe die Konsole!
 
 # - predicate: String
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-INIT                            {prefix}&7Interagiere mit einem &aKolben, einer Truhe oder einem Schild &7um nach dem Prädikat &a{predicate} &7zu &aSUCHEN.
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-IN-SESSION                      {prefix}&cEs ist aktuell bereits eine Pipesuche im Gange!
 # - limit: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PIPES                  {prefix}&eDas Limit von &6{limit} Pipe-Blöcken &ewurde überschritten; stoppe vorzeitig!

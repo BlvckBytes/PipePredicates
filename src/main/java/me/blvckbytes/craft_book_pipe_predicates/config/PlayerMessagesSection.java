@@ -13,6 +13,7 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateNoSign;
   public BukkitEvaluable commandPipePredicateCannotEditSign;
   public BukkitEvaluable commandPipePredicateCannotBuild;
+  public BukkitEvaluable commandPipePredicateNotLookingAtPipe;
   public BukkitEvaluable commandPipePredicateNoPredicate;
   public BukkitEvaluable commandPipePredicatePredicateError;
   public BukkitEvaluable commandPipePredicateEmptyPredicate;
@@ -33,7 +34,6 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateReloadSuccess;
   public BukkitEvaluable commandPipePredicateReloadFailure;
 
-  public BukkitEvaluable commandPipePredicateSearchInit;
   public BukkitEvaluable commandPipePredicateSearchInSession;
   public BukkitEvaluable commandPipePredicateSearchExceededPipes;
   public BukkitEvaluable commandPipePredicateSearchExceededPistons;

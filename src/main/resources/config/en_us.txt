@@ -8,20 +8,21 @@ MESSAGE-COMMAND-PIPE-PREDICATE-NO-PISTON                      {prefix}&cCould no
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-SIGN                        {prefix}&cThe corresponding piston has no valid pipe-sign attached to it!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-EDIT-SIGN               {prefix}&cYou have no permission to change this piston's sign!
 MESSAGE-COMMAND-PIPE-PREDICATE-CANNOT-BUILD                   {prefix}&cYou have no permission to modify blocks around here!
+MESSAGE-COMMAND-PIPE-PREDICATE-NOT-LOOKING-AT-PIPE            {prefix}&cYou're not looking at any pipe-blocks; please look at a piston, a container, a sign or a pipe!
 MESSAGE-COMMAND-PIPE-PREDICATE-NO-PREDICATE                   {prefix}&cThe corresponding piston is not currently in predicate-mode!
 MESSAGE-COMMAND-PIPE-PREDICATE-PREDICATE-ERROR                {prefix}&cMalformed predicate: {error_message}
 MESSAGE-COMMAND-PIPE-PREDICATE-EMPTY-PREDICATE                {prefix}&cPlease only input a valid, non-empty predicate!
-MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aREMOVE &7its predicate; &asneak &7to enter &amultiple-mode&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-INIT                    {prefix}&7Interact with a &apiston, a container or a sign &7in order to &aREMOVE &7its predicate; &asneak &7to enter &amultiple-mode&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-REMOVE-SUCCESS                 {prefix}&aSuccessfully removed &7the corresponding piston's predicate of &a{predicate}&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-SET-SUCCESS                    {prefix}&aSuccessfully set &7the corresponding piston's predicate to &a{predicate}&7!
-MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aSET &7its predicate &7to &a{predicate}&7; &asneak &7to enter &amultiple-mode&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SET-INIT                       {prefix}&7Interact with a &apiston, a container or a sign &7in order to &aSET &7its predicate &7to &a{predicate}&7; &asneak &7to enter &amultiple-mode&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-MISSING-LANGUAGE               {prefix}&cPlease provide a predicate-language as the next parameter!
 MESSAGE-COMMAND-PIPE-PREDICATE-UNKNOWN-LANGUAGE               {prefix}&cThe input &4{input} &cdoes not resemble a known language!
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ENTERED         {prefix}&7You've &aentered multiple-mode &7by &asneaking &7- you may now apply your action to many pistons one after another; &asneak again to exit&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-EXITED          {prefix}&7You've &aexited multiple-mode &7by &asneaking &7again.
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-MULTI-ACTION-BAR-SIGNAL &a&lYou're in a multiple-mode session; exit by sneaking
 MESSAGE-COMMAND-PIPE-PREDICATE-INTERACT-EXPIRED                 {prefix}&cYour pending interaction expired due to inactivity.
-MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aGET &7its predicate; &asneak &7to enter &amultiple-mode&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interact with a &apiston, a container or a sign &7in order to &aGET &7its predicate; &asneak &7to enter &amultiple-mode&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE                  {prefix}&7Currently active predicate: &a{predicate}&7, language: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aClick onto this line to suggest an edit-command.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7The corresponding piston is in error-mode: &c{predicate_error}
@@ -30,8 +31,6 @@ MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE                 {prefix}&cAn error
 
 # TODO: Translate these whenever I feel like it...
 
-# - predicate: String
-MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-INIT                            {prefix}&7Interact with a &apiston, a chest or a sign &7in order to &aSEARCH &7the predicate &a{predicate}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-IN-SESSION                      {prefix}&cEs ist aktuell bereits eine Pipesuche im Gange!
 # - limit: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PIPES                  {prefix}&eDas Limit von &6{limit} Pipe-Blöcken &ewurde überschritten; stoppe vorzeitig!

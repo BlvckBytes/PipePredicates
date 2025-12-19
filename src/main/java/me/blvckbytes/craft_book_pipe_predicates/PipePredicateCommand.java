@@ -13,6 +13,7 @@ import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
+import me.blvckbytes.syllables_matcher.TriState;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -139,7 +140,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    if (normalizedAction.constant == CommandAction.SEARCH || normalizedAction.constant == CommandAction.FACING_SEARCH) {
+    if (normalizedAction.constant == CommandAction.SEARCH) {
       PredicateAndLanguage predicateAndLanguage = null;
 
       if (args.length > 1) {
@@ -149,28 +150,20 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           return true;
       }
 
-      var predicateString = predicateAndLanguage == null ? "/" : new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString();
+      var targetBlock = resolveFacedTargetBlock(player);
 
-      config.rootSection.playerMessages.commandPipePredicateSearchInit.sendMessage(
-        sender,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("predicate", predicateString)
-          .build()
-      );
-
-      if (normalizedAction.constant == CommandAction.FACING_SEARCH) {
-        var targetBlock = resolveFacedTargetBlock(player);
-
-        if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
-          config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
-          return true;
-        }
-
-        pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage);
+      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
-      interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSearchSession(player, predicateAndLanguage));
+      var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage);
+
+      if (searchResult == TriState.FALSE) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
       return true;
     }
 
@@ -374,8 +367,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
 
-    // Searches do not benefit from multi-use - would only be confusing to users.
-    if (interactionSession == null || interactionSession instanceof PredicateSearchSession)
+    if (interactionSession == null)
       return;
 
     if (!interactionSession.allowMultiUse) {
@@ -399,21 +391,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     if (!interactionSession.allowMultiUse)
       interactionSessionByPlayerId.remove(player.getUniqueId());
-
-    if (interactionSession instanceof PredicateSearchSession searchSession) {
-      var piston = tryResolvePistonFromTargetBlock(player, target);
-
-      if (piston == null)
-        return false;
-
-      if (!pipeEventHandler.canBuildAt(player, piston)) {
-        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
-        return true;
-      }
-
-      pipeSearchHandler.handleSearch(player, piston, searchSession.query);
-      return true;
-    }
 
     var resolveResult = tryResolvePistonSignFromTargetBlock(player, target);
 

@@ -8,6 +8,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
+import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -44,16 +45,19 @@ public class PipeSearchHandler implements Listener {
     this.searchSessionByPlayerId = new HashMap<>();
   }
 
-  public void handleSearch(Player player, Block origin, @Nullable PredicateAndLanguage query) {
+  public TriState handleSearch(Player player, Block origin, @Nullable PredicateAndLanguage query) {
     var playerId = player.getUniqueId();
 
     if (searchSessionByPlayerId.containsKey(playerId)) {
       config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player, config.rootSection.builtBaseEnvironment);
-      return;
+      return TriState.NULL;
     }
 
     var searchSession = new SearchSession(origin, pipesMechanic, plugin, searchResult -> {
       searchSessionByPlayerId.remove(playerId);
+
+      if (!searchResult.didEncounterPipeBlocks())
+        return;
 
       Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
 
@@ -151,10 +155,15 @@ public class PipeSearchHandler implements Listener {
       });
     });
 
-    config.rootSection.playerMessages.commandPipePredicateSearchBeginEnumeratePistons.sendMessage(player, config.rootSection.builtBaseEnvironment);
-
     searchSessionByPlayerId.put(playerId, searchSession);
     searchSession.start();
+
+    if (searchSession.didEncounterPipeBlocks()) {
+      config.rootSection.playerMessages.commandPipePredicateSearchBeginEnumeratePistons.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      return TriState.TRUE;
+    }
+
+    return TriState.FALSE;
   }
 
   @EventHandler

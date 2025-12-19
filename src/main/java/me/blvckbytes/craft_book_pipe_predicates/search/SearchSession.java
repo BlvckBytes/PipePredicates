@@ -75,6 +75,10 @@ public class SearchSession {
     return snapshotInventories;
   }
 
+  public boolean didEncounterPipeBlocks() {
+    return tubeCount > 0 || containerCount > 0 || !visitedPistons.isEmpty();
+  }
+
   public void terminate() {
     this.terminated = true;
   }

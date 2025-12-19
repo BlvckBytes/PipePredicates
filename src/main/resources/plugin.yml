@@ -7,7 +7,6 @@ depend: [CraftBook, ItemPredicateParser]
 commands:
   pipepredicate:
   pipesearch:
-  pipefacingsearch:
 permissions:
   craftbookpipepredicates.command.pipepredicate.read:
     description: 'Read predicates on pipe outputs'
