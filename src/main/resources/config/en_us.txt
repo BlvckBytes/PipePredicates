@@ -1,4 +1,4 @@
-MESSAGE-PREFIX                              &7[&6PipePredicates&7] \
+MESSAGE-PREFIX                              &7[&6Pipr&7] \
 
 MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE                   {prefix}&cYou cannot edit the sign manually while in predicate-mode!
 MESSAGE-COMMAND-PIPE-PREDICATE-USAGE-ACTION-PREFIX            &e
