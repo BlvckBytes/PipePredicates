@@ -12,6 +12,7 @@ public enum CommandAction implements MatchableEnum {
   REMOVE,
   RELOAD,
   SEARCH,
+  FACING_SEARCH,
   ;
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
@@ -31,7 +32,7 @@ public enum CommandAction implements MatchableEnum {
         case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
         case SET, SET_LANGUAGE, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
-        case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
+        case SEARCH, FACING_SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
       }
     );
   }

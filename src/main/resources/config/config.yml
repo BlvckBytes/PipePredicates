@@ -18,6 +18,8 @@ commands:
       - pipr
   pipeSearch:
     name: 'pps'
+  pipeFacingSearch:
+    name: 'ppfs'
 
 playerMessages:
   manualEditWhileInPredicateMode: '@{MESSAGE-MANUAL-EDIT-WHILE-IN-PREDICATE-MODE(prefix=lut["MESSAGE_PREFIX"])}'

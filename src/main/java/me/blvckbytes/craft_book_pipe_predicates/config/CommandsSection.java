@@ -9,6 +9,7 @@ public class CommandsSection extends AConfigSection {
 
   public PipePredicateCommandSection pipePredicate;
   public PipeSearchCommandSection pipeSearch;
+  public PipeFacingSearchCommandSection pipeFacingSearch;
 
   public CommandsSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

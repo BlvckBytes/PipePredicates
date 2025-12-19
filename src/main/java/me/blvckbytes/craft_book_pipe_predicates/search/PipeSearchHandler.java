@@ -44,7 +44,7 @@ public class PipeSearchHandler implements Listener {
     this.searchSessionByPlayerId = new HashMap<>();
   }
 
-  public void handleSearch(Player player, Block pistonBlock, @Nullable PredicateAndLanguage query) {
+  public void handleSearch(Player player, Block origin, @Nullable PredicateAndLanguage query) {
     var playerId = player.getUniqueId();
 
     if (searchSessionByPlayerId.containsKey(playerId)) {
@@ -52,7 +52,7 @@ public class PipeSearchHandler implements Listener {
       return;
     }
 
-    var searchSession = new SearchSession(pistonBlock, pipesMechanic, plugin, searchResult -> {
+    var searchSession = new SearchSession(origin, pipesMechanic, plugin, searchResult -> {
       searchSessionByPlayerId.remove(playerId);
 
       Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {

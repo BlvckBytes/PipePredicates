@@ -5,6 +5,7 @@ import me.blvckbytes.bukkitevaluable.CommandUpdater;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.config.PipeFacingSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
@@ -68,11 +69,16 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipeSearchCommand = Objects.requireNonNull(getCommand(PipeSearchCommandSection.INITIAL_NAME));
       pipeSearchCommand.setExecutor(pipeSearchCommandHandler);
 
+      var pipeFacingSearchCommandHandler = new PipeFacingSearchCommand(pipePredicateCommandExecutor, pipePredicateCommand);
+      var pipeFacingSearchCommand = Objects.requireNonNull(getCommand(PipeFacingSearchCommandSection.INITIAL_NAME));
+      pipeFacingSearchCommand.setExecutor(pipeFacingSearchCommandHandler);
+
       var commandUpdater = new CommandUpdater(this);
 
       Runnable updateCommands = () -> {
         config.rootSection.commands.pipePredicate.apply(pipePredicateCommand, commandUpdater);
         config.rootSection.commands.pipeSearch.apply(pipeSearchCommand, commandUpdater);
+        config.rootSection.commands.pipeFacingSearch.apply(pipeFacingSearchCommand, commandUpdater);
 
         commandUpdater.trySyncCommands();
       };

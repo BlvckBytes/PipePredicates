@@ -1,5 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.InvalidateCachedBlockEvent;
 import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
@@ -19,7 +20,9 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -136,7 +139,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    if (normalizedAction.constant == CommandAction.SEARCH) {
+    if (normalizedAction.constant == CommandAction.SEARCH || normalizedAction.constant == CommandAction.FACING_SEARCH) {
       PredicateAndLanguage predicateAndLanguage = null;
 
       if (args.length > 1) {
@@ -154,6 +157,18 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           .withStaticVariable("predicate", predicateString)
           .build()
       );
+
+      if (normalizedAction.constant == CommandAction.FACING_SEARCH) {
+        var targetBlock = resolveFacedTargetBlock(player);
+
+        if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+          config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
+          return true;
+        }
+
+        pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage);
+        return true;
+      }
 
       interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSearchSession(player, predicateAndLanguage));
       return true;
@@ -193,6 +208,41 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       default -> { return true; }
     }
+  }
+
+  private Block resolveFacedTargetBlock(Player player) {
+    var targetBlock = player.getTargetBlock(null, 10);
+
+    // Handle pistons, signs on pistons as well as containers
+    var pistonBlock = BlockUtility.resolvePistonBlock(targetBlock);
+
+    if (pistonBlock != null)
+      return pistonBlock;
+
+    // Handle signs on tube-blocks, possibly with one wall-block in-between (as that allows
+    // to make things look nicer for shortcut-commands bound to signs on walls, behind which
+    // a pipe is running along).
+
+    var blockData = targetBlock.getBlockData();
+    var signMountingFace = BlockFace.SELF;
+
+    if (blockData instanceof WallSign wallSign)
+      signMountingFace = wallSign.getFacing().getOppositeFace();
+    else if (blockData instanceof org.bukkit.block.data.type.Sign)
+      signMountingFace = BlockFace.DOWN;
+
+    if (signMountingFace != BlockFace.SELF) {
+      targetBlock = targetBlock.getRelative(signMountingFace);
+
+      if (!CachedBlock.isValidPipeBlock(CachedBlock.fromBlock(targetBlock))) {
+        var nextBlockInDirection = targetBlock.getRelative(signMountingFace);
+
+        if (CachedBlock.isValidPipeBlock(CachedBlock.fromBlock(nextBlockInDirection)))
+          targetBlock = nextBlockInDirection;
+      }
+    }
+
+    return targetBlock;
   }
 
   @Override
