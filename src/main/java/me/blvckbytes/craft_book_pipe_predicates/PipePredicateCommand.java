@@ -486,6 +486,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         newPredicateData = PredicateData.makeInitial(predicate, language, pistonSign);
 
       pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
+      pistonSign.setLine(1, MarkerConstants.PIPE_MARKER);
       pistonSign.setLine(2, "");
       pistonSign.setLine(3, "");
 
@@ -535,9 +536,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);
       return null;
     }
-
-    if (allowInitialize)
-      BlockUtility.initializeBlankSignIfApplicable(pistonSign);
 
     return new SignAndPiston(pistonSign, pistonBlock);
   }

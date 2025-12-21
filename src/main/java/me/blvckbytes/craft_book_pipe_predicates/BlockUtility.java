@@ -76,17 +76,6 @@ public class BlockUtility {
     return true;
   }
 
-  public static void initializeBlankSignIfApplicable(Sign sign) {
-    if (!isSignBlank(sign))
-      return;
-
-    sign.setLine(0, "");
-    sign.setLine(1, MarkerConstants.PIPE_MARKER);
-    sign.setLine(2, "");
-    sign.setLine(3, "");
-    sign.update(true, false);
-  }
-
   private static boolean isPiston(Material material) {
     return material == Material.PISTON || material == Material.STICKY_PISTON;
   }
