@@ -68,6 +68,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS                {prefix}&7
 # - dropped_amount: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED                {prefix}&eInventar voll! Droppe &6{dropped_amount}x {item_type}&e!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7You're now viewing the container at &a{container_x} {container_y} {container_z}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED   {prefix}&cThe container is obstructed by unpassable blocks on all sides!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7You've been teleported to the container at &a{container_x} {container_y} {container_z}&7.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cYou are missing the permission to use this command!

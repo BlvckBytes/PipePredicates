@@ -63,6 +63,7 @@ playerMessages:
   commandPipePredicateSearchGetItemSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchGetItemDropped: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchContainerOpened: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateSearchContainerTeleportObstructed: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchContainerTeleported: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED(prefix=lut["MESSAGE_PREFIX"])}'
 
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'

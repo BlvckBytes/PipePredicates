@@ -67,6 +67,7 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-SUCCESS                {prefix}&7
 # - dropped_amount: Int
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-GET-ITEM-DROPPED                {prefix}&eInventar voll! Droppe &6{dropped_amount}x {item_type}&e!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7Du hast nun Einsicht in den Behälter bei &a{container_x} {container_y} {container_z}&7.
+MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED   {prefix}&cDer Behälter ist an allen Seiten durch unpassierbare Blöcke versperrt!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7Du wurdest zum Behälter bei &a{container_x} {container_y} {container_z} &7teleportiert.
 
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cDir fehlen die nötigen Rechte um diesen Befehl zu benutzen!

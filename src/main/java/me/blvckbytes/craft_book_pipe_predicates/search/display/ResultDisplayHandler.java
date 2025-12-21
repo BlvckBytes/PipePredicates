@@ -154,6 +154,11 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       }
     }
 
+    if (!destinationBlock.isPassable()) {
+      config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleportObstructed.sendMessage(player, getBlockEnvironment(block).build());
+      return;
+    }
+
     var lookedAtCenter = targetContainer.getLocation().add(.5, .5, .5);
 
     // Center up on the destination-block; otherwise, the player will be partially
