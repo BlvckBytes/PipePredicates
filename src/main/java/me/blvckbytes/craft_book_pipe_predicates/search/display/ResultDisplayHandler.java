@@ -128,6 +128,9 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       }
 
       blockLoop: for (var currentBlock : blocks) {
+        if (currentBlock == null)
+          continue;
+
         for (var nextFacing : DIRECT_FACES) {
           var nextDestinationBlock = currentBlock.getRelative(nextFacing.getModX(), nextFacing.getModY(), nextFacing.getModZ());
 
