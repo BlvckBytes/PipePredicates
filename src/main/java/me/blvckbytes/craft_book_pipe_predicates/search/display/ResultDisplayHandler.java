@@ -7,6 +7,8 @@ import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import me.blvckbytes.item_predicate_parser.PredicateHelper;
+import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -35,8 +37,19 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
   private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
 
-  public ResultDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
+  private final PredicateHelper predicateHelper;
+  private final TranslationLanguageRegistry languageRegistry;
+
+  public ResultDisplayHandler(
+    PredicateHelper predicateHelper,
+    TranslationLanguageRegistry languageRegistry,
+    ConfigKeeper<MainSection> config,
+    Plugin plugin
+  ) {
     super(config, plugin);
+
+    this.predicateHelper = predicateHelper;
+    this.languageRegistry = languageRegistry;
 
     this.viewCountByChunkHashByWorldId = new HashMap<>();
   }
@@ -190,10 +203,17 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
       resultDisplay.removeItem(item);
 
+      var typeTranslation = languageRegistry
+        .getTranslationRegistry(predicateHelper.getSelectedLanguage(player))
+        .getTranslationBySingleton(item.item().getType());
+
+      if (typeTranslation == null)
+        typeTranslation = item.item().getType().name();
+
       environment
         .withStaticVariable("item_slot", item.slot() + 1)
         .withStaticVariable("item_amount", item.item().getAmount())
-        .withStaticVariable("item_type", item.item().getType().name());
+        .withStaticVariable("item_type", typeTranslation);
 
       if (!item.item().equals(targetItem)) {
         config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment.build());

@@ -49,7 +49,9 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
-      resultDisplayHandler = new ResultDisplayHandler(config, this);
+      var languageRegistry = parserPlugin.getTranslationLanguageRegistry();
+
+      resultDisplayHandler = new ResultDisplayHandler(predicateHelper, languageRegistry, config, this);
       Bukkit.getServer().getPluginManager().registerEvents(resultDisplayHandler, this);
 
       var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, config, this);
