@@ -107,7 +107,7 @@ public class SearchSession {
     // No need to keep a separate visited-set for tubes - would be a waste of resources.
     tubeCount = 0;
 
-    var result = pipesMechanic.enumeratePipeBlocks(origin, null, (block, cachedBlock) -> {
+    var result = pipesMechanic.enumeratePipeBlocks(origin, null, EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES), (block, cachedBlock) -> {
       if (CachedBlock.isTube(cachedBlock)) {
         ++tubeCount;
         return EnumerationDecision.CONTINUE;
