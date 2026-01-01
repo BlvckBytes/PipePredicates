@@ -117,7 +117,7 @@ public class SearchSession {
         return EnumerationDecision.CONTINUE;
 
       if (visitedPistons.add(CompactId.computeWorldlessBlockId(block)))
-        handlePossibleContainer(block.getRelative(CachedBlock.getFacing(cachedBlock)), true, 0);
+        handlePossibleContainer(block.getRelative(CachedBlock.getFacing(cachedBlock)), true);
 
       return EnumerationDecision.CONTINUE;
     });
@@ -145,12 +145,12 @@ public class SearchSession {
     callIfDone();
   }
 
-  private void handlePossibleContainer(Block container, boolean checkForDoubleChests, int slotOffset) {
+  private void handlePossibleContainer(Block container, boolean checkForDoubleChests) {
     var chunkX = container.getX() >> 4;
     var chunkZ = container.getZ() >> 4;
 
     if (world.isChunkLoaded(chunkX, chunkZ)) {
-      handleState(container, container.getState(false), checkForDoubleChests, slotOffset);
+      handleState(container, container.getState(false), checkForDoubleChests);
       return;
     }
 
@@ -160,19 +160,24 @@ public class SearchSession {
         return;
 
       --chunksWaitingOn;
-      handleState(container, container.getState(false), checkForDoubleChests, slotOffset);
+      handleState(container, container.getState(false), checkForDoubleChests);
     });
   }
 
-  private void handleState(Block block, BlockState state, boolean checkForDoubleChests, int slotOffset) {
+  private void handleState(Block block, BlockState state, boolean checkForDoubleChests) {
     if (terminated)
       return;
 
     if (state instanceof Container container) {
-      if (checkForDoubleChests && state.getBlockData() instanceof Chest chest) {
+      int slotOffset = 0;
+
+      if (state.getBlockData() instanceof Chest chest) {
         var type = chest.getType();
 
-        if (type != Chest.Type.SINGLE) {
+        if (type == Chest.Type.LEFT)
+          slotOffset = 3 * 9;
+
+        if (checkForDoubleChests && type != Chest.Type.SINGLE) {
           int dx = 0, dz = 0;
 
           // Left and right are relative to the chest itself, i.e. opposite to what
@@ -196,7 +201,7 @@ public class SearchSession {
           // Avoid calling completion if the piston-loop is already done and this block is within
           // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
           ++chunksWaitingOn;
-          handlePossibleContainer(block.getRelative(dx, 0, dz), false, type == Chest.Type.LEFT ? 0 : 3 * 9);
+          handlePossibleContainer(block.getRelative(dx, 0, dz), false);
           --chunksWaitingOn;
         }
       }
