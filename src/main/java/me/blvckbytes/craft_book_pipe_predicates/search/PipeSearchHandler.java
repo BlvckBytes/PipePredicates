@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
+import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -9,6 +10,8 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.syllables_matcher.TriState;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -53,107 +56,11 @@ public class PipeSearchHandler implements Listener {
       return TriState.NULL;
     }
 
-    var searchSession = new SearchSession(origin, pipesMechanic, plugin, searchResult -> {
-      searchSessionByPlayerId.remove(playerId);
-
-      if (!searchResult.didEncounterPipeBlocks())
-        return;
-
-      Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-
-        if (searchResult.hasFlag(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT)) {
-          config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("limit", pipesMechanic.getMaxTubeBlockCount())
-              .build()
-          );
-        }
-
-        if (searchResult.hasFlag(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT)) {
-          config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("limit", pipesMechanic.getMaxPistonBlockCount())
-              .build()
-          );
-        }
-
-        if (searchResult.hasFlag(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT)) {
-          config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("limit", SearchSession.MAX_RETRY_COUNT)
-              .build()
-          );
-        }
-
-        if (searchResult.getSnapshotInventories().isEmpty()) {
-          config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("piston_count", searchResult.getPistonCount())
-              .withStaticVariable("tube_count", searchResult.getTubeCount())
-              .build()
-          );
-
-          return;
-        }
-
-        var predicateString = query == null ? "/" : new StringifyState(true).appendPredicate(query.predicate()).toString();
-
-        var matches = new ArrayList<ItemAndSlot>();
-
-        var resultCounter = 0;
-
-        for (var containerResult : searchResult.getSnapshotInventories()) {
-          var blockContents = containerResult.inventory().getStorageContents();
-
-          for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
-            var item = blockContents[slotIndex];
-
-            if (item == null || item.getType().isAir())
-              continue;
-
-            ++resultCounter;
-
-            if (query != null && !query.predicate().test(item))
-              continue;
-
-            matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex + containerResult.slotOffset()));
-          }
-        }
-
-        if (matches.isEmpty()) {
-          config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(
-            player,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("predicate", predicateString)
-              .withStaticVariable("item_count", resultCounter)
-              .withStaticVariable("container_count", searchResult.getContainerCount())
-              .withStaticVariable("piston_count", searchResult.getPistonCount())
-              .withStaticVariable("tube_count", searchResult.getTubeCount())
-              .build()
-          );
-
-          return;
-        }
-
-        config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(
-          player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("predicate", predicateString)
-            .withStaticVariable("item_count", resultCounter)
-            .withStaticVariable("match_count", matches.size())
-            .withStaticVariable("container_count", searchResult.getContainerCount())
-            .withStaticVariable("piston_count", searchResult.getPistonCount())
-            .withStaticVariable("tube_count", searchResult.getTubeCount())
-            .build()
-        );
-
-        resultDisplayHandler.show(player, new ResultDisplayData(matches));
-      });
-    });
+    var searchSession = new SearchSession(
+      origin, pipesMechanic, plugin,
+      session -> handleSearchWarmup(session, player),
+      session -> handleSearchCompletion(session, player, query)
+    );
 
     searchSessionByPlayerId.put(playerId, searchSession);
     searchSession.start();
@@ -164,6 +71,121 @@ public class PipeSearchHandler implements Listener {
     }
 
     return TriState.FALSE;
+  }
+
+  private void handleSearchCompletion(SearchSession session, Player player, @Nullable PredicateAndLanguage query) {
+    searchSessionByPlayerId.remove(player.getUniqueId());
+
+    if (!session.didEncounterPipeBlocks())
+      return;
+
+    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+
+      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", pipesMechanic.getMaxTubeBlockCount())
+            .build()
+        );
+      }
+
+      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", pipesMechanic.getMaxPistonBlockCount())
+            .build()
+        );
+      }
+
+      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT)) {
+        config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("limit", SearchSession.MAX_RETRY_COUNT)
+            .build()
+        );
+      }
+
+      if (session.getSnapshotInventories().isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("piston_count", session.getPistonCount())
+            .withStaticVariable("tube_count", session.getTubeCount())
+            .build()
+        );
+
+        return;
+      }
+
+      var predicateString = query == null ? "/" : new StringifyState(true).appendPredicate(query.predicate()).toString();
+
+      var matches = new ArrayList<ItemAndSlot>();
+
+      var resultCounter = 0;
+
+      for (var containerResult : session.getSnapshotInventories()) {
+        var blockContents = containerResult.inventory().getStorageContents();
+
+        for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
+          var item = blockContents[slotIndex];
+
+          if (item == null || item.getType().isAir())
+            continue;
+
+          ++resultCounter;
+
+          if (query != null && !query.predicate().test(item))
+            continue;
+
+          matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex + containerResult.slotOffset()));
+        }
+      }
+
+      if (matches.isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("predicate", predicateString)
+            .withStaticVariable("item_count", resultCounter)
+            .withStaticVariable("container_count", session.getContainerCount())
+            .withStaticVariable("piston_count", session.getPistonCount())
+            .withStaticVariable("tube_count", session.getTubeCount())
+            .build()
+        );
+
+        return;
+      }
+
+      config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("predicate", predicateString)
+          .withStaticVariable("item_count", resultCounter)
+          .withStaticVariable("match_count", matches.size())
+          .withStaticVariable("container_count", session.getContainerCount())
+          .withStaticVariable("piston_count", session.getPistonCount())
+          .withStaticVariable("tube_count", session.getTubeCount())
+          .build()
+      );
+
+      resultDisplayHandler.show(player, new ResultDisplayData(matches));
+    });
+  }
+
+  private void handleSearchWarmup(SearchSession session, Player player) {
+    var warmupMessage = config.rootSection.playerMessages.commandPipePredicateSearchActionbarWarmup.asScalar(
+      ScalarType.STRING,
+      config.rootSection.getBaseEnvironment()
+        .withStaticVariable("piston_count", session.getPistonCount())
+        .withStaticVariable("tube_count", session.getTubeCount())
+        .build()
+    );
+
+    //noinspection deprecation
+    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(warmupMessage));
   }
 
   @EventHandler

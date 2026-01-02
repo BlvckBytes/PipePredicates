@@ -40,6 +40,7 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateSearchExceededRetry;
   public BukkitEvaluable commandPipePredicateSearchNoContainers;
   public BukkitEvaluable commandPipePredicateSearchBeginEnumeratePistons;
+  public BukkitEvaluable commandPipePredicateSearchActionbarWarmup;
   public BukkitEvaluable commandPipePredicateSearchNoResults;
   public BukkitEvaluable commandPipePredicateSearchShowingResults;
   public BukkitEvaluable commandPipePredicateSearchGetItemContainerAbsent;

@@ -27,7 +27,8 @@ public class SearchSession {
 
   private final Pipes pipesMechanic;
   private final Plugin plugin;
-  private final Consumer<SearchSession> resultHandler;
+  private final Consumer<SearchSession> warmupHandler;
+  private final Consumer<SearchSession> completionHandler;
 
   private final List<InventoryAndBlock> snapshotInventories;
   private final LongSet visitedPistons;
@@ -41,19 +42,23 @@ public class SearchSession {
 
   private boolean terminated;
 
-  public SearchSession(Block origin, Pipes pipesMechanic, Plugin plugin, Consumer<SearchSession> resultHandler) {
+  public SearchSession(
+    Block origin, Pipes pipesMechanic, Plugin plugin,
+    Consumer<SearchSession> warmupHandler,
+    Consumer<SearchSession> completionHandler
+  ) {
     this.origin = origin;
     this.world = origin.getWorld();
 
     this.pipesMechanic = pipesMechanic;
     this.plugin = plugin;
-    this.resultHandler = resultHandler;
+    this.warmupHandler = warmupHandler;
+    this.completionHandler = completionHandler;
 
     this.snapshotInventories = new ArrayList<>();
     this.visitedPistons = new LongOpenHashSet();
     this.flags = EnumSet.noneOf(SearchResultFlag.class);
   }
-
 
   public int getTubeCount() {
     return tubeCount;
@@ -89,7 +94,7 @@ public class SearchSession {
 
   private void callIfDone() {
     if (completedPistonSearch && chunksWaitingOn == 0)
-      resultHandler.accept(this);
+      completionHandler.accept(this);
   }
 
   private void _enumerateAllPistons(int retryCount) {
@@ -137,6 +142,7 @@ public class SearchSession {
     }
 
     if (!terminated && result != EnumerationResult.COMPLETED) {
+      warmupHandler.accept(this);
       Bukkit.getScheduler().runTaskLater(plugin, () -> _enumerateAllPistons(retryCount + 1), 1);
       return;
     }
