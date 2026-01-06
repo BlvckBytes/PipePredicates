@@ -20,6 +20,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
@@ -204,7 +205,18 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   }
 
   private Block resolveFacedTargetBlock(Player player) {
-    var targetBlock = player.getTargetBlock(null, 10);
+    var rayTraceResult = player.getWorld().rayTraceBlocks(
+      player.getEyeLocation(),
+      player.getEyeLocation().getDirection(),
+      10.0,
+      FluidCollisionMode.NEVER,
+      true
+    );
+
+    if (rayTraceResult == null || rayTraceResult.getHitBlock() == null)
+      return player.getEyeLocation().getBlock();
+
+    var targetBlock = rayTraceResult.getHitBlock();
 
     // Handle pistons, signs on pistons as well as containers
     var pistonBlock = BlockUtility.resolvePistonBlock(targetBlock);
