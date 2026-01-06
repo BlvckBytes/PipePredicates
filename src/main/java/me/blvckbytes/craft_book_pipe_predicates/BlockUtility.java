@@ -9,7 +9,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.type.Piston;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.jetbrains.annotations.Nullable;
@@ -143,16 +142,28 @@ public class BlockUtility {
   public static @Nullable Block getBlockAttachedPiston(Block containerBlock) {
     for (var currentFace : POSSIBLE_CONTAINER_PISTON_FACES) {
       var currentBlock = containerBlock.getRelative(currentFace);
+      var currentType = currentBlock.getType();
 
-      if (!isPiston(currentBlock.getType()))
+      if (isPiston(currentType)) {
+        var pistonFacing = ((Directional) currentBlock.getBlockData()).getFacing();
+
+        if (pistonFacing == currentFace.getOppositeFace())
+          return currentBlock;
+
         continue;
+      }
 
-      var pistonFacing = ((Piston) currentBlock.getBlockData()).getFacing();
+      if (currentFace == BlockFace.DOWN && currentType == Material.HOPPER) {
+        var hopperFacing = ((Directional) currentBlock.getBlockData()).getFacing();
+        var hopperTarget = currentBlock.getRelative(hopperFacing);
 
-      if (pistonFacing != currentFace.getOppositeFace())
-        continue;
+        if (isPiston(hopperTarget.getType())) {
+          var pistonFacing = ((Directional) hopperTarget.getBlockData()).getFacing();
 
-      return currentBlock;
+          if (pistonFacing == hopperFacing.getOppositeFace())
+            return hopperTarget;
+        }
+      }
     }
 
     return null;
