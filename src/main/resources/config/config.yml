@@ -54,7 +54,6 @@ playerMessages:
   commandPipePredicateSearchExceededPistons: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-PISTONS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchExceededRetry: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-EXCEEDED-RETRY(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchNoContainers: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-CONTAINERS(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateSearchBeginEnumeratePistons: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-BEGIN-ENUMERATE-PISTONS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchActionbarWarmup: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-ACTIONBAR-WARMUP(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchNoResults: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-NO-RESULTS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchShowingResults: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-SHOWING-RESULTS(prefix=lut["MESSAGE_PREFIX"])}'

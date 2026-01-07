@@ -3,8 +3,6 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -13,51 +11,31 @@ import org.bukkit.block.data.type.Chest;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SearchSession {
+public class SearchSession extends EnumerationSession<SearchSession> {
 
-  // TODO: This limit should be configurable
-  public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
-
-  private final Block origin;
   private final World world;
-
-  private final Pipes pipesMechanic;
-  private final Plugin plugin;
-  private final Consumer<SearchSession> warmupHandler;
-  private final Consumer<SearchSession> completionHandler;
 
   private final List<InventoryAndBlock> snapshotInventories;
   private final LongSet visitedPistons;
-  private final EnumSet<SearchResultFlag> flags;
 
   private int tubeCount;
   private int containerCount;
 
   private int chunksWaitingOn;
-  private boolean completedPistonSearch;
-
-  private boolean terminated;
 
   public SearchSession(
     Block origin, Pipes pipesMechanic, Plugin plugin,
     Consumer<SearchSession> warmupHandler,
     Consumer<SearchSession> completionHandler
   ) {
-    this.origin = origin;
+    super(origin, pipesMechanic, plugin, warmupHandler, completionHandler);
     this.world = origin.getWorld();
-
-    this.pipesMechanic = pipesMechanic;
-    this.plugin = plugin;
-    this.warmupHandler = warmupHandler;
-    this.completionHandler = completionHandler;
 
     this.snapshotInventories = new ArrayList<>();
     this.visitedPistons = new LongOpenHashSet();
-    this.flags = EnumSet.noneOf(SearchResultFlag.class);
   }
 
   public int getTubeCount() {
@@ -72,83 +50,37 @@ public class SearchSession {
     return visitedPistons.size();
   }
 
-  public boolean hasFlag(SearchResultFlag flag) {
-    return flags.contains(flag);
-  }
-
   public List<InventoryAndBlock> getSnapshotInventories() {
     return snapshotInventories;
   }
 
-  public boolean didEncounterPipeBlocks() {
-    return tubeCount > 0 || containerCount > 0 || !visitedPistons.isEmpty();
+  @Override
+  protected EnumerationDecision onTube(Block block, int cachedBlock) {
+    ++tubeCount;
+    return EnumerationDecision.CONTINUE;
   }
 
-  public void terminate() {
-    this.terminated = true;
+  @Override
+  protected EnumerationDecision onPiston(Block block, int cachedBlock) {
+    if (visitedPistons.add(CompactId.computeWorldlessBlockId(block)))
+      handlePossibleContainer(block.getRelative(CachedBlock.getFacing(cachedBlock)), true);
+
+    return EnumerationDecision.CONTINUE;
   }
 
-  public void start() {
-    _enumerateAllPistons(1);
-  }
+  @Override
+  protected void beforeCompletion() {}
 
-  private void callIfDone() {
-    if (completedPistonSearch && chunksWaitingOn == 0)
-      completionHandler.accept(this);
-  }
-
-  private void _enumerateAllPistons(int retryCount) {
-    if (terminated)
-      return;
-
-    if (retryCount >= MAX_RETRY_COUNT) {
-      flags.add(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT);
-      completedPistonSearch = true;
-      callIfDone();
-      return;
-    }
-
+  @Override
+  protected void beforeRetry() {
     // Reset the tube-count, since we may need multiple retries to walk the whole pipe.
     // No need to keep a separate visited-set for tubes - would be a waste of resources.
     tubeCount = 0;
+  }
 
-    var result = pipesMechanic.enumeratePipeBlocks(origin, null, EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES), (block, cachedBlock) -> {
-      if (CachedBlock.isTube(cachedBlock)) {
-        ++tubeCount;
-        return EnumerationDecision.CONTINUE;
-      }
-
-      if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
-        return EnumerationDecision.CONTINUE;
-
-      if (visitedPistons.add(CompactId.computeWorldlessBlockId(block)))
-        handlePossibleContainer(block.getRelative(CachedBlock.getFacing(cachedBlock)), true);
-
-      return EnumerationDecision.CONTINUE;
-    });
-
-    if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
-      flags.add(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT);
-      completedPistonSearch = true;
-      callIfDone();
-      return;
-    }
-
-    if (result == EnumerationResult.EXCEEDED_PISTON_COUNT_LIMIT) {
-      flags.add(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT);
-      completedPistonSearch = true;
-      callIfDone();
-      return;
-    }
-
-    if (!terminated && result != EnumerationResult.COMPLETED) {
-      warmupHandler.accept(this);
-      Bukkit.getScheduler().runTaskLater(plugin, () -> _enumerateAllPistons(retryCount + 1), 1);
-      return;
-    }
-
-    completedPistonSearch = true;
-    callIfDone();
+  @Override
+  protected boolean isDone() {
+    return chunksWaitingOn == 0;
   }
 
   private void handlePossibleContainer(Block container, boolean checkForDoubleChests) {

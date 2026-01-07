@@ -22,6 +22,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class PipeSearchHandler implements Listener {
 
@@ -30,7 +31,7 @@ public class PipeSearchHandler implements Listener {
   private final Plugin plugin;
   private final Pipes pipesMechanic;
 
-  private final Map<UUID, SearchSession> searchSessionByPlayerId;
+  private final Map<UUID, EnumerationSession<?>> enumerationSessionByPlayerId;
 
   public PipeSearchHandler(
     ResultDisplayHandler resultDisplayHandler,
@@ -45,36 +46,21 @@ public class PipeSearchHandler implements Listener {
     if (pipesMechanic == null)
       throw new IllegalStateException("Expected the pipe-mechanic to be available");
 
-    this.searchSessionByPlayerId = new HashMap<>();
+    this.enumerationSessionByPlayerId = new HashMap<>();
   }
 
   public TriState handleSearch(Player player, Block origin, @Nullable PredicateAndLanguage query) {
-    var playerId = player.getUniqueId();
-
-    if (searchSessionByPlayerId.containsKey(playerId)) {
-      config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player, config.rootSection.builtBaseEnvironment);
-      return TriState.NULL;
-    }
-
-    var searchSession = new SearchSession(
-      origin, pipesMechanic, plugin,
-      session -> handleSearchWarmup(session, player),
-      session -> handleSearchCompletion(session, player, query)
-    );
-
-    searchSessionByPlayerId.put(playerId, searchSession);
-    searchSession.start();
-
-    if (searchSession.didEncounterPipeBlocks()) {
-      config.rootSection.playerMessages.commandPipePredicateSearchBeginEnumeratePistons.sendMessage(player, config.rootSection.builtBaseEnvironment);
-      return TriState.TRUE;
-    }
-
-    return TriState.FALSE;
+    return handleEnumeration(player, () -> (
+      new SearchSession(
+        origin, pipesMechanic, plugin,
+        session -> handleEnumerationWarmup(session, player),
+        session -> handleSearchCompletion(session, player, query)
+      )
+    ));
   }
 
   private void handleSearchCompletion(SearchSession session, Player player, @Nullable PredicateAndLanguage query) {
-    searchSessionByPlayerId.remove(player.getUniqueId());
+    enumerationSessionByPlayerId.remove(player.getUniqueId());
 
     if (!session.didEncounterPipeBlocks())
       return;
@@ -175,7 +161,7 @@ public class PipeSearchHandler implements Listener {
     });
   }
 
-  private void handleSearchWarmup(SearchSession session, Player player) {
+  private void handleEnumerationWarmup(EnumerationSession<?> session, Player player) {
     var warmupMessage = config.rootSection.playerMessages.commandPipePredicateSearchActionbarWarmup.asScalar(
       ScalarType.STRING,
       config.rootSection.getBaseEnvironment()
@@ -188,11 +174,30 @@ public class PipeSearchHandler implements Listener {
     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(warmupMessage));
   }
 
+  private TriState handleEnumeration(Player player, Supplier<EnumerationSession<?>> sessionCreator) {
+    var playerId = player.getUniqueId();
+
+    if (enumerationSessionByPlayerId.containsKey(playerId)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      return TriState.NULL;
+    }
+
+    var enumerationSession = sessionCreator.get();
+
+    enumerationSessionByPlayerId.put(playerId, enumerationSession);
+    enumerationSession.start();
+
+    if (enumerationSession.didEncounterPipeBlocks())
+      return TriState.TRUE;
+
+    return TriState.FALSE;
+  }
+
   @EventHandler
   public void onQuit(PlayerQuitEvent event) {
-    var searchSession = searchSessionByPlayerId.remove(event.getPlayer().getUniqueId());
+    var enumerationSession = enumerationSessionByPlayerId.remove(event.getPlayer().getUniqueId());
 
-    if (searchSession != null)
-      searchSession.terminate();
+    if (enumerationSession != null)
+      enumerationSession.terminate();
   }
 }
