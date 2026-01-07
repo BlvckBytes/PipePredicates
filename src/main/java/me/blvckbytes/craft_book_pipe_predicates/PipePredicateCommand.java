@@ -387,6 +387,13 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
   @EventHandler
   public void onHangingBreak(HangingBreakEvent event) {
+    var cause = event.getCause();
+
+    // Let it still be destroyed by physics/obstruction, as to not end up
+    // with forever-hanging-in-air item-frames.
+    if (cause != HangingBreakEvent.RemoveCause.ENTITY && cause != HangingBreakEvent.RemoveCause.EXPLOSION)
+      return;
+
     if (getFrameIfLocked(event.getEntity()) != null)
       event.setCancelled(true);
   }
