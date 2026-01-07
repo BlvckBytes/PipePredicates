@@ -66,6 +66,12 @@
             <artifactId>fastutil</artifactId>
             <version>8.5.18</version>
         </dependency>
+        <dependency>
+            <groupId>net.dmulloy2</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.4.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -129,12 +135,12 @@
 
                         <relocation>
                             <pattern>org.jetbrains.annotations</pattern>
-                            <shadedPattern>at.blvckbytes.craft_book_pipe_predicates.jetbrains_annotations</shadedPattern>
+                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.jetbrains_annotations</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>org.intellij.lang.annotations</pattern>
-                            <shadedPattern>at.blvckbytes.craft_book_pipe_predicates.intellij_annotations</shadedPattern>
+                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.intellij_annotations</shadedPattern>
                         </relocation>
                     </relocations>
 
