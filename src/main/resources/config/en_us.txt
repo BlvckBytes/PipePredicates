@@ -26,6 +26,13 @@ MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interact
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE                  {prefix}&7Currently active predicate: &a{predicate}&7, language: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aClick onto this line to suggest an edit-command.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7The corresponding piston is in error-mode: &c{predicate_error}
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-INIT                {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um &aRahmen &7auf dem verbundenen Behälter zu &aSPERREN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-UNLOCK-INIT              {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um &aRahmen &7auf dem verbundenen Behälter zu &aENTSPERREN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-NO-FRAMES           {prefix}&cKonnte keine Rahmen auf dem zugehörigen Behälter finden!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-LOCKED      {prefix}&cAlle Rahmen auf dem zugehörigen Behälter sind bereits gesperrt!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-LOCKED       {prefix}&7Alle &aRahmen &7auf dem zugehörigen Behälter sind nun gesperrt (&a{frame_count} Stück&7).
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-UNLOCKED    {prefix}&cAlle Rahmen auf dem zugehörigen Behälter sind bereits entsperrt!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-UNLOCKED     {prefix}&7Alle &aRahmen &7auf dem zugehörigen Behälter sind nun entsperrt (&a{frame_count} Stück&7).
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS                 {prefix}&aSuccessfully reloaded &7the plugin's configuration!
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE                 {prefix}&cAn error occurred while trying to reload the plugin's configuration; please check the console!
 

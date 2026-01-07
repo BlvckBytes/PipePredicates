@@ -2,7 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 
 import org.bukkit.entity.Player;
 
-public abstract class PredicateInteractionSession {
+public abstract class InteractionSession {
 
   private static final long EXPIRY_SECONDS = 15;
 
@@ -10,7 +10,7 @@ public abstract class PredicateInteractionSession {
   public boolean allowMultiUse;
   private long lastUse;
 
-  public PredicateInteractionSession(Player player) {
+  public InteractionSession(Player player) {
     this.player = player;
 
     touchExpiry();
@@ -22,5 +22,9 @@ public abstract class PredicateInteractionSession {
 
   public boolean isExpired() {
     return System.currentTimeMillis() - lastUse >= EXPIRY_SECONDS * 1000;
+  }
+
+  public boolean requiresSign() {
+    return true;
   }
 }

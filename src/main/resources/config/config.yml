@@ -46,6 +46,13 @@ playerMessages:
   commandPipePredicateGetPredicate: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateGetPredicateHover: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateGetError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockInit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-INIT(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameUnlockInit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-UNLOCK-INIT(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockNoFrames: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-NO-FRAMES(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockAlreadyLocked: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-LOCKED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockFramesLocked: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-LOCKED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockAlreadyUnlocked: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-UNLOCKED(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateFrameLockFramesUnlocked: '@{MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-UNLOCKED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateReloadSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateReloadFailure: '@{MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE(prefix=lut["MESSAGE_PREFIX"])}'
 

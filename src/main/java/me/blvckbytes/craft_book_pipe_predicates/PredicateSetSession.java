@@ -3,7 +3,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-public class PredicateSetSession extends PredicateInteractionSession {
+public class PredicateSetSession extends InteractionSession {
 
   // Null-values imply a removal of the current predicate, if any
   public final @Nullable PredicateAndLanguage valueToSet;

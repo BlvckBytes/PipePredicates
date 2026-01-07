@@ -31,6 +31,13 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateGetPredicate;
   public BukkitEvaluable commandPipePredicateGetPredicateHover;
   public BukkitEvaluable commandPipePredicateGetError;
+  public BukkitEvaluable commandPipePredicateFrameLockInit;
+  public BukkitEvaluable commandPipePredicateFrameUnlockInit;
+  public BukkitEvaluable commandPipePredicateFrameLockNoFrames;
+  public BukkitEvaluable commandPipePredicateFrameLockAlreadyLocked;
+  public BukkitEvaluable commandPipePredicateFrameLockFramesLocked;
+  public BukkitEvaluable commandPipePredicateFrameLockAlreadyUnlocked;
+  public BukkitEvaluable commandPipePredicateFrameLockFramesUnlocked;
   public BukkitEvaluable commandPipePredicateReloadSuccess;
   public BukkitEvaluable commandPipePredicateReloadFailure;
 

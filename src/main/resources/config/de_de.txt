@@ -26,6 +26,13 @@ MESSAGE-COMMAND-PIPE-PREDICATE-GET-INIT                       {prefix}&7Interagi
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE                  {prefix}&7Aktuell aktives Prädikat: &a{predicate}&7, Sprache: &a{predicate_language}&7.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-PREDICATE-HOVER            &aKlicke auf diese Nachricht, um einen Editierungsbefehl vorgeschlagen zu bekommen.
 MESSAGE-COMMAND-PIPE-PREDICATE-GET-ERROR                      {prefix}&7Der zugehörige Kolben befindet sich im Fehlerzustand: &c{predicate_error}
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-INIT                {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um &aRahmen &7auf dem verbundenen Behälter zu &aSPERREN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-UNLOCK-INIT              {prefix}&7Interagiere mit einem &aKolben, einem Behälter oder einem Schild &7um &aRahmen &7auf dem verbundenen Behälter zu &aENTSPERREN&7; &asneake &7um den &aMehrfachmodus &7zu aktivieren.
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-NO-FRAMES           {prefix}&cKonnte keine Rahmen auf dem zugehörigen Behälter finden!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-LOCKED      {prefix}&cAlle Rahmen auf dem zugehörigen Behälter sind bereits gesperrt!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-LOCKED       {prefix}&7Alle &aRahmen &7auf dem zugehörigen Behälter sind nun gesperrt (&a{frame_count} Stück&7).
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-ALREADY-UNLOCKED    {prefix}&cAlle Rahmen auf dem zugehörigen Behälter sind bereits entsperrt!
+MESSAGE-COMMAND-PIPE-PREDICATE-FRAME-LOCK-FRAMES-UNLOCKED     {prefix}&7Alle &aRahmen &7auf dem zugehörigen Behälter sind nun entsperrt (&a{frame_count} Stück&7).
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-SUCCESS                 {prefix}&7Die Konfiguration des Plugins wurde &aerfolgreich neu geladen&7!
 MESSAGE-COMMAND-PIPE-PREDICATE-RELOAD-FAILURE                 {prefix}&cWährend des Neuladeprozesses der Konfiguration trat ein Fehler auf; bitte überprüfe die Konsole!
 

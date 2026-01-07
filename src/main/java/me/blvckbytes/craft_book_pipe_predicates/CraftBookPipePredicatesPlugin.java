@@ -63,7 +63,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, cubeRenderer, config, logger);
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, cubeRenderer, config, this);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
       sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);

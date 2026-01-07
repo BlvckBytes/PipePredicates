@@ -22,38 +22,43 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter, Listener {
 
-  private record SignAndPiston(Sign sign, Block piston) {}
+  private record SignAndPiston(@Nullable Sign sign, Block piston) {}
 
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
@@ -63,7 +68,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final Map<UUID, PredicateInteractionSession> interactionSessionByPlayerId;
+  private final Map<UUID, InteractionSession> interactionSessionByPlayerId;
+  private final NamespacedKey lockedFrameKey;
 
   public PipePredicateCommand(
     PredicateDataHandler dataHandler,
@@ -72,7 +78,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     PredicateHelper predicateHelper,
     CubeRenderer cubeRenderer,
     ConfigKeeper<MainSection> config,
-    Logger logger
+    Plugin plugin
   ) {
     this.dataHandler = dataHandler;
     this.pipeEventHandler = pipeEventHandler;
@@ -80,8 +86,10 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.predicateHelper = predicateHelper;
     this.cubeRenderer = cubeRenderer;
     this.config = config;
-    this.logger = logger;
+    this.logger = plugin.getLogger();
+
     this.interactionSessionByPlayerId = new HashMap<>();
+    this.lockedFrameKey = new NamespacedKey(plugin, "locked-frame");
   }
 
   public void tickSessions() {
@@ -156,6 +164,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.VISUALIZE) {
+      // TODO: Idea: flags for excluding pistons, excluding glass
+      //       if everything is excluded, print "no results"
       var targetBlock = resolveFacedTargetBlock(player);
 
       if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
@@ -170,6 +180,20 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
+      return true;
+    }
+
+    if (normalizedAction.constant == CommandAction.LOCK_FRAMES) {
+      config.rootSection.playerMessages.commandPipePredicateFrameLockInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+
+      interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, true));
+      return true;
+    }
+
+    if (normalizedAction.constant == CommandAction.UNLOCK_FRAMES) {
+      config.rootSection.playerMessages.commandPipePredicateFrameUnlockInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+
+      interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, false));
       return true;
     }
 
@@ -344,6 +368,54 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   }
 
   @EventHandler
+  public void onInteractAtEntity(PlayerInteractEntityEvent event) {
+    var frame = getFrameIfLocked(event.getRightClicked());
+
+    if (frame == null)
+      return;
+
+    event.setCancelled(true);
+
+    var frameFace = frame.getAttachedFace();
+    var mountedOnBlock = frame.getLocation().getBlock().getRelative(frameFace);
+
+    if (!(mountedOnBlock.getState() instanceof Container container))
+      return;
+
+    event.getPlayer().openInventory(container.getInventory());
+  }
+
+  @EventHandler
+  public void onHangingBreak(HangingBreakEvent event) {
+    if (getFrameIfLocked(event.getEntity()) != null)
+      event.setCancelled(true);
+  }
+
+  @EventHandler
+  public void onDamageByEntity(EntityDamageByEntityEvent event) {
+    if (getFrameIfLocked(event.getEntity()) != null)
+      event.setCancelled(true);
+  }
+
+  @EventHandler
+  public void onDamage(EntityDamageEvent event) {
+    if (getFrameIfLocked(event.getEntity()) != null)
+      event.setCancelled(true);
+  }
+
+  private @Nullable ItemFrame getFrameIfLocked(Entity entity) {
+    if (!(entity instanceof ItemFrame frame))
+      return null;
+
+    var lockFlag = frame.getPersistentDataContainer().get(lockedFrameKey, PersistentDataType.BOOLEAN);
+
+    if (lockFlag == null || !lockFlag)
+      return null;
+
+    return frame;
+  }
+
+  @EventHandler
   public void onInteract(PlayerInteractEvent event) {
     if (!(event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK))
       return;
@@ -439,13 +511,17 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     var resolveResult = tryResolvePistonSignFromTargetBlock(player, target);
 
     if (resolveResult == null)
-      return false;
+      return true;
 
-    var pistonSign = resolveResult.sign();
+    if (interactionSession.requiresSign() && resolveResult.sign() == null) {
+      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      return true;
+    }
 
     interactionSession.touchExpiry();
 
     if (interactionSession instanceof PredicateGetSession) {
+      var pistonSign = Objects.requireNonNull(resolveResult.sign());
       var predicateData = dataHandler.access(pistonSign);
 
       if (predicateData == null) {
@@ -497,6 +573,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (interactionSession instanceof PredicateSetSession setSession) {
+      var pistonSign = Objects.requireNonNull(resolveResult.sign());
+
       if (setSession.valueToSet == null) {
         PredicateData predicateData;
 
@@ -548,6 +626,60 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
+    if (interactionSession instanceof FrameLockSession lockSession) {
+      var pistonBlock = resolveResult.piston();
+      var containerBlock = pistonBlock.getRelative(((Directional) pistonBlock.getBlockData()).getFacing());
+
+      var foundUnlockedFrame = new AtomicBoolean();
+      var foundLockedFrame = new AtomicBoolean();
+
+      var frameCount = BlockUtility.forEachFrameOnContainer(containerBlock, frame -> {
+        var pdc = frame.getPersistentDataContainer();
+        var lockFlag = pdc.get(lockedFrameKey, PersistentDataType.BOOLEAN);
+
+        if (lockFlag != null && lockFlag) {
+          foundLockedFrame.set(true);
+
+          if (!lockSession.lockOrUnlock)
+            pdc.set(lockedFrameKey, PersistentDataType.BOOLEAN, false);
+
+          return;
+        }
+
+        foundUnlockedFrame.set(true);
+
+        if (lockSession.lockOrUnlock)
+          pdc.set(lockedFrameKey, PersistentDataType.BOOLEAN, true);
+      });
+
+      if (frameCount == 0) {
+        config.rootSection.playerMessages.commandPipePredicateFrameLockNoFrames.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
+      var environment = config.rootSection.getBaseEnvironment()
+        .withStaticVariable("frame_count", frameCount)
+        .build();
+
+      if (lockSession.lockOrUnlock) {
+        if (!foundUnlockedFrame.get()) {
+          config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyLocked.sendMessage(player, config.rootSection.builtBaseEnvironment);
+          return true;
+        }
+
+        config.rootSection.playerMessages.commandPipePredicateFrameLockFramesLocked.sendMessage(player, environment);
+        return true;
+      }
+
+      if (!foundLockedFrame.get()) {
+        config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyUnlocked.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
+      config.rootSection.playerMessages.commandPipePredicateFrameLockFramesUnlocked.sendMessage(player, environment);
+      return true;
+    }
+
     return true;
   }
 
@@ -571,10 +703,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(executor);
     var pistonSign = BlockUtility.getPistonSign(pistonBlock, allowInitialize);
 
-    if (pistonSign == null) {
-      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);
-      return null;
-    }
+    if (pistonSign == null)
+      return new SignAndPiston(null, pistonBlock);
 
     if (!pipeEventHandler.canEditSign(executor, pistonSign)) {
       config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);

@@ -10,6 +10,7 @@ public enum PluginPermission {
   PIPE_PREDICATE_COMMAND_RELOAD("command.pipepredicate.reload"),
   PIPE_PREDICATE_COMMAND_SEARCH("command.pipepredicate.search"),
   PIPE_PREDICATE_COMMAND_VISUALIZE("command.pipepredicate.visualize"),
+  PIPE_PREDICATE_COMMAND_LOCK_FRAMES("command.pipepredicate.lock-frames"),
   AUTO_INITIALIZE_SIGNS("auto-init-signs"),
   ;
 
