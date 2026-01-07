@@ -8,6 +8,7 @@ import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.syllables_matcher.TriState;
 import net.md_5.bungee.api.ChatMessageType;
@@ -27,6 +28,7 @@ import java.util.function.Supplier;
 public class PipeSearchHandler implements Listener {
 
   private final ResultDisplayHandler resultDisplayHandler;
+  private final CubeRenderer cubeRenderer;
   private final ConfigKeeper<MainSection> config;
   private final Plugin plugin;
   private final Pipes pipesMechanic;
@@ -35,10 +37,12 @@ public class PipeSearchHandler implements Listener {
 
   public PipeSearchHandler(
     ResultDisplayHandler resultDisplayHandler,
+    CubeRenderer cubeRenderer,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     this.resultDisplayHandler = resultDisplayHandler;
+    this.cubeRenderer = cubeRenderer;
     this.config = config;
     this.plugin = plugin;
     this.pipesMechanic = (Pipes) CraftBookPlugin.inst().getMechanic(Pipes.class);
@@ -172,6 +176,46 @@ public class PipeSearchHandler implements Listener {
 
     //noinspection deprecation
     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(warmupMessage));
+  }
+
+  public TriState handleVisualization(Player player, Block origin) {
+    return handleEnumeration(player, () -> (
+      new VisualizeSession(
+        origin, pipesMechanic, plugin,
+        session -> handleEnumerationWarmup(session, player),
+        session -> handleVisualizationCompletion(session, player)
+      )
+    ));
+  }
+
+  private void handleVisualizationCompletion(VisualizeSession session, Player player) {
+    enumerationSessionByPlayerId.remove(player.getUniqueId());
+
+    if (!session.didEncounterPipeBlocks())
+      return;
+
+    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+      if (cubeRenderer.removeAll(player))
+        config.rootSection.playerMessages.commandPipePredicateVisualizeClearedPriorVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+
+      var messageEnvironment = config.rootSection.getBaseEnvironment()
+        .withStaticVariable("origin_x", session.origin.getX())
+        .withStaticVariable("origin_y", session.origin.getY())
+        .withStaticVariable("origin_z", session.origin.getZ())
+        .withStaticVariable("cube_count", session.getCubeCount())
+        .withStaticVariable("cube_limit", VisualizeSession.TUBE_COUNT_LIMIT)
+        .build();
+
+      if (!cubeRenderer.renderColoredCubes(player, session.cubePositionsByColor)) {
+        config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendMessage(player, messageEnvironment);
+        return;
+      }
+
+      if (session.didRunIntoLimit())
+        config.rootSection.playerMessages.commandPipePredicateVisualizeRanIntoLimit.sendMessage(player, messageEnvironment);
+
+      config.rootSection.playerMessages.commandPipePredicateVisualizeSuccess.sendMessage(player, messageEnvironment);
+    });
   }
 
   private TriState handleEnumeration(Player player, Supplier<EnumerationSession<?>> sessionCreator) {

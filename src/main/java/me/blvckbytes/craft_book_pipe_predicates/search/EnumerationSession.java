@@ -14,7 +14,7 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
   // TODO: This limit should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
 
-  private final Block origin;
+  public final Block origin;
 
   private final Pipes pipesMechanic;
   private final Plugin plugin;

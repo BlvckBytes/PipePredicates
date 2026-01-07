@@ -12,16 +12,19 @@ public enum CommandAction implements MatchableEnum {
   REMOVE,
   RELOAD,
   SEARCH,
+  VISUALIZE,
+  CLEAR_VISUALIZE,
   ;
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
 
   public static boolean canExecuteAny(CommandSender sender) {
     return (
-      PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender) ||
-      PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender) ||
-      PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender) ||
-      PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender)
+      PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender)
+        || PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender)
+        || PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender)
+        || PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender)
+        || PluginPermission.PIPE_PREDICATE_COMMAND_VISUALIZE.has(sender)
     );
   }
 
@@ -32,6 +35,7 @@ public enum CommandAction implements MatchableEnum {
         case SET, SET_LANGUAGE, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
         case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
+        case VISUALIZE, CLEAR_VISUALIZE -> PluginPermission.PIPE_PREDICATE_COMMAND_VISUALIZE.has(sender);
       }
     );
   }

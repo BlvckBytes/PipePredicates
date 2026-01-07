@@ -6,6 +6,7 @@ import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
@@ -58,6 +59,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   private final PipeEventHandler pipeEventHandler;
   private final PipeSearchHandler pipeSearchHandler;
   private final PredicateHelper predicateHelper;
+  private final CubeRenderer cubeRenderer;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
@@ -68,6 +70,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     PipeEventHandler pipeEventHandler,
     PipeSearchHandler pipeSearchHandler,
     PredicateHelper predicateHelper,
+    CubeRenderer cubeRenderer,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
@@ -75,6 +78,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.pipeEventHandler = pipeEventHandler;
     this.pipeSearchHandler = pipeSearchHandler;
     this.predicateHelper = predicateHelper;
+    this.cubeRenderer = cubeRenderer;
     this.config = config;
     this.logger = logger;
     this.interactionSessionByPlayerId = new HashMap<>();
@@ -136,6 +140,34 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         logger.log(Level.SEVERE, "An error occurred while trying to reload the config", e);
 
         config.rootSection.playerMessages.commandPipePredicateReloadFailure.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      }
+
+      return true;
+    }
+
+    if (normalizedAction.constant == CommandAction.CLEAR_VISUALIZE) {
+      if (!cubeRenderer.removeAll(player)) {
+        config.rootSection.playerMessages.commandPipePredicateVisualizeNoVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
+      config.rootSection.playerMessages.commandPipePredicateVisualizeClearedVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      return true;
+    }
+
+    if (normalizedAction.constant == CommandAction.VISUALIZE) {
+      var targetBlock = resolveFacedTargetBlock(player);
+
+      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
+      }
+
+      var searchResult = pipeSearchHandler.handleVisualization(player, targetBlock);
+
+      if (searchResult == TriState.FALSE) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        return true;
       }
 
       return true;

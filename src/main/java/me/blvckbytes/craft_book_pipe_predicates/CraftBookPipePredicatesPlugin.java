@@ -7,6 +7,7 @@ import me.blvckbytes.bukkitevaluable.ConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
@@ -54,11 +55,15 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       resultDisplayHandler = new ResultDisplayHandler(predicateHelper, languageRegistry, config, this);
       Bukkit.getServer().getPluginManager().registerEvents(resultDisplayHandler, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, config, this);
+      var cubeRenderer = new CubeRenderer(logger);
+
+      Bukkit.getServer().getPluginManager().registerEvents(cubeRenderer, this);
+
+      var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, cubeRenderer, config, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, config, logger);
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, cubeRenderer, config, logger);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
       sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);

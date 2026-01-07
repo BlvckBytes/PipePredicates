@@ -66,6 +66,13 @@ playerMessages:
   commandPipePredicateSearchContainerTeleportObstructed: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchContainerTeleported: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED(prefix=lut["MESSAGE_PREFIX"])}'
 
+  commandPipePredicateVisualizeInternalError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-INTERNAL-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeRanIntoLimit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-RAN-INTO-LIMIT(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeNoVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-NO-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeClearedPriorVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-PRIOR-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeClearedVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
+
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
 
 # - current_page: Integer

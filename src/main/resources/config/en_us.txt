@@ -73,6 +73,13 @@ MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-OPENED                {prefix}&7
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED   {prefix}&cThe container is obstructed by unpassable blocks on all sides!
 MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED            {prefix}&7You've been teleported to the container at &a{container_x} {container_y} {container_z}&7.
 
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-INTERNAL-ERROR               {prefix}&cWährend des Visualisierens der Pipe, ausgehend von &4{origin_x} {origin_y} {origin_z}&c, trat ein interner Fehler auf; bitte melden!
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-RAN-INTO-LIMIT               {prefix}&7Das Visualisierungslimit von &6{cube_limit} &7Blöcken wurde überschritten; &6stoppe vorzeitig&7!
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-SUCCESS                      {prefix}&7Zeige &a{cube_count} &7visualisierte Pipe-Blöcke ausgehend von &a{origin_x} {origin_y} {origin_z}&7 an.
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-NO-VISUALIZATION             {prefix}&cEs wird aktuell keine Visualisierung angezeigt, die entfernt werden könnte!
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-PRIOR-VISUALIZATION  {prefix}&7Die &6vorherige Visualisierung &7wurde automatisch &6entfernt&7!
+MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-VISUALIZATION        {prefix}&7Die angezeigte Visualisierung wurde &aentfernt&7.
+
 MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND  {prefix}&cYou are missing the permission to use this command!
 
 # ==================== BEGIN ResultDisplay ====================
