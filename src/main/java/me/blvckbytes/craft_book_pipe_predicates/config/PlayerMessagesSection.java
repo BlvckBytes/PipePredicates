@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates.config;
 
 import at.blvckbytes.cm_mapper.cm.ComponentMarkup;
 import at.blvckbytes.cm_mapper.mapper.section.ConfigSection;
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 
 public class PlayerMessagesSection extends ConfigSection {
 
@@ -61,4 +62,7 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateVisualizeClearedVisualization;
   public ComponentMarkup missingPermissionPipePredicateCommand;
 
+  public PlayerMessagesSection(InterpretationEnvironment baseEnvironment) {
+    super(baseEnvironment);
+  }
 }

@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates.config;
 
 import at.blvckbytes.cm_mapper.mapper.section.ConfigSection;
 import at.blvckbytes.cm_mapper.mapper.section.CSAlways;
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import me.blvckbytes.craft_book_pipe_predicates.config.result_display.ResultDisplaySection;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 
@@ -18,7 +19,9 @@ public class MainSection extends ConfigSection {
   public TranslationLanguage defaultPredicateLanguage;
   public List<String> fakeEventSkippedListeners;
 
-  public MainSection() {
+  public MainSection(InterpretationEnvironment baseEnvironment) {
+    super(baseEnvironment);
+
     this.defaultPredicateLanguage = TranslationLanguage.ENGLISH_US;
     this.fakeEventSkippedListeners = new ArrayList<>();
   }
