@@ -37,15 +37,7 @@ public class ExpressionValue {
   }
 
   public @Nullable Object interpret(@Nullable InterpretationEnvironment environment) {
-    InterpretationEnvironment finalEnvironment;
-
-    if (environment == null)
-      finalEnvironment = baseEnvironment;
-    else {
-      baseEnvironment.forEachKnownName(key -> environment.withVariable(key, baseEnvironment.getVariableValue(key)));
-      finalEnvironment = environment;
-    }
-
+    var finalEnvironment = environment == null ? baseEnvironment : environment.copy().inheritFrom(baseEnvironment, false);
     return ExpressionInterpreter.interpret(expressionNode, finalEnvironment, logger);
   }
 

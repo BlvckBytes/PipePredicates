@@ -64,28 +64,12 @@ public class CMValue {
   }
 
   public String asPlainString(@Nullable InterpretationEnvironment environment) {
-    InterpretationEnvironment finalEnvironment;
-
-    if (environment == null)
-      finalEnvironment = baseEnvironment;
-    else {
-      baseEnvironment.forEachKnownName(key -> environment.withVariable(key, baseEnvironment.getVariableValue(key)));
-      finalEnvironment = environment;
-    }
-
+    var finalEnvironment = environment == null ? baseEnvironment : environment.copy().inheritFrom(baseEnvironment, false);
     return MarkupInterpreter.interpret(markupNode, SlotType.SINGLE_LINE_CHAT, finalEnvironment, PlainStringComponentConstructor.INSTANCE, logger).get(0);
   }
 
   public List<Component> interpret(SlotType slotType, @Nullable InterpretationEnvironment environment) {
-    InterpretationEnvironment finalEnvironment;
-
-    if (environment == null)
-      finalEnvironment = baseEnvironment;
-    else {
-      baseEnvironment.forEachKnownName(key -> environment.withVariable(key, baseEnvironment.getVariableValue(key)));
-      finalEnvironment = environment;
-    }
-
+    var finalEnvironment = environment == null ? baseEnvironment : environment.copy().inheritFrom(baseEnvironment, false);
     return MarkupInterpreter.interpret(markupNode, slotType, finalEnvironment, AdventureComponentConstructor.INSTANCE, logger);
   }
 
