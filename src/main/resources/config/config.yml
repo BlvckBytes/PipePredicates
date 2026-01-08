@@ -20,7 +20,7 @@ commands:
 playerMessages:
   manualEditWhileInPredicateMode: '{lut.prefix} <&c>Du kannst das Schild im Prädikat-Modus nicht manuell bearbeiten!'
   commandPipePredicateUsage: |
-    {lut.prefix} <&c>Benutze: /{label} \<<&e *for-action="action_names" *for-separator={&7, }>{action}&c>
+    {lut.prefix} <&c>Benutze: /{label} \<<&e *for-action="action_names" *for-separator={<&7>,<space/>}>{action}</><&c>>
   commandPipePredicateNoPiston: '{lut.prefix} <&c>Konnte keinen zum angeklickten Block zugehörigen Kolben auffinden.'
   commandPipePredicateNoSign: '{lut.prefix} <&c>Der zugehörige Kolben trägt kein valides Pipe-Schild an sich!'
   commandPipePredicateCannotEditSign: '{lut.prefix} <&c>Dir fehlen die nötigen Rechte um das Schild dieses Kolbens zu editieren!'
