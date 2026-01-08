@@ -7,9 +7,7 @@
 #
 # CraftBookPipePredicates - Developed by BlvckBytes <blvckbytes@gmail.com>
 # Repository - https://github.com/BlvckBytes/CraftBookPipePredicates
-# ASCII-Art - https://patorjk.com/software/taag/#p=display&f=Speed
-#
-# PRE-PROCESSOR-INPUT en_us.txt
+# ASCII-Art - https://patorjk.com/software/taag/#p=display<&f>=Speed
 
 commands:
   pipePredicate:
@@ -86,69 +84,59 @@ playerMessages:
   commandPipePredicateVisualizeClearedVisualization: '{lut.prefix} <&7>Die angezeigte Visualisierung wurde <&a>entfernt<&7>.'
   missingPermissionPipePredicateCommand: '{lut.prefix} <&c>Dir fehlen die nötigen Rechte um diesen Befehl zu benutzen!'
 
-# - current_page: Integer
-# - number_pages: Integer
-# - number_of_rows: Integer
-# - last_slot: Integer
 resultDisplay:
-  title$: '@{RESULT-DISPLAY-TITLE}'
+  title: '<&8>Pipesuche <&e>{current_page}<&8>/<&e>{number_pages}'
   rows: 6
-  paginationSlots$: 'range(0, 44)'
+  paginationSlots: '0..44'
   items:
-    # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
     previousPage:
-      slots$: 'last_slot - 8'
+      slots: 'last_slot - 8'
       type: PLAYER_HEAD
-      textures$: 'lut["textures"][if current_page > 1 then "ARROW_LEFT" else "ARROW_LEFT_RED"]'
-      name$: 'if current_page > 1 then @{PREVIOUS-PAGE-NAME-HAS} else @{PREVIOUS-PAGE-NAME-HAS-NOT}'
-      lore$:
-        - '" "'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-        - '@{PREVIOUS-PAGE-LORE-LEFT-CLICK-DESCRIPTION}'
-        - '@{PREVIOUS-PAGE-LORE-RIGHT-CLICK-DESCRIPTION}'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-    # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+      textures: '{lut.textures[current_page > 1 then "ARROW_LEFT" else "ARROW_LEFT_RED"]}'
+      name: |
+        <reset>
+          <container *if="current_page > 1"><&8>» <&6>Vorherige Seite <&8>«</container>
+          <container *else><&8>» <&c>Keine vorherige Seite <&8>«</container>
+      lore: |
+        <reset>
+          <br/>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite><br/>
+          <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite><br/>
+          {lut.spacer}
     nextPage:
-      slots$: 'last_slot'
+      slots: 'last_slot'
       type: PLAYER_HEAD
-      textures$: 'lut["textures"][if current_page < number_pages then "ARROW_RIGHT"
-        else "ARROW_RIGHT_RED"]'
-      name$: 'if current_page < number_pages then @{NEXT-PAGE-NAME-HAS} else @{NEXT-PAGE-NAME-HAS-NOT}'
-      lore$:
-        - '" "'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-        - '@{NEXT-PAGE-LORE-LEFT-CLICK-DESCRIPTION}'
-        - '@{NEXT-PAGE-LORE-RIGHT-CLICK-DESCRIPTION}'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-    # - container_x: Int
-    # - container_y: Int
-    # - container_z: Int
-    # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+      textures: '{lut.textures[current_page < number_pages then "ARROW_RIGHT" else "ARROW_RIGHT_RED"]}'
+      name: |
+        <reset>
+          <container *if="current_page < number_pages"><&8>» <&6>Nächste Seite <&8>«</container>
+          <container *else><&8>» <&c>Keine nächste Seite <&8>«</container>
+      lore: |
+        <reset>
+          <br/>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Springe zur letzten Seite<br/>
+          {lut.spacer}
     representativePatch:
-      lore$:
-        - '" "'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-        - '@{REPRESENTATIVE-LORE-COORDINATES}'
-        - '@{REPRESENTATIVE-LORE-SLOT}'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-        - '@{REPRESENTATIVE-LORE-LEFT-CLICK-DESCRIPTION}'
-        - '@{REPRESENTATIVE-LORE-DROP-ONE-DESCRIPTION}'
-        - '@{REPRESENTATIVE-LORE-DROP-ALL-DESCRIPTION}'
-        - '@{ANY-CONTROL-LORE-SPACER}'
-    # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+      lore: |
+        <reset>
+          <br/>
+          {lut.spacer}<br/>
+          <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
+          <&8>♦ <&7>Slot: <&e>{slot}<br/>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Hinteleportieren<br/>
+          <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
+          <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen<br/>
+          {lut.spacer}
     filler:
-      slots$:
-        - 'last_slot - 7'
-        - 'last_slot - 6'
-        - 'last_slot - 5'
-        - 'last_slot - 4'
-        - 'last_slot - 3'
-        - 'last_slot - 2'
-        - 'last_slot - 1'
+      slots: '(last_slot - 7)..(last_slot - 1)'
       type: BLACK_STAINED_GLASS_PANE
       name: " "
 
-defaultPredicateLanguage: 'ENGLISH_US'
+defaultPredicateLanguage: 'GERMAN_DE'
 
 # Fully qualified names of classes which represent listeners for the SignChangeEvent - an event
 # called to determine whether the player has the privileges to alter a pipe's state.
@@ -159,12 +147,10 @@ fakeEventSkippedListeners:
 # File-global component lookup-table
 cLut:
   prefix: '<&7>[<&6>Pipr<&7>]'
+  spacer: '<&8><&m>{" " ** 50}'
 
 # File-global scalar lookup-table
 sLut:
-
-# File-global lookup table
-lut:
   textures:
     ARROW_LEFT: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODU1MGI3Zjc0ZTllZDc2MzNhYTI3NGVhMzBjYzNkMmU4N2FiYjM2ZDRkMWY0Y2E2MDhjZDQ0NTkwY2NlMGIifX19'
     ARROW_LEFT_RED: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjg0ZjU5NzEzMWJiZTI1ZGMwNThhZjg4OGNiMjk4MzFmNzk1OTliYzY3Yzk1YzgwMjkyNWNlNGFmYmEzMzJmYyJ9fX0='

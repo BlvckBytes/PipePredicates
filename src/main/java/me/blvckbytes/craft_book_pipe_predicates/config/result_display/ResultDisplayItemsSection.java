@@ -2,8 +2,8 @@ package me.blvckbytes.craft_book_pipe_predicates.config.result_display;
 
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bbconfigmapper.sections.CSAlways;
-import me.blvckbytes.bukkitevaluable.section.ItemStackSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.display_common.GuiItemStackSection;
+import me.blvckbytes.craft_book_pipe_predicates.config.display_common.ItemStackSection;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 
 @CSAlways

@@ -1,13 +1,12 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
-import me.blvckbytes.bukkitevaluable.ItemBuilder;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
-import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
-import me.blvckbytes.gpeee.interpreter.IEvaluationEnvironment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,8 +18,6 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   private final ItemAndSlot[] slotMap;
   private int numberOfPages;
-
-  private IEvaluationEnvironment pageEnvironment;
 
   private int currentPage = 1;
 
@@ -42,10 +39,6 @@ public class ResultDisplay extends Display<ResultDisplayData> {
   }
 
   private void setupEnvironments() {
-    this.pageEnvironment = new EvaluationEnvironmentBuilder()
-      .withLiveVariable("current_page", () -> this.currentPage)
-      .withLiveVariable("number_pages", () -> this.numberOfPages)
-      .build(config.rootSection.resultDisplay.inventoryEnvironment);
   }
 
   @Override
@@ -167,10 +160,10 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
       var itemAndSlot = displayData.items().get(currentSlot);
 
-      ItemBuilder itemBuilder;
+      ItemStack representativeItem;
 
       try {
-        itemBuilder = new ItemBuilder(itemAndSlot.item(), itemAndSlot.item().getAmount());
+        representativeItem = new ItemStack(itemAndSlot.item());
       }
       // java.lang.IllegalStateException: Could not get meta of item
       // The above occurs if the item has been moved; simply remove such items from the UI as well.
@@ -183,20 +176,21 @@ public class ResultDisplay extends Display<ResultDisplayData> {
         continue;
       }
 
-      var representativeItem = itemBuilder.patch(config.rootSection.resultDisplay.items.representativePatch)
-        .build(
-          new EvaluationEnvironmentBuilder()
-            .withStaticVariable("container_x", itemAndSlot.block().getX())
-            .withStaticVariable("container_y", itemAndSlot.block().getY())
-            .withStaticVariable("container_z", itemAndSlot.block().getZ())
-            .withStaticVariable("slot", itemAndSlot.slot() + 1)
-            .build(pageEnvironment)
-        );
+      config.rootSection.resultDisplay.items.representativePatch.patch(
+        representativeItem,
+        new InterpretationEnvironment()
+          .withVariable("container_x", itemAndSlot.block().getX())
+          .withVariable("container_y", itemAndSlot.block().getY())
+          .withVariable("container_z", itemAndSlot.block().getZ())
+          .withVariable("slot", itemAndSlot.slot() + 1)
+      );
 
       inventory.setItem(slot, representativeItem);
 
       slotMap[slot] = itemAndSlot;
     }
+
+    var pageEnvironment = makePageEnvironment();
 
     // Render filler first, such that it may be overridden by conditionally displayed items
     config.rootSection.resultDisplay.items.filler.renderInto(inventory, pageEnvironment);
@@ -207,6 +201,12 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   @Override
   protected Inventory makeInventory() {
-    return config.rootSection.resultDisplay.createInventory(pageEnvironment);
+    return config.rootSection.resultDisplay.createInventory(makePageEnvironment());
+  }
+
+  private InterpretationEnvironment makePageEnvironment() {
+    return config.rootSection.resultDisplay.inventoryEnvironment.copy()
+      .withVariable("current_page", this.currentPage)
+      .withVariable("number_pages", this.numberOfPages);
   }
 }

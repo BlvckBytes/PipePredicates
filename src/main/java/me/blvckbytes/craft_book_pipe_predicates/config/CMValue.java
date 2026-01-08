@@ -63,6 +63,19 @@ public class CMValue {
       player.sendActionBar(components.get(0));
   }
 
+  public String asPlainString(@Nullable InterpretationEnvironment environment) {
+    InterpretationEnvironment finalEnvironment;
+
+    if (environment == null)
+      finalEnvironment = baseEnvironment;
+    else {
+      baseEnvironment.forEachKnownName(key -> environment.withVariable(key, baseEnvironment.getVariableValue(key)));
+      finalEnvironment = environment;
+    }
+
+    return MarkupInterpreter.interpret(markupNode, SlotType.SINGLE_LINE_CHAT, finalEnvironment, PlainStringComponentConstructor.INSTANCE, logger).get(0);
+  }
+
   public List<Component> interpret(SlotType slotType, @Nullable InterpretationEnvironment environment) {
     InterpretationEnvironment finalEnvironment;
 
@@ -74,5 +87,9 @@ public class CMValue {
     }
 
     return MarkupInterpreter.interpret(markupNode, slotType, finalEnvironment, AdventureComponentConstructor.INSTANCE, logger);
+  }
+
+  public void log(String message, @Nullable Throwable e) {
+    logger.log(markupNode.positionProvider, 0, message, e);
   }
 }

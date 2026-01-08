@@ -1,10 +1,9 @@
 package me.blvckbytes.craft_book_pipe_predicates.config.display_common;
 
 import me.blvckbytes.bbconfigmapper.MappingError;
-import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bbconfigmapper.sections.CSIgnore;
-import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
+import me.blvckbytes.craft_book_pipe_predicates.config.ExpressionValue;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +13,7 @@ import java.util.Set;
 
 public class PaginatedGuiSection<T extends AConfigSection> extends GuiSection<T> {
 
-  protected @Nullable BukkitEvaluable paginationSlots;
+  protected @Nullable ExpressionValue paginationSlots;
 
   @CSIgnore
   private Set<Integer> _paginationSlots;
@@ -27,7 +26,7 @@ public class PaginatedGuiSection<T extends AConfigSection> extends GuiSection<T>
   public void afterParsing(List<Field> fields) throws Exception {
     super.afterParsing(fields);
 
-    _paginationSlots = paginationSlots == null ? Set.of() : paginationSlots.asSet(ScalarType.INT, inventoryEnvironment);
+    _paginationSlots = ExpressionValue.asIntSet(paginationSlots, inventoryEnvironment);
 
     for (var paginationSlot : _paginationSlots) {
       if (paginationSlot < 0 || paginationSlot > lastSlot)

@@ -1,15 +1,15 @@
 package me.blvckbytes.craft_book_pipe_predicates.config.display_common;
 
+import at.blvckbytes.component_markup.constructor.SlotType;
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import me.blvckbytes.bbconfigmapper.MappingError;
-import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bbconfigmapper.sections.CSAlways;
 import me.blvckbytes.bbconfigmapper.sections.CSDecide;
 import me.blvckbytes.bbconfigmapper.sections.CSIgnore;
-import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
-import me.blvckbytes.gpeee.GPEEE;
+import me.blvckbytes.craft_book_pipe_predicates.config.CMValue;
+import me.blvckbytes.craft_book_pipe_predicates.config.ExpressionValue;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
-import me.blvckbytes.gpeee.interpreter.IEvaluationEnvironment;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.Nullable;
@@ -21,8 +21,8 @@ public class GuiSection<T extends AConfigSection> extends AConfigSection {
 
   private static final int DEFAULT_ROWS = 3;
 
-  protected @Nullable BukkitEvaluable title;
-  protected @Nullable BukkitEvaluable rows;
+  protected @Nullable CMValue title;
+  protected @Nullable ExpressionValue rows;
 
   @CSAlways
   @CSDecide
@@ -35,7 +35,7 @@ public class GuiSection<T extends AConfigSection> extends AConfigSection {
   protected int _rows, lastSlot;
 
   @CSIgnore
-  public IEvaluationEnvironment inventoryEnvironment;
+  public InterpretationEnvironment inventoryEnvironment;
 
   public GuiSection(Class<T> itemsSectionClass, EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);
@@ -54,17 +54,23 @@ public class GuiSection<T extends AConfigSection> extends AConfigSection {
   public void afterParsing(List<Field> fields) throws Exception {
     super.afterParsing(fields);
 
-    _rows = rows == null ? DEFAULT_ROWS : rows.asScalar(ScalarType.INT, GPEEE.EMPTY_ENVIRONMENT);
+    _rows = DEFAULT_ROWS;
+
+    if (rows != null) {
+      var rowsValue = rows.interpret(null);
+
+      if (rowsValue != null)
+        _rows = (int) InterpretationEnvironment.DEFAULT_INTERPRETER.asLong(rowsValue);
+    }
 
     if (_rows < 1 || _rows > 6)
       throw new MappingError("Rows out of range [1;6]");
 
     lastSlot = _rows * 9 - 1;
 
-    inventoryEnvironment = new EvaluationEnvironmentBuilder()
-      .withStaticVariable("number_of_rows", _rows)
-      .withStaticVariable("last_slot", lastSlot)
-      .build(builtBaseEnvironment);
+    inventoryEnvironment = new InterpretationEnvironment()
+      .withVariable("number_of_rows", _rows)
+      .withVariable("last_slot", lastSlot);
 
     for (var field : itemsSectionClass.getDeclaredFields()) {
       if (!GuiItemStackSection.class.isAssignableFrom(field.getType()))
@@ -75,11 +81,13 @@ public class GuiSection<T extends AConfigSection> extends AConfigSection {
     }
   }
 
-  public Inventory createInventory(IEvaluationEnvironment environment) {
+  public Inventory createInventory(InterpretationEnvironment environment) {
     if (title == null)
       return Bukkit.createInventory(null, _rows * 9);
 
-    return Bukkit.createInventory(null, _rows * 9, title.asScalar(ScalarType.STRING, environment));
+    var titleComponent = title.interpret(SlotType.SINGLE_LINE_CHAT, environment).get(0);
+
+    return Bukkit.createInventory(null, _rows * 9, titleComponent);
   }
 
   public int getRows() {

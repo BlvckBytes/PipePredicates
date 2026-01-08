@@ -56,7 +56,7 @@ public class CustomConfigManager extends ConfigManager implements InterpreterLog
         if (globalLookupTable.keySet().stream().anyMatch(key::equalsIgnoreCase))
           logger.warning("Duplicate s-lut-entry \"" + key + "\" in " + fileName);
 
-        globalLookupTable.put(key, String.valueOf(entry.getValue()));
+        globalLookupTable.put(key, entry.getValue());
       }
     }
 
@@ -70,6 +70,9 @@ public class CustomConfigManager extends ConfigManager implements InterpreterLog
     if (type == CMValue.class)
       return String.class;
 
+    if (type == ExpressionValue.class)
+      return String.class;
+
     return super.getRequiredTypeFor(type);
   }
 
@@ -77,6 +80,9 @@ public class CustomConfigManager extends ConfigManager implements InterpreterLog
   public @Nullable FValueConverter getConverterFor(Class<?> type) {
     if (type == CMValue.class)
       return (value, evaluator) -> new CMValue((String) value, baseEnvironment, this);
+
+    if (type == ExpressionValue.class)
+      return (value, evaluator) -> new ExpressionValue((String) value, baseEnvironment, this);
 
     return super.getConverterFor(type);
   }
