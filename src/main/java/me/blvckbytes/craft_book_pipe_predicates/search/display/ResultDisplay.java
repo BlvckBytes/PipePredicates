@@ -1,7 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
-import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import org.bukkit.entity.Player;

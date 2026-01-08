@@ -1,6 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
-import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import at.blvckbytes.cm_mapper.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;

@@ -1,6 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
-import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import at.blvckbytes.cm_mapper.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

@@ -1,9 +1,9 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import at.blvckbytes.cm_mapper.ConfigKeeper;
 import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.translation.PredicateSourcesReloadEvent;

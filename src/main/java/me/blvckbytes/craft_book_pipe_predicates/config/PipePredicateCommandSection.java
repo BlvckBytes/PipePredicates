@@ -1,13 +1,12 @@
 package me.blvckbytes.craft_book_pipe_predicates.config;
 
-import me.blvckbytes.bukkitevaluable.section.ACommandSection;
-import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import at.blvckbytes.cm_mapper.section.command.CommandSection;
 
-public class PipePredicateCommandSection extends ACommandSection {
+public class PipePredicateCommandSection extends CommandSection {
 
   public static final String INITIAL_NAME = "pipepredicate";
 
-  public PipePredicateCommandSection(EvaluationEnvironmentBuilder baseEnvironment) {
-    super(INITIAL_NAME, baseEnvironment);
+  public PipePredicateCommandSection() {
+    super(INITIAL_NAME);
   }
 }

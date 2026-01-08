@@ -1,10 +1,10 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.mechanics.pipe.CompactId;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
