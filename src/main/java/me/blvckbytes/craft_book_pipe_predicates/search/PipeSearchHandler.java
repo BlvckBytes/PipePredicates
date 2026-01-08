@@ -155,6 +155,7 @@ public class PipeSearchHandler implements Listener {
           .withStaticVariable("predicate", predicateString)
           .withStaticVariable("item_count", resultCounter)
           .withStaticVariable("match_count", matches.size())
+          // TODO: Split container counts into categories (chests, shulkers, furnaces, etc.)
           .withStaticVariable("container_count", session.getContainerCount())
           .withStaticVariable("piston_count", session.getPistonCount())
           .withStaticVariable("tube_count", session.getTubeCount())

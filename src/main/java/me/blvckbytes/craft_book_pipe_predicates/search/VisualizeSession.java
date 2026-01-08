@@ -102,6 +102,10 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
     else
       makeCubeEntry(lastColor, block);
 
+    // TODO: Keep set of visited chunks and for each entity in there, add it to a list if it
+    //       has the glowing effect enabled. Disable it while the visualization is active
+    //       and restore it later on again.
+
     return increaseCountAndCheckLimit();
   }
 
