@@ -3,7 +3,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 import com.cryptomorin.xseries.XMaterial;
 import me.blvckbytes.bukkitevaluable.CommandUpdater;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
-import me.blvckbytes.bukkitevaluable.ConfigManager;
+import me.blvckbytes.craft_book_pipe_predicates.config.CustomConfigManager;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
@@ -35,7 +35,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       // First invocation is quite heavy - warm up cache
       XMaterial.matchXMaterial(Material.AIR);
 
-      var configManager = new ConfigManager(this, "config");
+      var configManager = new CustomConfigManager(this, "config");
       var config = new ConfigKeeper<>(configManager, "config.yml", MainSection.class);
 
       var parserPlugin = ItemPredicateParserPlugin.getInstance();

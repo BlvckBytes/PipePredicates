@@ -58,12 +58,12 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable commandPipePredicateSearchContainerTeleportObstructed;
   public BukkitEvaluable commandPipePredicateSearchContainerTeleported;
 
-  public BukkitEvaluable commandPipePredicateVisualizeInternalError;
-  public BukkitEvaluable commandPipePredicateVisualizeRanIntoLimit;
-  public BukkitEvaluable commandPipePredicateVisualizeSuccess;
-  public BukkitEvaluable commandPipePredicateVisualizeNoVisualization;
-  public BukkitEvaluable commandPipePredicateVisualizeClearedPriorVisualization;
-  public BukkitEvaluable commandPipePredicateVisualizeClearedVisualization;
+  public CMValue commandPipePredicateVisualizeInternalError;
+  public CMValue commandPipePredicateVisualizeRanIntoLimit;
+  public CMValue commandPipePredicateVisualizeSuccess;
+  public CMValue commandPipePredicateVisualizeNoVisualization;
+  public CMValue commandPipePredicateVisualizeClearedPriorVisualization;
+  public CMValue commandPipePredicateVisualizeClearedVisualization;
 
   public BukkitEvaluable missingPermissionPipePredicateCommand;
 

@@ -73,12 +73,12 @@ playerMessages:
   commandPipePredicateSearchContainerTeleportObstructed: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORT-OBSTRUCTED(prefix=lut["MESSAGE_PREFIX"])}'
   commandPipePredicateSearchContainerTeleported: '@{MESSAGE-COMMAND-PIPE-PREDICATE-SEARCH-CONTAINER-TELEPORTED(prefix=lut["MESSAGE_PREFIX"])}'
 
-  commandPipePredicateVisualizeInternalError: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-INTERNAL-ERROR(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateVisualizeRanIntoLimit: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-RAN-INTO-LIMIT(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateVisualizeSuccess: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-SUCCESS(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateVisualizeNoVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-NO-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateVisualizeClearedPriorVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-PRIOR-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
-  commandPipePredicateVisualizeClearedVisualization: '@{MESSAGE-COMMAND-PIPE-PREDICATE-VISUALIZE-CLEARED-VISUALIZATION(prefix=lut["MESSAGE_PREFIX"])}'
+  commandPipePredicateVisualizeInternalError: '{lut.prefix} <&c>Während des Visualisierens der Pipe, ausgehend von <&4>{origin_x} {origin_y} {origin_z}<&c>, trat ein interner Fehler auf; bitte melden!'
+  commandPipePredicateVisualizeRanIntoLimit: '{lut.prefix} <&7>Das Visualisierungslimit von <&6>{cube_limit} <&7>Blöcken wurde überschritten; <&6>stoppe vorzeitig<&7>!'
+  commandPipePredicateVisualizeSuccess: '{lut.prefix} <&7>Zeige <&a>{cube_count} <&7>visualisierte Pipe-Blöcke ausgehend von <&a>{origin_x} {origin_y} {origin_z}<&7> an.'
+  commandPipePredicateVisualizeNoVisualization: '{lut.prefix} <&c>Es wird aktuell keine Visualisierung angezeigt, die entfernt werden könnte!'
+  commandPipePredicateVisualizeClearedPriorVisualization: '{lut.prefix} <&7>Die <&6>vorherige Visualisierung <&7>wurde automatisch <&6>entfernt<&7>!'
+  commandPipePredicateVisualizeClearedVisualization: '{lut.prefix} <&7>Die angezeigte Visualisierung wurde <&a>entfernt<&7>.'
 
   missingPermissionPipePredicateCommand: '@{MESSAGE-MISSING-PERMISSION-PIPE-PREDICATE-COMMAND(prefix=lut["MESSAGE_PREFIX"])}'
 
@@ -151,6 +151,13 @@ defaultPredicateLanguage: 'ENGLISH_US'
 fakeEventSkippedListeners:
   # Avoid the "Pipe created!" message; this listener has no say in protection either
   - com.sk89q.craftbook.mechanics.pipe.Pipes
+
+# File-global component lookup-table
+cLut:
+  prefix: '<&7>[<&6>Pipr<&7>]'
+
+# File-global scalar lookup-table
+sLut:
 
 # File-global lookup table
 lut:

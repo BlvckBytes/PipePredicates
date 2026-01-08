@@ -155,11 +155,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     if (normalizedAction.constant == CommandAction.CLEAR_VISUALIZE) {
       if (!cubeRenderer.removeAll(player)) {
-        config.rootSection.playerMessages.commandPipePredicateVisualizeNoVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeNoVisualization.sendChat(player);
         return true;
       }
 
-      config.rootSection.playerMessages.commandPipePredicateVisualizeClearedVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateVisualizeClearedVisualization.sendChat(player);
       return true;
     }
 

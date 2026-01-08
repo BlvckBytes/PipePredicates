@@ -1,5 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import me.blvckbytes.bbconfigmapper.ScalarType;
@@ -197,25 +198,24 @@ public class PipeSearchHandler implements Listener {
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       if (cubeRenderer.removeAll(player))
-        config.rootSection.playerMessages.commandPipePredicateVisualizeClearedPriorVisualization.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeClearedPriorVisualization.sendChat(player);
 
-      var messageEnvironment = config.rootSection.getBaseEnvironment()
-        .withStaticVariable("origin_x", session.origin.getX())
-        .withStaticVariable("origin_y", session.origin.getY())
-        .withStaticVariable("origin_z", session.origin.getZ())
-        .withStaticVariable("cube_count", session.getCubeCount())
-        .withStaticVariable("cube_limit", VisualizeSession.TUBE_COUNT_LIMIT)
-        .build();
+      var messageEnvironment = new InterpretationEnvironment()
+        .withVariable("origin_x", session.origin.getX())
+        .withVariable("origin_y", session.origin.getY())
+        .withVariable("origin_z", session.origin.getZ())
+        .withVariable("cube_count", session.getCubeCount())
+        .withVariable("cube_limit", VisualizeSession.TUBE_COUNT_LIMIT);
 
       if (!cubeRenderer.renderColoredCubes(player, session.cubePositionsByColor)) {
-        config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendMessage(player, messageEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendChat(player, messageEnvironment);
         return;
       }
 
       if (session.didRunIntoLimit())
-        config.rootSection.playerMessages.commandPipePredicateVisualizeRanIntoLimit.sendMessage(player, messageEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeRanIntoLimit.sendChat(player, messageEnvironment);
 
-      config.rootSection.playerMessages.commandPipePredicateVisualizeSuccess.sendMessage(player, messageEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateVisualizeSuccess.sendChat(player, messageEnvironment);
     });
   }
 
