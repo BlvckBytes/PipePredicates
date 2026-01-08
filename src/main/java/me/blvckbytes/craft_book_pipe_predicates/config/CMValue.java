@@ -10,6 +10,7 @@ import at.blvckbytes.component_markup.markup.parser.MarkupParser;
 import at.blvckbytes.component_markup.util.InputView;
 import at.blvckbytes.component_markup.util.logging.InterpreterLogger;
 import me.blvckbytes.bbconfigmapper.MappingError;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -38,14 +39,28 @@ public class CMValue {
     this.logger = logger;
   }
 
-  public void sendChat(Player player) {
+  public void sendMessage(Audience player) {
     for (var component : interpret(SlotType.CHAT, null))
       player.sendMessage(component);
   }
 
-  public void sendChat(Player player, InterpretationEnvironment environment) {
+  public void sendMessage(Audience player, InterpretationEnvironment environment) {
     for (var component : interpret(SlotType.CHAT, environment))
       player.sendMessage(component);
+  }
+
+  public void sendActionBar(Player player, InterpretationEnvironment environment) {
+    var components = interpret(SlotType.CHAT, environment);
+
+    if (!components.isEmpty())
+      player.sendActionBar(components.get(0));
+  }
+
+  public void sendActionBar(Player player) {
+    var components = interpret(SlotType.CHAT, null);
+
+    if (!components.isEmpty())
+      player.sendActionBar(components.get(0));
   }
 
   public List<Component> interpret(SlotType slotType, @Nullable InterpretationEnvironment environment) {

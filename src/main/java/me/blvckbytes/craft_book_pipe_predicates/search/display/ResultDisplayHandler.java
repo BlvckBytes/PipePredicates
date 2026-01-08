@@ -1,12 +1,12 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.mechanics.pipe.CompactId;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
-import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -167,8 +167,10 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       }
     }
 
+    var environment = getBlockEnvironment(block);
+
     if (!destinationBlock.isPassable()) {
-      config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleportObstructed.sendMessage(player, getBlockEnvironment(block).build());
+      config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleportObstructed.sendMessage(player, environment);
       return;
     }
 
@@ -184,7 +186,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
     player.teleport(footLocation);
 
-    config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleported.sendMessage(player, getBlockEnvironment(block).build());
+    config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleported.sendMessage(player, environment);
   }
 
   private void moveItemIntoInventory(ResultDisplay resultDisplay, Player player, ItemAndSlot item) {
@@ -195,7 +197,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       var blockContents = containerInventory.getStorageContents();
 
       if (item.slot() < 0 || item.slot() >= blockContents.length) {
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment.build());
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment);
         return;
       }
 
@@ -211,19 +213,19 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
         typeTranslation = item.item().getType().name();
 
       environment
-        .withStaticVariable("item_slot", item.slot() + 1)
-        .withStaticVariable("item_amount", item.item().getAmount())
-        .withStaticVariable("item_type", typeTranslation);
+        .withVariable("item_slot", item.slot() + 1)
+        .withVariable("item_amount", item.item().getAmount())
+        .withVariable("item_type", typeTranslation);
 
       if (!item.item().equals(targetItem)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment.build());
+        config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment);
         return;
       }
 
       blockContents[item.slot()] = null;
       containerInventory.setStorageContents(blockContents);
 
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment.build());
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment);
 
       var remainders = player.getInventory().addItem(targetItem).values();
 
@@ -235,8 +237,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
           config.rootSection.playerMessages.commandPipePredicateSearchGetItemDropped.sendMessage(
             player,
             environment
-              .withStaticVariable("dropped_amount", remainder.getAmount())
-              .build()
+              .withVariable("dropped_amount", remainder.getAmount())
           );
         }
       }
@@ -246,8 +247,9 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   private void openContainer(Player player, ItemAndSlot item) {
     tryAccessContainer(player, item, container -> {
       var containerInventory = container.getInventory();
+      var environment = getBlockEnvironment(item.block());
 
-      config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, getBlockEnvironment(item.block()).build());
+      config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, environment);
       player.openInventory(containerInventory);
 
       modifyInventoryViewCounter(containerInventory, true);
@@ -312,19 +314,18 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     var block = item.block();
 
     if (!(block.getState() instanceof Container container)) {
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(
-        player, getBlockEnvironment(block).build()
-      );
+      var environment = getBlockEnvironment(block);
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment);
       return;
     }
 
     containerHandler.accept(container);
   }
 
-  private EvaluationEnvironmentBuilder getBlockEnvironment(Block block) {
-    return config.rootSection.getBaseEnvironment()
-      .withStaticVariable("container_x", block.getX())
-      .withStaticVariable("container_y", block.getY())
-      .withStaticVariable("container_z", block.getZ());
+  private InterpretationEnvironment getBlockEnvironment(Block block) {
+    return new InterpretationEnvironment()
+      .withVariable("container_x", block.getX())
+      .withVariable("container_y", block.getY())
+      .withVariable("container_z", block.getZ());
   }
 }

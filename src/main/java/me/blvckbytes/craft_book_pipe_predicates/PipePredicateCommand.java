@@ -1,9 +1,8 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.InvalidateCachedBlockEvent;
-import me.blvckbytes.bbconfigmapper.ScalarType;
-import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
@@ -16,9 +15,6 @@ import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import me.blvckbytes.syllables_matcher.TriState;
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
@@ -98,7 +94,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       if (session.isExpired()) {
         iterator.remove();
-        config.rootSection.playerMessages.commandPipePredicateInteractExpired.sendMessage(session.player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateInteractExpired.sendMessage(session.player);
 
         if (session.allowMultiUse)
           showActionBarMessage(session.player, ""); // Immediately clear action-bar signal
@@ -106,12 +102,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         continue;
       }
 
-      if (session.allowMultiUse) {
-        BukkitEvaluable message;
-
-        if ((message = config.rootSection.playerMessages.commandPipePredicateInteractMultiActionBarSignal) != null)
-          showActionBarMessage(session.player, message.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment));
-      }
+      if (session.allowMultiUse)
+        config.rootSection.playerMessages.commandPipePredicateInteractMultiActionBarSignal.sendActionBar(session.player);
     }
   }
 
@@ -121,7 +113,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return false;
 
     if (!CommandAction.canExecuteAny(sender)) {
-      config.rootSection.playerMessages.missingPermissionPipePredicateCommand.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.missingPermissionPipePredicateCommand.sendMessage(sender);
       return false;
     }
 
@@ -131,10 +123,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (args.length == 0 || (normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter)) == null) {
       config.rootSection.playerMessages.commandPipePredicateUsage.sendMessage(
         player,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("label", label)
-          .withStaticVariable("action_names", CommandAction.matcher.createCompletions(null, actionFilter))
-          .build()
+        new InterpretationEnvironment()
+          .withVariable("label", label)
+          .withVariable("action_names", CommandAction.matcher.createCompletions(null, actionFilter))
       );
       return true;
     }
@@ -143,11 +134,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       try {
         this.config.reload();
 
-        config.rootSection.playerMessages.commandPipePredicateReloadSuccess.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateReloadSuccess.sendMessage(sender);
       } catch (Exception e) {
         logger.log(Level.SEVERE, "An error occurred while trying to reload the config", e);
 
-        config.rootSection.playerMessages.commandPipePredicateReloadFailure.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateReloadFailure.sendMessage(sender);
       }
 
       return true;
@@ -155,11 +146,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     if (normalizedAction.constant == CommandAction.CLEAR_VISUALIZE) {
       if (!cubeRenderer.removeAll(player)) {
-        config.rootSection.playerMessages.commandPipePredicateVisualizeNoVisualization.sendChat(player);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeNoVisualization.sendMessage(player);
         return true;
       }
 
-      config.rootSection.playerMessages.commandPipePredicateVisualizeClearedVisualization.sendChat(player);
+      config.rootSection.playerMessages.commandPipePredicateVisualizeClearedVisualization.sendMessage(player);
       return true;
     }
 
@@ -169,14 +160,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var targetBlock = resolveFacedTargetBlock(player);
 
       if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
-        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
         return true;
       }
 
       var searchResult = pipeSearchHandler.handleVisualization(player, targetBlock);
 
       if (searchResult == TriState.FALSE) {
-        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
         return true;
       }
 
@@ -184,14 +175,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.LOCK_FRAMES) {
-      config.rootSection.playerMessages.commandPipePredicateFrameLockInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateFrameLockInit.sendMessage(sender);
 
       interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, true));
       return true;
     }
 
     if (normalizedAction.constant == CommandAction.UNLOCK_FRAMES) {
-      config.rootSection.playerMessages.commandPipePredicateFrameUnlockInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateFrameUnlockInit.sendMessage(sender);
 
       interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, false));
       return true;
@@ -210,14 +201,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var targetBlock = resolveFacedTargetBlock(player);
 
       if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
-        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
         return true;
       }
 
       var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage);
 
       if (searchResult == TriState.FALSE) {
-        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
         return true;
       }
 
@@ -226,14 +217,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     switch (normalizedAction.constant) {
       case REMOVE -> {
-        config.rootSection.playerMessages.commandPipePredicateRemoveInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateRemoveInit.sendMessage(sender);
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, null));
         return true;
       }
 
       case GET -> {
-        config.rootSection.playerMessages.commandPipePredicateGetInit.sendMessage(sender, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateGetInit.sendMessage(sender);
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateGetSession(player));
         return true;
@@ -247,9 +238,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
         config.rootSection.playerMessages.commandPipePredicateSetInit.sendMessage(
           sender,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
         );
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, predicateAndLanguage));
@@ -454,7 +444,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return;
 
     event.setCancelled(true);
-    config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer(), config.rootSection.builtBaseEnvironment);
+    config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer());
   }
 
   @EventHandler
@@ -496,14 +486,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (!interactionSession.allowMultiUse) {
       interactionSession.allowMultiUse = true;
       interactionSession.touchExpiry();
-      config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player);
       return;
     }
 
     interactionSessionByPlayerId.remove(player.getUniqueId());
     showActionBarMessage(player, ""); // Immediately clear action-bar signal
 
-    config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player, config.rootSection.builtBaseEnvironment);
+    config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player);
   }
 
   private boolean handleInteractionSessionAndGetIfCancel(Player player, Block target) {
@@ -521,7 +511,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
 
     if (interactionSession.requiresSign() && resolveResult.sign() == null) {
-      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player);
       return true;
     }
 
@@ -532,16 +522,15 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var predicateData = dataHandler.access(pistonSign);
 
       if (predicateData == null) {
-        config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player);
         return true;
       }
 
       if (predicateData.parseException() != null) {
         config.rootSection.playerMessages.commandPipePredicateGetError.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
         );
         return true;
       }
@@ -558,22 +547,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET_LANGUAGE) + " " + predicateLanguageName + " " + predicateValue;
       }
 
-      player.spigot().sendMessage(
-        new ComponentBuilder(
-          config.rootSection.playerMessages.commandPipePredicateGetPredicate
-          .asScalar(
-            ScalarType.STRING,
-            config.rootSection.getBaseEnvironment()
-              .withStaticVariable("predicate", predicateValue)
-              .withStaticVariable("predicate_language", predicateLanguageName)
-              .build()
-          )
-        )
-          .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, setCommand))
-          .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(
-            config.rootSection.playerMessages.commandPipePredicateGetPredicateHover.asScalar(ScalarType.STRING, config.rootSection.builtBaseEnvironment)
-          ).create()))
-          .create()
+      config.rootSection.playerMessages.commandPipePredicateGetPredicate.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("predicate", predicateValue)
+          .withVariable("predicate_language", predicateLanguageName)
+          .withVariable("set_command", setCommand)
       );
 
       return true;
@@ -586,7 +565,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         PredicateData predicateData;
 
         if ((predicateData = dataHandler.remove(pistonSign)) == null) {
-          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player, config.rootSection.builtBaseEnvironment);
+          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player);
           return true;
         }
 
@@ -595,9 +574,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
         config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("predicate", predicateData.tokensPredicate())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("predicate", predicateData.tokensPredicate())
         );
 
         return true;
@@ -625,9 +603,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
       config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
         player,
-        config.rootSection.getBaseEnvironment()
-                .withStaticVariable("predicate", new StringifyState(true).appendPredicate(predicate))
-                .build()
+        new InterpretationEnvironment()
+          .withVariable("predicate", new StringifyState(true).appendPredicate(predicate))
       );
 
       return true;
@@ -660,17 +637,16 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       });
 
       if (frameCount == 0) {
-        config.rootSection.playerMessages.commandPipePredicateFrameLockNoFrames.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateFrameLockNoFrames.sendMessage(player);
         return true;
       }
 
-      var environment = config.rootSection.getBaseEnvironment()
-        .withStaticVariable("frame_count", frameCount)
-        .build();
+      var environment = new InterpretationEnvironment()
+        .withVariable("frame_count", frameCount);
 
       if (lockSession.lockOrUnlock) {
         if (!foundUnlockedFrame.get()) {
-          config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyLocked.sendMessage(player, config.rootSection.builtBaseEnvironment);
+          config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyLocked.sendMessage(player, environment);
           return true;
         }
 
@@ -679,7 +655,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       }
 
       if (!foundLockedFrame.get()) {
-        config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyUnlocked.sendMessage(player, config.rootSection.builtBaseEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyUnlocked.sendMessage(player, environment);
         return true;
       }
 
@@ -694,7 +670,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     var pistonBlock = BlockUtility.resolvePistonBlock(target);
 
     if (pistonBlock == null) {
-      config.rootSection.playerMessages.commandPipePredicateNoPiston.sendMessage(executor, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateNoPiston.sendMessage(executor);
       return null;
     }
 
@@ -714,7 +690,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return new SignAndPiston(null, pistonBlock);
 
     if (!pipeEventHandler.canEditSign(executor, pistonSign)) {
-      config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor);
       return null;
     }
 
@@ -732,9 +708,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     else {
       if (args.length < 2) {
-        config.rootSection.playerMessages.commandPipePredicateMissingLanguage.sendMessage(
-          executor, config.rootSection.builtBaseEnvironment
-        );
+        config.rootSection.playerMessages.commandPipePredicateMissingLanguage.sendMessage(executor);
         return null;
       }
 
@@ -743,9 +717,8 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       if (languageSelection == null) {
         config.rootSection.playerMessages.commandPipePredicateUnknownLanguage.sendMessage(
           executor,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("input", args[1])
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("input", args[1])
         );
         return null;
       }
@@ -762,16 +735,15 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     } catch (ItemPredicateParseException e) {
       config.rootSection.playerMessages.commandPipePredicatePredicateError.sendMessage(
         executor,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("error_message", predicateHelper.createExceptionMessage(e))
-          .build()
+        new InterpretationEnvironment()
+          .withVariable("error_message", predicateHelper.createExceptionMessage(e))
       );
 
       return null;
     }
 
     if (predicate == null) {
-      config.rootSection.playerMessages.commandPipePredicateEmptyPredicate.sendMessage(executor, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateEmptyPredicate.sendMessage(executor);
       return null;
     }
 

@@ -3,7 +3,6 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
-import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -12,8 +11,6 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHand
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
 import me.blvckbytes.syllables_matcher.TriState;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -71,41 +68,36 @@ public class PipeSearchHandler implements Listener {
       return;
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-
       if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT)) {
         config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("limit", pipesMechanic.getMaxTubeBlockCount())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("limit", pipesMechanic.getMaxTubeBlockCount())
         );
       }
 
       if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT)) {
         config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("limit", pipesMechanic.getMaxPistonBlockCount())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("limit", pipesMechanic.getMaxPistonBlockCount())
         );
       }
 
       if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT)) {
         config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("limit", SearchSession.MAX_RETRY_COUNT)
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("limit", SearchSession.MAX_RETRY_COUNT)
         );
       }
 
       if (session.getSnapshotInventories().isEmpty()) {
         config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("piston_count", session.getPistonCount())
-            .withStaticVariable("tube_count", session.getTubeCount())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("piston_count", session.getPistonCount())
+            .withVariable("tube_count", session.getTubeCount())
         );
 
         return;
@@ -138,13 +130,12 @@ public class PipeSearchHandler implements Listener {
       if (matches.isEmpty()) {
         config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(
           player,
-          config.rootSection.getBaseEnvironment()
-            .withStaticVariable("predicate", predicateString)
-            .withStaticVariable("item_count", resultCounter)
-            .withStaticVariable("container_count", session.getContainerCount())
-            .withStaticVariable("piston_count", session.getPistonCount())
-            .withStaticVariable("tube_count", session.getTubeCount())
-            .build()
+          new InterpretationEnvironment()
+            .withVariable("predicate", predicateString)
+            .withVariable("item_count", resultCounter)
+            .withVariable("container_count", session.getContainerCount())
+            .withVariable("piston_count", session.getPistonCount())
+            .withVariable("tube_count", session.getTubeCount())
         );
 
         return;
@@ -152,15 +143,14 @@ public class PipeSearchHandler implements Listener {
 
       config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(
         player,
-        config.rootSection.getBaseEnvironment()
-          .withStaticVariable("predicate", predicateString)
-          .withStaticVariable("item_count", resultCounter)
-          .withStaticVariable("match_count", matches.size())
+        new InterpretationEnvironment()
+          .withVariable("predicate", predicateString)
+          .withVariable("item_count", resultCounter)
+          .withVariable("match_count", matches.size())
           // TODO: Split container counts into categories (chests, shulkers, furnaces, etc.)
-          .withStaticVariable("container_count", session.getContainerCount())
-          .withStaticVariable("piston_count", session.getPistonCount())
-          .withStaticVariable("tube_count", session.getTubeCount())
-          .build()
+          .withVariable("container_count", session.getContainerCount())
+          .withVariable("piston_count", session.getPistonCount())
+          .withVariable("tube_count", session.getTubeCount())
       );
 
       resultDisplayHandler.show(player, new ResultDisplayData(matches));
@@ -168,16 +158,12 @@ public class PipeSearchHandler implements Listener {
   }
 
   private void handleEnumerationWarmup(EnumerationSession<?> session, Player player) {
-    var warmupMessage = config.rootSection.playerMessages.commandPipePredicateSearchActionbarWarmup.asScalar(
-      ScalarType.STRING,
-      config.rootSection.getBaseEnvironment()
-        .withStaticVariable("piston_count", session.getPistonCount())
-        .withStaticVariable("tube_count", session.getTubeCount())
-        .build()
+    config.rootSection.playerMessages.commandPipePredicateSearchActionbarWarmup.sendActionBar(
+      player,
+      new InterpretationEnvironment()
+        .withVariable("piston_count", session.getPistonCount())
+        .withVariable("tube_count", session.getTubeCount())
     );
-
-    //noinspection deprecation
-    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(warmupMessage));
   }
 
   public TriState handleVisualization(Player player, Block origin) {
@@ -198,7 +184,7 @@ public class PipeSearchHandler implements Listener {
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       if (cubeRenderer.removeAll(player))
-        config.rootSection.playerMessages.commandPipePredicateVisualizeClearedPriorVisualization.sendChat(player);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeClearedPriorVisualization.sendMessage(player);
 
       var messageEnvironment = new InterpretationEnvironment()
         .withVariable("origin_x", session.origin.getX())
@@ -208,14 +194,14 @@ public class PipeSearchHandler implements Listener {
         .withVariable("cube_limit", VisualizeSession.TUBE_COUNT_LIMIT);
 
       if (!cubeRenderer.renderColoredCubes(player, session.cubePositionsByColor)) {
-        config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendChat(player, messageEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendMessage(player, messageEnvironment);
         return;
       }
 
       if (session.didRunIntoLimit())
-        config.rootSection.playerMessages.commandPipePredicateVisualizeRanIntoLimit.sendChat(player, messageEnvironment);
+        config.rootSection.playerMessages.commandPipePredicateVisualizeRanIntoLimit.sendMessage(player, messageEnvironment);
 
-      config.rootSection.playerMessages.commandPipePredicateVisualizeSuccess.sendChat(player, messageEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateVisualizeSuccess.sendMessage(player, messageEnvironment);
     });
   }
 
@@ -223,7 +209,7 @@ public class PipeSearchHandler implements Listener {
     var playerId = player.getUniqueId();
 
     if (enumerationSessionByPlayerId.containsKey(playerId)) {
-      config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player, config.rootSection.builtBaseEnvironment);
+      config.rootSection.playerMessages.commandPipePredicateSearchInSession.sendMessage(player);
       return TriState.NULL;
     }
 
