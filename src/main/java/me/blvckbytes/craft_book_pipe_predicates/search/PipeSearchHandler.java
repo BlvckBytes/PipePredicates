@@ -5,6 +5,7 @@ import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
+import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
@@ -127,31 +128,24 @@ public class PipeSearchHandler implements Listener {
         }
       }
 
-      if (matches.isEmpty()) {
-        config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("predicate", predicateString)
-            .withVariable("item_count", resultCounter)
-            .withVariable("container_count", session.getContainerCount())
-            .withVariable("piston_count", session.getPistonCount())
-            .withVariable("tube_count", session.getTubeCount())
-        );
+      var containerCounts = new ArrayList<ContainerCount>();
+      var totalContainerCount = session.forEachContainerCountAndGetSum((material, amount) -> containerCounts.add(new ContainerCount(material, amount)));
 
+      var environment = new InterpretationEnvironment()
+        .withVariable("predicate", predicateString)
+        .withVariable("item_count", resultCounter)
+        .withVariable("total_container_count", totalContainerCount)
+        .withVariable("container_counts", containerCounts)
+        .withVariable("piston_count", session.getPistonCount())
+        .withVariable("tube_count", session.getTubeCount())
+        .withVariable("match_count", matches.size());
+
+      if (matches.isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateSearchNoResults.sendMessage(player, environment);
         return;
       }
 
-      config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(
-        player,
-        new InterpretationEnvironment()
-          .withVariable("predicate", predicateString)
-          .withVariable("item_count", resultCounter)
-          .withVariable("match_count", matches.size())
-          // TODO: Split container counts into categories (chests, shulkers, furnaces, etc.)
-          .withVariable("container_count", session.getContainerCount())
-          .withVariable("piston_count", session.getPistonCount())
-          .withVariable("tube_count", session.getTubeCount())
-      );
+      config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(player, environment);
 
       resultDisplayHandler.show(player, new ResultDisplayData(matches));
     });

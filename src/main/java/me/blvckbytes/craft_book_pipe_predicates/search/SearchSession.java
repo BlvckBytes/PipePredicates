@@ -3,6 +3,7 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -11,10 +12,15 @@ import org.bukkit.block.data.type.Chest;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SearchSession extends EnumerationSession<SearchSession> {
+
+  static class MutableInt { int value; }
 
   private final World world;
 
@@ -22,9 +28,10 @@ public class SearchSession extends EnumerationSession<SearchSession> {
   private final LongSet visitedPistons;
 
   private int tubeCount;
-  private int containerCount;
 
   private int chunksWaitingOn;
+
+  private final EnumMap<Material, MutableInt> containerCountByType;
 
   public SearchSession(
     Block origin, Pipes pipesMechanic, Plugin plugin,
@@ -36,14 +43,26 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
     this.snapshotInventories = new ArrayList<>();
     this.visitedPistons = new LongOpenHashSet();
+    this.containerCountByType = new EnumMap<>(Material.class);
   }
 
   public int getTubeCount() {
     return tubeCount;
   }
 
-  public int getContainerCount() {
-    return containerCount;
+  public int forEachContainerCountAndGetSum(BiConsumer<Material, Integer> handler) {
+    var materials = new ArrayList<>(containerCountByType.keySet());
+    var sum = 0;
+
+    materials.sort(Comparator.comparingInt(Enum::ordinal));
+
+    for (var material : materials) {
+      var materialCount = containerCountByType.get(material).value;
+      sum += materialCount;
+      handler.accept(material, materialCount);
+    }
+
+    return sum;
   }
 
   public int getPistonCount() {
@@ -147,7 +166,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
       // Do not count individual double-chest halves; if we're not checking for double-chests,
       // that means we're coming from one (as to prevent recursion), so don't increment again.
       if (checkForDoubleChests)
-        ++containerCount;
+        containerCountByType.computeIfAbsent(block.getType(), k -> new MutableInt()).value++;
 
       snapshotInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
     }

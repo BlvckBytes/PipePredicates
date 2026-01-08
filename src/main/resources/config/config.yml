@@ -62,8 +62,14 @@ playerMessages:
   commandPipePredicateSearchExceededRetry: '{lut.prefix} <&e>Das Limit von <&6>{limit} Ladeversuchen <&e>wurde überschritten; stoppe vorzeitig!'
   commandPipePredicateSearchNoContainers: '{lut.prefix} <&c>Es konnten keine Behälter an Ausgangskolben gefunden werden (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>)!'
   commandPipePredicateSearchActionbarWarmup: '<&6>[Pipe] Wärme auf... {tube_count} Rohre, {piston_count} Kolben'
-  commandPipePredicateSearchNoResults: '{lut.prefix} <&c>Die Suche <&4>{predicate} <&c>ergab bei <&4>{item_count} Items <&c>keine Ergebnisse (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>, <&4>{container_count} Behälter<&c>)!'
-  commandPipePredicateSearchShowingResults: '{lut.prefix} <&7>Die Suche <&a>{predicate} <&7>lieferte bei insgesamt <&a>{item_count} <&7>Items <&a>{match_count} <&7>Übereinstimmungen (<&a>{piston_count} Kolben<&7>, <&a>{tube_count} Rohrblöcke<&7>, <&a>{container_count} Behälter<&7>).'
+  commandPipePredicateSearchNoResults: |
+    {lut.prefix} <&c>Die Suche <&4>{predicate} <&c>ergab bei <&4>{item_count} Items <&c>keine Ergebnisse (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>, <hover-text value={
+      <&c *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate [key]="entry.translation_key"/>
+    }><&4>{total_container_count} Behälter</hover-text><&c>)!
+  commandPipePredicateSearchShowingResults: |
+    {lut.prefix} <&7>Die Suche <&a>{predicate} <&7>lieferte bei insgesamt <&a>{item_count} <&7>Items <&a>{match_count} <&7>Übereinstimmungen (<&a>{piston_count} Kolben<&7>, <&a>{tube_count} Rohrblöcke<&7>, <hover-text value={
+      <&a *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate [key]="entry.translation_key"/>
+    }><&a>{total_container_count} Behälter</hover-text><&7>).
   commandPipePredicateSearchGetItemContainerAbsent: '{lut.prefix} <&c>Der Behälter <&4>existiert <&c>inzwischen nicht mehr; breche ab!'
   commandPipePredicateSearchGetItemContainerSizeChanged: '{lut.prefix} <&c>Die <&4>Größe <&c>des Behälters hat sich inzwischen verändert; breche ab!'
   commandPipePredicateSearchGetItemMoved: '{lut.prefix} <&c>Das Item wurde inzwischen <&4>bewegt<&c>; breche ab!'
