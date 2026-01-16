@@ -40,9 +40,13 @@ playerMessages:
   commandPipePredicateInteractExpired: '{lut.prefix} <&c>Deine ausstehende Interaktion ist aufgrund von Inaktivität ausgelaufen.'
   commandPipePredicateGetInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um dessen Prädikat <&7>zu <&a>LESEN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
   commandPipePredicateGetPredicate: |
-    <suggest-command [value]="set_command">
-      <hover-text value={<&a>Klicke auf diese Nachricht, um einen Editierungsbefehl vorgeschlagen zu bekommen.}>
-        {lut.prefix} <&7>Aktuell aktives Prädikat: <&a>{predicate}<&7>, Sprache: <&a>{predicate_language}<&7>.
+    {lut.prefix} <&7>Aktuell aktives Prädikat:<space/>
+      <u>
+        <hover-text value={<&a>Klicke auf das Prädikat, um einen Editierungsbefehl zu erhalten.}>
+          <suggest-command value=`{set_command}`>
+            <&a>{predicate}
+      </u>
+    <&7>, Sprache: <&a>{predicate_language}<&7>.
   commandPipePredicateGetError: '{lut.prefix} <&7>Der zugehörige Kolben befindet sich im Fehlerzustand: <&c>{predicate_error}'
   commandPipePredicateFrameLockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>SPERREN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
   commandPipePredicateFrameUnlockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>ENTSPERREN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
@@ -61,11 +65,11 @@ playerMessages:
   commandPipePredicateSearchActionbarWarmup: '<&6>[Pipe] Wärme auf... {tube_count} Rohre, {piston_count} Kolben'
   commandPipePredicateSearchNoResults: |
     {lut.prefix} <&c>Die Suche <&4>{predicate} <&c>ergab bei <&4>{item_count} Items <&c>keine Ergebnisse (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>, <hover-text value={
-      <&c *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate [key]="entry.translation_key"/>
+      <&c *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate key=`{entry.translation_key}`/>
     }><&4>{total_container_count} Behälter</hover-text><&c>)!
   commandPipePredicateSearchShowingResults: |
     {lut.prefix} <&7>Die Suche <&a>{predicate} <&7>lieferte bei insgesamt <&a>{item_count} <&7>Items <&a>{match_count} <&7>Übereinstimmungen (<&a>{piston_count} Kolben<&7>, <&a>{tube_count} Rohrblöcke<&7>, <hover-text value={
-      <&a *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate [key]="entry.translation_key"/>
+      <&a *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate key=`{entry.translation_key}`/>
     }><&a>{total_container_count} Behälter</hover-text><&7>).
   commandPipePredicateSearchGetItemContainerAbsent: '{lut.prefix} <&c>Der Behälter <&4>existiert <&c>inzwischen nicht mehr; breche ab!'
   commandPipePredicateSearchGetItemContainerSizeChanged: '{lut.prefix} <&c>Die <&4>Größe <&c>des Behälters hat sich inzwischen verändert; breche ab!'
