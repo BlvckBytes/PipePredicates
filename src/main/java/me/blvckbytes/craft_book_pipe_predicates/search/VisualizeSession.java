@@ -1,13 +1,11 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.EnumerationDecision;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -16,38 +14,17 @@ import java.util.function.Consumer;
 public class VisualizeSession extends EnumerationSession<VisualizeSession> {
 
   // TODO: This should be configurable
-  public static final int TUBE_COUNT_LIMIT = 1000;
+  public static final int CUBE_COUNT_LIMIT = 1000;
 
-  private static final EnumWrappers.ChatFormatting[] chatFormattingByTubeColorOrdinal;
+  private static final TubeColor[] TUBE_COLORS = TubeColor.values();
 
-  static {
-    chatFormattingByTubeColorOrdinal = new EnumWrappers.ChatFormatting[TubeColor.values().length];
-    Arrays.fill(chatFormattingByTubeColorOrdinal, EnumWrappers.ChatFormatting.WHITE);
-
-    chatFormattingByTubeColorOrdinal[TubeColor.ORANGE.ordinal()] = EnumWrappers.ChatFormatting.GOLD;
-    chatFormattingByTubeColorOrdinal[TubeColor.MAGENTA.ordinal()] = EnumWrappers.ChatFormatting.LIGHT_PURPLE;
-    chatFormattingByTubeColorOrdinal[TubeColor.LIGHT_BLUE.ordinal()] = EnumWrappers.ChatFormatting.BLUE;
-    chatFormattingByTubeColorOrdinal[TubeColor.YELLOW.ordinal()] = EnumWrappers.ChatFormatting.YELLOW;
-    chatFormattingByTubeColorOrdinal[TubeColor.LIME.ordinal()] = EnumWrappers.ChatFormatting.GREEN;
-    chatFormattingByTubeColorOrdinal[TubeColor.PINK.ordinal()] = EnumWrappers.ChatFormatting.LIGHT_PURPLE;
-    chatFormattingByTubeColorOrdinal[TubeColor.GRAY.ordinal()] = EnumWrappers.ChatFormatting.DARK_GRAY;
-    chatFormattingByTubeColorOrdinal[TubeColor.LIGHT_GRAY.ordinal()] = EnumWrappers.ChatFormatting.GRAY;
-    chatFormattingByTubeColorOrdinal[TubeColor.CYAN.ordinal()] = EnumWrappers.ChatFormatting.AQUA;
-    chatFormattingByTubeColorOrdinal[TubeColor.PURPLE.ordinal()] = EnumWrappers.ChatFormatting.DARK_PURPLE;
-    chatFormattingByTubeColorOrdinal[TubeColor.BLUE.ordinal()] = EnumWrappers.ChatFormatting.DARK_BLUE;
-    chatFormattingByTubeColorOrdinal[TubeColor.GREEN.ordinal()] = EnumWrappers.ChatFormatting.DARK_GREEN;
-    chatFormattingByTubeColorOrdinal[TubeColor.RED.ordinal()] = EnumWrappers.ChatFormatting.RED;
-    chatFormattingByTubeColorOrdinal[TubeColor.BLACK.ordinal()] = EnumWrappers.ChatFormatting.BLACK;
-  }
-
-  public final Map<EnumWrappers.ChatFormatting, List<Vector>> cubePositionsByColor;
-
-  private int cubeCount;
+  public final List<BlockAndColor> tubeBlocks;
 
   private boolean ranIntoLimit;
 
-  private @Nullable EnumWrappers.ChatFormatting lastColor;
+  private @Nullable TubeColor lastColor;
   private final List<Block> pendingPistons;
+  private final Stack<@Nullable TubeColor> lastColorStack;
 
   public VisualizeSession(
     Block origin, Pipes pipesMechanic, Plugin plugin,
@@ -56,16 +33,13 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
   ) {
     super(origin, pipesMechanic, plugin, warmupHandler, completionHandler);
 
-    this.cubePositionsByColor = new HashMap<>();
+    this.tubeBlocks = new ArrayList<>();
     this.pendingPistons = new ArrayList<>();
+    this.lastColorStack = new Stack<>();
   }
 
   public boolean didRunIntoLimit() {
     return ranIntoLimit;
-  }
-
-  public int getCubeCount() {
-    return cubeCount;
   }
 
   @Override
@@ -75,8 +49,7 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
 
   @Override
   protected void beforeRetry() {
-    this.cubePositionsByColor.clear();
-    cubeCount = 0;
+    this.tubeBlocks.clear();
   }
 
   @Override
@@ -85,12 +58,22 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
   }
 
   @Override
+  protected void beforeSubPipe() {
+    lastColorStack.push(lastColor);
+  }
+
+  @Override
+  protected void afterSubPipe() {
+    lastColor = lastColorStack.pop();
+  }
+
+  @Override
   protected EnumerationDecision onTube(Block block, int cachedBlock) {
-    lastColor = chatFormattingByTubeColorOrdinal[CachedBlock.getTubeColorOrdinal(cachedBlock)];
+    lastColor = TUBE_COLORS[CachedBlock.getTubeColorOrdinal(cachedBlock)];
 
     completePendingPistons();
 
-    makeCubeEntry(lastColor, block);
+    tubeBlocks.add(new BlockAndColor(block, lastColor));
 
     return increaseCountAndCheckLimit();
   }
@@ -100,27 +83,18 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
     if (lastColor == null)
       pendingPistons.add(block);
     else
-      makeCubeEntry(lastColor, block);
-
-    // TODO: Keep set of visited chunks and for each entity in there, add it to a list if it
-    //       has the glowing effect enabled. Disable it while the visualization is active
-    //       and restore it later on again.
+      tubeBlocks.add(new BlockAndColor(block, lastColor));
 
     return increaseCountAndCheckLimit();
   }
 
   private EnumerationDecision increaseCountAndCheckLimit() {
-    if (++cubeCount >= TUBE_COUNT_LIMIT) {
+    if (tubeBlocks.size() >= CUBE_COUNT_LIMIT) {
       ranIntoLimit = true;
       return EnumerationDecision.STOP;
     }
 
     return EnumerationDecision.CONTINUE;
-  }
-
-  private void makeCubeEntry(EnumWrappers.ChatFormatting color, Block block) {
-    var colorBucket = cubePositionsByColor.computeIfAbsent(color, k -> new ArrayList<>());
-    colorBucket.add(new Vector(block.getX(), block.getY(), block.getZ()));
   }
 
   private void completePendingPistons() {
@@ -130,10 +104,10 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
     var color = lastColor;
 
     if (color == null)
-      color = EnumWrappers.ChatFormatting.WHITE;
+      color = TubeColor.WHITE;
 
     for (var pendingPiston : pendingPistons)
-      makeCubeEntry(color, pendingPiston);
+      tubeBlocks.add(new BlockAndColor(pendingPiston, color));
 
     pendingPistons.clear();
   }

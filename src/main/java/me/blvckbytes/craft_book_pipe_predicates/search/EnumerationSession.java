@@ -1,6 +1,8 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import com.sk89q.craftbook.mechanics.pipe.*;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -10,6 +12,8 @@ import java.util.EnumSet;
 import java.util.function.Consumer;
 
 public abstract class EnumerationSession<T extends EnumerationSession<T>> {
+
+  // TODO: Whether we ignore check-valves should be a flag, since the visual debugger should acknowledge them
 
   // TODO: This limit should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
@@ -22,6 +26,7 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
   private final Consumer<T> completionHandler;
 
   private final EnumSet<SearchResultFlag> flags;
+  private final LongSet visitedBlocks;
 
   protected boolean terminated;
   private boolean completedEnumeration;
@@ -42,6 +47,7 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
     this.completionHandler = completionHandler;
 
     this.flags = EnumSet.noneOf(SearchResultFlag.class);
+    this.visitedBlocks = new LongOpenHashSet();
   }
 
   public boolean hasFlag(SearchResultFlag flag) {
@@ -78,6 +84,10 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
 
   protected abstract void beforeCompletion();
 
+  protected abstract void beforeSubPipe();
+
+  protected abstract void afterSubPipe();
+
   protected void callIfDone() {
     if (completedEnumeration && isDone()) {
       beforeCompletion();
@@ -100,22 +110,12 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
 
     beforeRetry();
 
+    visitedBlocks.clear();
+
     pistonCount = 0;
     tubeCount = 0;
 
-    var result = pipesMechanic.enumeratePipeBlocks(origin, null, EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES), (block, cachedBlock) -> {
-      if (CachedBlock.isTube(cachedBlock)) {
-        ++tubeCount;
-        return onTube(block, cachedBlock);
-      }
-
-      if (!CachedBlock.isMaterial(cachedBlock, Material.PISTON))
-        return EnumerationDecision.CONTINUE;
-
-      ++pistonCount;
-
-      return onPiston(block, cachedBlock);
-    });
+    var result = pipesMechanic.enumeratePipeBlocks(origin, visitedBlocks, EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES), this::handlePipeEnumeration);
 
     if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
       flags.add(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT);
@@ -140,5 +140,36 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
 
     completedEnumeration = true;
     callIfDone();
+  }
+
+  private EnumerationDecision handlePipeEnumeration(Block pipeBlock, int cachedPipeBlock, CachedBlockResolver cache) throws LoadingChunkException {
+    if (CachedBlock.isTube(cachedPipeBlock)) {
+      ++tubeCount;
+      return onTube(pipeBlock, cachedPipeBlock);
+    }
+
+    if (!CachedBlock.isMaterial(cachedPipeBlock, Material.PISTON))
+      return EnumerationDecision.CONTINUE;
+
+    ++pistonCount;
+
+    if (onPiston(pipeBlock, cachedPipeBlock) != EnumerationDecision.CONTINUE)
+      return EnumerationDecision.STOP;
+
+    var putBlock = pipeBlock.getRelative(CachedBlock.getFacing(cachedPipeBlock));
+    int cachedPutBlock = cache.getCachedBlock(putBlock);
+    boolean isSubPipe = CachedBlock.isTube(cachedPutBlock) && !CachedBlock.isPane(cachedPutBlock);
+
+    // Recurse down into the sub-pipe first, as for the piston/tube encounter-order to end up congruent
+    // with the real-world pipe - this is crucial for stepwise visualization later on.
+    if (isSubPipe) {
+      var behaviorFlags = EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.DO_NOT_RESET_CACHE_AND_MAX_COUNTERS);
+      visitedBlocks.add(CompactId.computeWorldlessBlockId(putBlock));
+      beforeSubPipe();
+      pipesMechanic.enumeratePipeBlocks(putBlock, visitedBlocks, behaviorFlags, this::handlePipeEnumeration);
+      afterSubPipe();
+    }
+
+    return EnumerationDecision.CONTINUE;
   }
 }

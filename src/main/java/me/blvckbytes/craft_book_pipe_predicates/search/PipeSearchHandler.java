@@ -4,6 +4,7 @@ import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
+import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -19,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -184,10 +186,17 @@ public class PipeSearchHandler implements Listener {
         .withVariable("origin_x", session.origin.getX())
         .withVariable("origin_y", session.origin.getY())
         .withVariable("origin_z", session.origin.getZ())
-        .withVariable("cube_count", session.getCubeCount())
-        .withVariable("cube_limit", VisualizeSession.TUBE_COUNT_LIMIT);
+        .withVariable("cube_count", session.tubeBlocks.size())
+        .withVariable("cube_limit", VisualizeSession.CUBE_COUNT_LIMIT);
 
-      if (!cubeRenderer.renderColoredCubes(player, session.cubePositionsByColor)) {
+      var cubePositionsByColor = new HashMap<TubeColor, List<Vector>>();
+
+      session.tubeBlocks.forEach(it -> {
+        var vector = new Vector(it.block().getX(), it.block().getY(), it.block().getZ());
+        cubePositionsByColor.computeIfAbsent(it.color(), k -> new ArrayList<>()).add(vector);
+      });
+
+      if (!cubeRenderer.renderColoredCubes(player, cubePositionsByColor)) {
         config.rootSection.playerMessages.commandPipePredicateVisualizeInternalError.sendMessage(player, messageEnvironment);
         return;
       }

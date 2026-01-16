@@ -91,6 +91,12 @@ public class SearchSession extends EnumerationSession<SearchSession> {
   protected void beforeCompletion() {}
 
   @Override
+  protected void beforeSubPipe() {}
+
+  @Override
+  protected void afterSubPipe() {}
+
+  @Override
   protected void beforeRetry() {
     // Reset the tube-count, since we may need multiple retries to walk the whole pipe.
     // No need to keep a separate visited-set for tubes - would be a waste of resources.
