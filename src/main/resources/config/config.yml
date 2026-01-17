@@ -107,6 +107,29 @@ resultDisplay:
           <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite><br/>
           <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite><br/>
           {lut.spacer}
+    searchDetails:
+      slots: 'last_slot - 4'
+      type: OAK_SIGN
+      name: |
+        <reset>
+          <&8>» <&6>Aktuelle Suche <&8>«
+      lore: |
+        <reset>
+          {lut.spacer}<br/>
+          <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
+          {lut.spacer}
+    backToCollectionsButton:
+      slots: 'last_slot - 4'
+      type: PLAYER_HEAD
+      textures: '{lut.textures["ARROW_LEFT_BLACK"]}'
+      name: |
+        <reset>
+          <&8>» <&6>Zurück <&8>«
+      lore: |
+        <reset>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Gelange zurück zur Übersicht<br/>
+          {lut.spacer}
     nextPage:
       slots: 'last_slot'
       type: PLAYER_HEAD
@@ -184,3 +207,4 @@ sLut:
     ARROW_LEFT_RED: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjg0ZjU5NzEzMWJiZTI1ZGMwNThhZjg4OGNiMjk4MzFmNzk1OTliYzY3Yzk1YzgwMjkyNWNlNGFmYmEzMzJmYyJ9fX0='
     ARROW_RIGHT: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYzMzlmZjJlNTM0MmJhMThiZGM0OGE5OWNjYTY1ZDEyM2NlNzgxZDg3ODI3MmY5ZDk2NGVhZDNiOGFkMzcwIn19fQ=='
     ARROW_RIGHT_RED: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmNmZTg4NDVhOGQ1ZTYzNWZiODc3MjhjY2M5Mzg5NWQ0MmI0ZmMyZTZhNTNmMWJhNzhjODQ1MjI1ODIyIn19fQ=='
+    ARROW_LEFT_BLACK: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0='

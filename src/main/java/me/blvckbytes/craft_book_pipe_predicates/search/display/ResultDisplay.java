@@ -187,6 +187,12 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
     config.rootSection.resultDisplay.items.previousPage.renderInto(inventory, pageEnvironment);
     config.rootSection.resultDisplay.items.nextPage.renderInto(inventory, pageEnvironment);
+
+    if (displayData.backToDisplay() != null)
+      config.rootSection.resultDisplay.items.backToCollectionsButton.renderInto(inventory, pageEnvironment);
+
+    else if (displayData.predicateString() != null)
+      config.rootSection.resultDisplay.items.searchDetails.renderInto(inventory, pageEnvironment);
   }
 
   @Override
@@ -196,6 +202,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   private InterpretationEnvironment makePageEnvironment() {
     return config.rootSection.resultDisplay.inventoryEnvironment.copy()
+      .withVariable("predicate", this.displayData.predicateString())
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages);
   }

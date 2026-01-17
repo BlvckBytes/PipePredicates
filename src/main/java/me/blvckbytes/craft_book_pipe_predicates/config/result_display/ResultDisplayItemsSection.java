@@ -11,6 +11,8 @@ import at.blvckbytes.component_markup.util.logging.InterpreterLogger;
 public class ResultDisplayItemsSection extends ConfigSection {
 
   public GuiItemStackSection previousPage;
+  public GuiItemStackSection backToCollectionsButton;
+  public GuiItemStackSection searchDetails;
   public GuiItemStackSection nextPage;
   public GuiItemStackSection filler;
   public ItemStackSection stackRepresentativePatch;

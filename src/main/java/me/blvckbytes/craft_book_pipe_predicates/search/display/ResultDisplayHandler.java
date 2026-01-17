@@ -90,7 +90,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
   private void handleCollectionClick(Player player, ResultDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
     if (clickType == ClickType.LEFT) {
-      show(player, new ResultDisplayData(collectionEntry.getMembersAsEntries()));
+      show(player, new ResultDisplayData(null, collectionEntry.getMembersAsEntries(), display));
       return;
     }
 
@@ -188,6 +188,11 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
       if (config.rootSection.resultDisplay.items.nextPage.getDisplaySlots().contains(slot)) {
         display.nextPage();
+        return;
+      }
+
+      if (display.displayData.backToDisplay() != null && config.rootSection.resultDisplay.items.backToCollectionsButton.getDisplaySlots().contains(slot)) {
+        reopen(display.displayData.backToDisplay());
         return;
       }
     }
