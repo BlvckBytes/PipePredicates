@@ -8,6 +8,7 @@ import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.ItemCollectionEntry;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
@@ -149,7 +150,11 @@ public class PipeSearchHandler implements Listener {
 
       config.rootSection.playerMessages.commandPipePredicateSearchShowingResults.sendMessage(player, environment);
 
-      resultDisplayHandler.show(player, new ResultDisplayData(matches));
+      // Let's show the bucketed overview by default instead of the other way around, as I
+      // believe that there's not much of a need for the individual screen anymore.
+      var displayData = ItemCollectionEntry.collectEntries(matches);
+
+      resultDisplayHandler.show(player, new ResultDisplayData(displayData));
     });
   }
 

@@ -73,9 +73,9 @@ playerMessages:
     }><&a>{total_container_count} Behälter</hover-text><&7>).
   commandPipePredicateSearchGetItemContainerAbsent: '{lut.prefix} <&c>Der Behälter <&4>existiert <&c>inzwischen nicht mehr; breche ab!'
   commandPipePredicateSearchGetItemContainerSizeChanged: '{lut.prefix} <&c>Die <&4>Größe <&c>des Behälters hat sich inzwischen verändert; breche ab!'
-  commandPipePredicateSearchGetItemMoved: '{lut.prefix} <&c>Das Item wurde inzwischen <&4>bewegt<&c>; breche ab!'
-  commandPipePredicateSearchGetItemSuccess: '{lut.prefix} <&7>Das Item <&a>{item_amount}x {item_type} <&7>von Slot <&a>{item_slot} <&7>bei <&a>{container_x} {container_y} {container_z} <&7>wurde ausgehändigt.'
-  commandPipePredicateSearchGetItemDropped: '{lut.prefix} <&e>Inventar voll! Droppe <&6>{dropped_amount}x {item_type}<&e>!'
+  commandPipePredicateSearchGetItemMoved: '{lut.prefix} <&c>Das Item <&4><tr key=`{item_type_key}`/> <&c>wurde inzwischen <&4>bewegt<&c>; breche ab!'
+  commandPipePredicateSearchGetItemSuccess: '{lut.prefix} <&7>Vom Item <&a><tr key=`{item_type_key}`/> <&7>wurden insgesamt <&a>{lut.amount_display} <&7>ausgehändigt.'
+  commandPipePredicateSearchGetNoSpace: '{lut.prefix} <&c>Du hast keinen Platz im Inventar!'
   commandPipePredicateSearchContainerOpened: '{lut.prefix} <&7>Du hast nun Einsicht in den Behälter bei <&a>{container_x} {container_y} {container_z}<&7>.'
   commandPipePredicateSearchContainerTeleportObstructed: '{lut.prefix} <&c>Der Behälter ist an allen Seiten durch unpassierbare Blöcke versperrt!'
   commandPipePredicateSearchContainerTeleported: '{lut.prefix} <&7>Du wurdest zum Behälter bei <&a>{container_x} {container_y} {container_z} <&7>teleportiert.'
@@ -122,7 +122,7 @@ resultDisplay:
           <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
           <&8>➥ <&e>Rechtsklick <&7>Springe zur letzten Seite<br/>
           {lut.spacer}
-    representativePatch:
+    stackRepresentativePatch:
       lore: |
         <reset>
           <br/>
@@ -133,6 +133,17 @@ resultDisplay:
           <&8>➥ <&e>Linksklick <&7>Hinteleportieren<br/>
           <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
           <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen<br/>
+          {lut.spacer}
+    collectionRepresentativePatch:
+      lore: |
+        <reset>
+          <br/>
+          {lut.spacer}<br/>
+          <&8>♦ <&7>Anzahl: <&e *let-display_dks>{lut.amount_display}</><br/>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
+          <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
+          <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen<br/>
           {lut.spacer}
     filler:
       slots: '(last_slot - 7)..(last_slot - 1)'
@@ -150,7 +161,21 @@ fakeEventSkippedListeners:
 # File-global component lookup-table
 cLut:
   prefix: '<&7>[<&6>Pipr<&7>]'
-  spacer: '<&8><&m>{" " ** 50}'
+  spacer: '<&8><&m>{" " ** 55}'
+  amount_display: |
+    <container *if="number_stacks > 0">
+      {number_stacks}x {stack_size}
+      <container *if="has(display_dks) and number_stacks > 1">
+        <container *if="number_double_chests eq 1"><&7> (</>eine DK<&7>)</container>
+        <container *else-if="number_double_chests > 0">
+          <&7> (</><number [value]="number_double_chests" format="0.0" locale="de_AT" rounding="UP"/> DKs<&7>)
+        </container>
+      </container>
+    </container>
+    <container *if="single_items > 0">
+      <&7 *if="number_stacks > 0"> und </>
+      {single_items} Stück
+    </container>
 
 # File-global scalar lookup-table
 sLut:

@@ -13,7 +13,8 @@ public class ResultDisplayItemsSection extends ConfigSection {
   public GuiItemStackSection previousPage;
   public GuiItemStackSection nextPage;
   public GuiItemStackSection filler;
-  public ItemStackSection representativePatch;
+  public ItemStackSection stackRepresentativePatch;
+  public ItemStackSection collectionRepresentativePatch;
 
   public ResultDisplayItemsSection(InterpretationEnvironment baseEnvironment, InterpreterLogger interpreterLogger) {
     super(baseEnvironment, interpreterLogger);

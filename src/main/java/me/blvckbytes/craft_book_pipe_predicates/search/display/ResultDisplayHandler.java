@@ -7,9 +7,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
-import me.blvckbytes.item_predicate_parser.PredicateHelper;
-import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
@@ -25,8 +24,8 @@ import org.bukkit.plugin.Plugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDisplayData> {
 
@@ -36,21 +35,12 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   };
 
   private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
+  private final Logger logger;
 
-  private final PredicateHelper predicateHelper;
-  private final TranslationLanguageRegistry languageRegistry;
-
-  public ResultDisplayHandler(
-    PredicateHelper predicateHelper,
-    TranslationLanguageRegistry languageRegistry,
-    ConfigKeeper<MainSection> config,
-    Plugin plugin
-  ) {
+  public ResultDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
     super(config, plugin);
 
-    this.predicateHelper = predicateHelper;
-    this.languageRegistry = languageRegistry;
-
+    this.logger = plugin.getLogger();
     this.viewCountByChunkHashByWorldId = new HashMap<>();
   }
 
@@ -59,9 +49,136 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     return new ResultDisplay(config, plugin, player, displayData);
   }
 
+  private void handleStackClick(Player player, ResultDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
+    if (clickType == ClickType.LEFT) {
+      player.closeInventory();
+      teleportPlayerToContainer(player, itemEntry.itemAndSlot.block());
+      return;
+    }
+
+    if (clickType == ClickType.DROP) {
+      var amountBefore = itemEntry.itemAndSlot.item().getAmount();
+      var moveResult = moveItemIntoInventory(player, itemEntry.itemAndSlot);
+
+      if (moveResult == MoveResult.NO_SPACE) {
+        config.rootSection.playerMessages.commandPipePredicateSearchGetNoSpace.sendMessage(player);
+        return;
+      }
+
+      int movedAmount = 0;
+
+      if (moveResult == MoveResult.DID_MOVE || moveResult == MoveResult.INVALID_ITEM)
+        display.removeEntry(itemEntry);
+
+      // Only remove the entry if it has been moved wholly, e.g. not just decremented
+      if (moveResult == MoveResult.DID_MOVE)
+        movedAmount = amountBefore;
+      else if (moveResult == MoveResult.DID_DECREMENT) {
+        display.renderItems();
+        movedAmount = amountBefore - itemEntry.itemAndSlot.item().getAmount();
+      }
+
+      if (movedAmount > 0)
+        sendHandOutMessage(player, movedAmount, itemEntry.itemAndSlot.item().getMaxStackSize(), itemEntry.itemAndSlot.item().getType());
+
+      return;
+    }
+
+    if (clickType == ClickType.CONTROL_DROP)
+      openContainer(player, itemEntry.itemAndSlot);
+  }
+
+  private void handleCollectionClick(Player player, ResultDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
+    if (clickType == ClickType.LEFT) {
+      show(player, new ResultDisplayData(collectionEntry.getMembersAsEntries()));
+      return;
+    }
+
+    if (clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP)
+      handleMovingItems(player, display, collectionEntry, clickType == ClickType.CONTROL_DROP);
+  }
+
+  private void sendHandOutMessage(Player player, int totalHandOutAmount, int stackSize, Material type) {
+    var numberStacks = totalHandOutAmount / stackSize;
+    var singleItems = totalHandOutAmount % stackSize;
+    var numberDoubleChests = (double) numberStacks / (6 * 9);
+
+    config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(
+      player,
+      new InterpretationEnvironment()
+        .withVariable("number_stacks", numberStacks)
+        .withVariable("number_double_chests", numberDoubleChests)
+        .withVariable("stack_size", stackSize)
+        .withVariable("single_items", singleItems)
+        .withVariable("item_type_key", type.translationKey())
+    );
+  }
+
+  private void handleMovingItems(Player player, ResultDisplay display, ItemCollectionEntry collectionEntry, boolean multiple) {
+    var totalHandOutAmount = 0;
+    var ranOutOfSpace = false;
+
+    ItemAndSlot nextMember;
+
+    while ((nextMember = collectionEntry.getNextMember()) != null) {
+      var amountBefore = nextMember.item().getAmount();
+      var moveResult = moveItemIntoInventory(player, nextMember);
+
+      if (moveResult == MoveResult.NO_SPACE) {
+        ranOutOfSpace = true;
+        break;
+      }
+
+      if (moveResult == MoveResult.DID_MOVE)
+        totalHandOutAmount += amountBefore;
+      else if (moveResult == MoveResult.DID_DECREMENT) {
+        var amountAfter = nextMember.item().getAmount();
+        totalHandOutAmount += amountBefore - amountAfter;
+      }
+
+      if (moveResult == MoveResult.INVALID_ITEM || moveResult == MoveResult.DID_MOVE)
+        collectionEntry.removeMember(nextMember);
+
+      if (!multiple)
+        break;
+    }
+
+    if (totalHandOutAmount > 0)
+      sendHandOutMessage(player, totalHandOutAmount, collectionEntry.getStackSize(), collectionEntry.getMaterial());
+
+    else if (ranOutOfSpace)
+      config.rootSection.playerMessages.commandPipePredicateSearchGetNoSpace.sendMessage(player);
+
+    // Exhausted the collection - make it vanish altogether
+    if (collectionEntry.isEmpty()) {
+      display.removeEntry(collectionEntry);
+      display.show();
+      return;
+    }
+
+    // Synchronize the displayed counts
+    if (totalHandOutAmount > 0)
+      display.renderItems();
+  }
+
   @Override
   protected void handleClick(Player player, ResultDisplay display, ClickType clickType, int slot) {
-    var targetItem = display.getShopCorrespondingToSlot(slot);
+    var targetEntry = display.getEntryCorrespondingToSlot(slot);
+
+    if (targetEntry != null) {
+      if (targetEntry instanceof ItemStackEntry itemStackEntry) {
+        handleStackClick(player, display, clickType, itemStackEntry);
+        return;
+      }
+
+      if (targetEntry instanceof ItemCollectionEntry collectionEntry) {
+        handleCollectionClick(player, display, clickType, collectionEntry);
+        return;
+      }
+
+      logger.warning("Encountered unaccounted-for result-display entry-type: " + targetEntry.getClass());
+      return;
+    }
 
     if (clickType == ClickType.LEFT) {
       if (config.rootSection.resultDisplay.items.previousPage.getDisplaySlots().contains(slot)) {
@@ -73,28 +190,6 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
         display.nextPage();
         return;
       }
-
-      if (targetItem != null) {
-        player.closeInventory();
-        teleportPlayerToContainer(player, targetItem.block());
-        return;
-      }
-
-      return;
-    }
-
-    if (targetItem != null) {
-      if (clickType == ClickType.DROP) {
-        moveItemIntoInventory(display, player, targetItem);
-        return;
-      }
-
-      if (clickType == ClickType.CONTROL_DROP) {
-        openContainer(player, targetItem);
-        return;
-      }
-
-      return;
     }
 
     if (clickType == ClickType.RIGHT) {
@@ -189,71 +284,87 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     config.rootSection.playerMessages.commandPipePredicateSearchContainerTeleported.sendMessage(player, environment);
   }
 
-  private void moveItemIntoInventory(ResultDisplay resultDisplay, Player player, ItemAndSlot item) {
-    tryAccessContainer(player, item, container -> {
-      var environment = getBlockEnvironment(item.block());
+  private MoveResult moveItemIntoInventory(Player player, ItemAndSlot item) {
+    var block = item.block();
 
-      var containerInventory = container.getInventory();
-      var blockContents = containerInventory.getStorageContents();
+    if (!(block.getState() instanceof Container container)) {
+      var environment = getBlockEnvironment(block);
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment);
+      return MoveResult.INVALID_ITEM;
+    }
 
-      if (item.slot() < 0 || item.slot() >= blockContents.length) {
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment);
-        return;
+    var environment = getBlockEnvironment(item.block());
+
+    var containerInventory = container.getInventory();
+
+    if (item.slot() < 0 || item.slot() >= containerInventory.getSize()) {
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerSizeChanged.sendMessage(player, environment);
+      return MoveResult.INVALID_ITEM;
+    }
+
+    var targetItem = containerInventory.getItem(item.slot());
+
+    environment
+      .withVariable("item_slot", item.slot() + 1)
+      .withVariable("item_amount", item.item().getAmount())
+      .withVariable("item_type_key", item.type().translationKey());
+
+    if (!item.item().equals(targetItem)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment);
+      return MoveResult.INVALID_ITEM;
+    }
+
+    var playerInventory = player.getInventory();
+    var didDecrement = false;
+
+    for (var slot = 0; slot < 9 * 4; ++slot) {
+      var playerItem = playerInventory.getItem(slot);
+
+      if (playerItem == null || playerItem.getType().isAir()) {
+        playerInventory.setItem(slot, targetItem);
+        containerInventory.setItem(item.slot(), null);
+        return MoveResult.DID_MOVE;
       }
 
-      var targetItem = blockContents[item.slot()];
+      if (!targetItem.isSimilar(playerItem))
+        continue;
 
-      resultDisplay.removeItem(item);
+      var remainingSpace = playerItem.getMaxStackSize() - playerItem.getAmount();
+      var amountToAdd = Math.min(remainingSpace, targetItem.getAmount());
 
-      var typeTranslation = languageRegistry
-        .getTranslationRegistry(predicateHelper.getSelectedLanguage(player))
-        .getTranslationBySingleton(item.item().getType());
+      if (amountToAdd <= 0)
+        continue;
 
-      if (typeTranslation == null)
-        typeTranslation = item.item().getType().name();
+      playerItem.setAmount(playerItem.getAmount() + amountToAdd);
+      targetItem.setAmount(targetItem.getAmount() - amountToAdd);
 
-      environment
-        .withVariable("item_slot", item.slot() + 1)
-        .withVariable("item_amount", item.item().getAmount())
-        .withVariable("item_type", typeTranslation);
+      didDecrement = true;
 
-      if (!item.item().equals(targetItem)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchGetItemMoved.sendMessage(player, environment);
-        return;
+      if (targetItem.getAmount() <= 0) {
+        containerInventory.setItem(item.slot(), null);
+        return MoveResult.DID_MOVE;
       }
+    }
 
-      blockContents[item.slot()] = null;
-      containerInventory.setStorageContents(blockContents);
-
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemSuccess.sendMessage(player, environment);
-
-      var remainders = player.getInventory().addItem(targetItem).values();
-
-      if (!remainders.isEmpty()) {
-
-        for (var remainder : remainders) {
-          player.dropItem(remainder);
-
-          config.rootSection.playerMessages.commandPipePredicateSearchGetItemDropped.sendMessage(
-            player,
-            environment
-              .withVariable("dropped_amount", remainder.getAmount())
-          );
-        }
-      }
-    });
+    return didDecrement ? MoveResult.DID_DECREMENT : MoveResult.NO_SPACE;
   }
 
   private void openContainer(Player player, ItemAndSlot item) {
-    tryAccessContainer(player, item, container -> {
-      var containerInventory = container.getInventory();
-      var environment = getBlockEnvironment(item.block());
+    var block = item.block();
 
-      config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, environment);
-      player.openInventory(containerInventory);
+    if (!(block.getState() instanceof Container container)) {
+      var environment = getBlockEnvironment(block);
+      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment);
+      return;
+    }
 
-      modifyInventoryViewCounter(containerInventory, true);
-    });
+    var containerInventory = container.getInventory();
+    var environment = getBlockEnvironment(item.block());
+
+    config.rootSection.playerMessages.commandPipePredicateSearchContainerOpened.sendMessage(player, environment);
+    player.openInventory(containerInventory);
+
+    modifyInventoryViewCounter(containerInventory, true);
   }
 
   private void modifyInventoryViewCounter(Inventory inventory, boolean increment) {
@@ -308,18 +419,6 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
     if (!block.getChunk().removePluginChunkTicket(plugin))
       plugin.getLogger().log(Level.WARNING, "Could not remove chunk-ticket for block at " + block.getLocation());
-  }
-
-  private void tryAccessContainer(Player player, ItemAndSlot item, Consumer<Container> containerHandler) {
-    var block = item.block();
-
-    if (!(block.getState() instanceof Container container)) {
-      var environment = getBlockEnvironment(block);
-      config.rootSection.playerMessages.commandPipePredicateSearchGetItemContainerAbsent.sendMessage(player, environment);
-      return;
-    }
-
-    containerHandler.accept(container);
   }
 
   private InterpretationEnvironment getBlockEnvironment(Block block) {

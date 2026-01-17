@@ -3,7 +3,6 @@ package me.blvckbytes.craft_book_pipe_predicates.search.display;
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
-import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +15,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   private final AsyncTaskQueue asyncQueue;
 
-  private final ItemAndSlot[] slotMap;
+  private final ResultDisplayEntry[] slotMap;
   private int numberOfPages;
 
   private int currentPage = 1;
@@ -30,7 +29,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     super(player, displayData, config, plugin);
 
     this.asyncQueue = new AsyncTaskQueue(plugin);
-    this.slotMap = new ItemAndSlot[9 * 6];
+    this.slotMap = new ResultDisplayEntry[9 * 6];
 
     setupEnvironments();
 
@@ -47,7 +46,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     show();
   }
 
-  public @Nullable ItemAndSlot getShopCorrespondingToSlot(int slot) {
+  public @Nullable ResultDisplayEntry getEntryCorrespondingToSlot(int slot) {
     return slotMap[slot];
   }
 
@@ -63,8 +62,8 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     super.onShutdown();
   }
 
-  public void removeItem(ItemAndSlot itemAndSlot) {
-    displayData.items().remove(itemAndSlot);
+  public void removeEntry(ResultDisplayEntry entry) {
+    displayData.entries().remove(entry);
 
     var priorNumberOfPages = numberOfPages;
 
@@ -126,7 +125,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   private void updateNumberOfPages() {
     var numberOfDisplaySlots = config.rootSection.resultDisplay.getPaginationSlots().size();
-    this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.items().size() / (double) numberOfDisplaySlots));
+    this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.entries().size() / (double) numberOfDisplaySlots));
   }
 
   @Override
@@ -146,7 +145,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
   protected void renderItems() {
     var displaySlots = new ArrayList<>(config.rootSection.resultDisplay.getPaginationSlots());
     var itemsIndex = (currentPage - 1) * displaySlots.size();
-    var numberOfItems = displayData.items().size();
+    var numberOfItems = displayData.entries().size();
 
     for (var paginationSlotIndex = 0; paginationSlotIndex < displaySlots.size(); ++paginationSlotIndex) {
       var slot = displaySlots.get(paginationSlotIndex);
@@ -158,36 +157,27 @@ public class ResultDisplay extends Display<ResultDisplayData> {
         continue;
       }
 
-      var itemAndSlot = displayData.items().get(currentSlot);
+      var entry = displayData.entries().get(currentSlot);
 
       ItemStack representativeItem;
 
       try {
-        representativeItem = new ItemStack(itemAndSlot.item());
+        representativeItem = entry.makeRepresentative(config);
       }
       // java.lang.IllegalStateException: Could not get meta of item
       // The above occurs if the item has been moved; simply remove such items from the UI as well.
       catch (IllegalStateException ignored) {
         // Try again with the next item at the same slot
-        displayData.items().remove(itemAndSlot);
+        displayData.entries().remove(entry);
         --itemsIndex;
         --paginationSlotIndex;
         --numberOfItems;
         continue;
       }
 
-      config.rootSection.resultDisplay.items.representativePatch.patch(
-        representativeItem,
-        new InterpretationEnvironment()
-          .withVariable("container_x", itemAndSlot.block().getX())
-          .withVariable("container_y", itemAndSlot.block().getY())
-          .withVariable("container_z", itemAndSlot.block().getZ())
-          .withVariable("slot", itemAndSlot.slot() + 1)
-      );
-
       inventory.setItem(slot, representativeItem);
 
-      slotMap[slot] = itemAndSlot;
+      slotMap[slot] = entry;
     }
 
     var pageEnvironment = makePageEnvironment();

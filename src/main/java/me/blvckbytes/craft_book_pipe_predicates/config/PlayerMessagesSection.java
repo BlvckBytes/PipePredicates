@@ -51,7 +51,7 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateSearchGetItemContainerSizeChanged;
   public ComponentMarkup commandPipePredicateSearchGetItemMoved;
   public ComponentMarkup commandPipePredicateSearchGetItemSuccess;
-  public ComponentMarkup commandPipePredicateSearchGetItemDropped;
+  public ComponentMarkup commandPipePredicateSearchGetNoSpace;
   public ComponentMarkup commandPipePredicateSearchContainerOpened;
   public ComponentMarkup commandPipePredicateSearchContainerTeleportObstructed;
   public ComponentMarkup commandPipePredicateSearchContainerTeleported;
