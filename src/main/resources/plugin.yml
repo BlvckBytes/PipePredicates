@@ -4,6 +4,7 @@ version: 0.0.3
 author: BlvckBytes
 api-version: 1.14
 depend: [CraftBook, ItemPredicateParser, ProtocolLib]
+softdepend: [floodgate]
 commands:
   pipepredicate:
   pipesearch:

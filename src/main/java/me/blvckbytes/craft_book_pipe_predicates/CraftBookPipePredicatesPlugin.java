@@ -46,6 +46,14 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var predicateHelper = parserPlugin.getPredicateHelper();
 
+      FloodgateIntegration floodgateIntegration = null;
+
+      if (Bukkit.getPluginManager().isPluginEnabled("floodgate")) {
+        var floodgate = FloodgateApi.getInstance();
+        floodgateIntegration = player -> floodgate.isFloodgatePlayer(player.getUniqueId());
+        logger.info("Integrated with floodgate as to detect Bedrock-players!");
+      }
+
       var dataHandler = new PredicateDataHandler(this, predicateHelper, config);
 
       var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
@@ -58,7 +66,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       Bukkit.getServer().getPluginManager().registerEvents(cubeRenderer, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, cubeRenderer, config, this);
+      var pipeSearchHandler = new PipeSearchHandler(resultDisplayHandler, cubeRenderer, floodgateIntegration, config, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 

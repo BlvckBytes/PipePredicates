@@ -101,12 +101,12 @@ resultDisplay:
           <container *if="current_page > 1"><&8>» <&6>Vorherige Seite <&8>«</container>
           <container *else><&8>» <&c>Keine vorherige Seite <&8>«</container>
       lore: |
-        <reset>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
           <br/>
-          {lut.spacer}<br/>
-          <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite><br/>
-          <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite><br/>
-          {lut.spacer}
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite<br/>
+          {spacer}
     searchDetails:
       slots: 'last_slot - 4'
       type: OAK_SIGN
@@ -114,10 +114,10 @@ resultDisplay:
         <reset>
           <&8>» <&6>Aktuelle Suche <&8>«
       lore: |
-        <reset>
-          {lut.spacer}<br/>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+          {spacer}<br/>
           <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
-          {lut.spacer}
+          {spacer}
     backToCollectionsButton:
       slots: 'last_slot - 4'
       type: PLAYER_HEAD
@@ -126,10 +126,10 @@ resultDisplay:
         <reset>
           <&8>» <&6>Zurück <&8>«
       lore: |
-        <reset>
-          {lut.spacer}<br/>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+          {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Gelange zurück zur Übersicht<br/>
-          {lut.spacer}
+          {spacer}
     nextPage:
       slots: 'last_slot'
       type: PLAYER_HEAD
@@ -139,20 +139,20 @@ resultDisplay:
           <container *if="current_page < number_pages"><&8>» <&6>Nächste Seite <&8>«</container>
           <container *else><&8>» <&c>Keine nächste Seite <&8>«</container>
       lore: |
-        <reset>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
           <br/>
-          {lut.spacer}<br/>
+          {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
           <&8>➥ <&e>Rechtsklick <&7>Springe zur letzten Seite<br/>
-          {lut.spacer}
+          {spacer}
     stackRepresentativePatch:
       lore: |
-        <reset>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
           <br/>
-          {lut.spacer}<br/>
+          {spacer}<br/>
           <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
           <&8>♦ <&7>Slot: <&e>{slot}<br/>
-          {lut.spacer}<br/>
+          {spacer}<br/>
           <container *if="has(stack_actions)">
             <&8>♦ <&7>Aktuelle Aktion:<br/>
             <br/>
@@ -167,24 +167,24 @@ resultDisplay:
               <&7>
             </container>
             <br/>
-            {lut.spacer}<br/>
+            {spacer}<br/>
             <&8>➥ <&e>Linksklick <&7>Aktuelle Aktion ausführen<br/>
             <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
           </container>
           <container *else>
-            <&8>➥ <&e>Linksklick <&7>Hinteleportieren<br/>
+            <&8>➥ <&e>Linksklick <&7>Zum Behälter teleportieren<br/>
             <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
             <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen
           </container>
           <br/>
-          {lut.spacer}
+          {spacer}
     collectionRepresentativePatch:
       lore: |
-        <reset>
+        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
           <br/>
-          {lut.spacer}<br/>
+          {spacer}<br/>
           <&8>♦ <&7>Anzahl: <&e *let-display_dks>{lut.amount_display}</><br/>
-          {lut.spacer}<br/>
+          {spacer}<br/>
           <container *if="has(collection_actions)">
             <&8>♦ <&7>Aktuelle Aktion:<br/>
             <br/>
@@ -200,18 +200,18 @@ resultDisplay:
               <&7>
             </container>
             <br/>
-            {lut.spacer}<br/>
+            {spacer}<br/>
             <&8>➥ <&e>Linksklick <&7>Aktuelle Aktion ausführen<br/>
             <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
           </container>
           <container *else>
             <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
-            <&8>➥ <&e>Rechtsklick <&7>Vier Stacks ins Inventar bewegen<br/>
+            <&8>➥ <&e>Rechtsklick <&7>4 Stacks ins Inventar bewegen<br/>
             <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
             <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen
           </container>
           <br/>
-          {lut.spacer}
+          {spacer}
     filler:
       slots: '(last_slot - 7)..(last_slot - 1)'
       type: BLACK_STAINED_GLASS_PANE
@@ -229,6 +229,7 @@ fakeEventSkippedListeners:
 cLut:
   prefix: '<&7>[<&6>Pipr<&7>]'
   spacer: '<&8><&m>{" " ** 55}'
+  spacer_bedrock: '<&8>{"-" ** 45}'
   amount_display: |
     <container *if="number_stacks > 0">
       {number_stacks}x {stack_size}

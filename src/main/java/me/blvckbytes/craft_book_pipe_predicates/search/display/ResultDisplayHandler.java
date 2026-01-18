@@ -153,7 +153,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
 
   private void handleCollectionAction(Player player, ResultDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
     if (action == CollectionAction.SHOW_STACKS) {
-      show(player, new ResultDisplayData(true, null, collectionEntry.getMembersAsEntries(), display));
+      show(player, new ResultDisplayData(display.displayData.useActionCycle(), null, collectionEntry.getMembersAsEntries(), display));
       return;
     }
 

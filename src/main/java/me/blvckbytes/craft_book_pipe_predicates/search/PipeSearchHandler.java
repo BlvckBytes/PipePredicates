@@ -5,6 +5,7 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
+import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -31,6 +32,7 @@ public class PipeSearchHandler implements Listener {
 
   private final ResultDisplayHandler resultDisplayHandler;
   private final CubeRenderer cubeRenderer;
+  private final @Nullable FloodgateIntegration floodgateIntegration;
   private final ConfigKeeper<MainSection> config;
   private final Plugin plugin;
   private final Pipes pipesMechanic;
@@ -40,11 +42,13 @@ public class PipeSearchHandler implements Listener {
   public PipeSearchHandler(
     ResultDisplayHandler resultDisplayHandler,
     CubeRenderer cubeRenderer,
+    @Nullable FloodgateIntegration floodgateIntegration,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     this.resultDisplayHandler = resultDisplayHandler;
     this.cubeRenderer = cubeRenderer;
+    this.floodgateIntegration = floodgateIntegration;
     this.config = config;
     this.plugin = plugin;
     this.pipesMechanic = (Pipes) CraftBookPlugin.inst().getMechanic(Pipes.class);
@@ -154,7 +158,9 @@ public class PipeSearchHandler implements Listener {
       // believe that there's not much of a need for the individual screen anymore.
       var displayData = ItemCollectionEntry.collectEntries(matches);
 
-      resultDisplayHandler.show(player, new ResultDisplayData(true, predicateString, displayData, null));
+      var useActionCycle = floodgateIntegration != null && floodgateIntegration.isFloodgatePlayer(player);
+
+      resultDisplayHandler.show(player, new ResultDisplayData(useActionCycle, predicateString, displayData, null));
     });
   }
 
