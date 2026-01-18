@@ -156,14 +156,9 @@ resultDisplay:
           <container *if="has(stack_actions)">
             <&8>♦ <&7>Aktuelle Aktion:<br/>
             <br/>
-            <container *for-stack_action_action="stack_actions" *for-separator={<br/>}>
-              <&8>➥ <&7><&e *use="stack_action_action.enabled">
-                <container *when="stack_action_action.name">
-                  <container +is="TELEPORT_TO_CONTAINER">Zum Behälter teleportieren</>
-                  <container +is="MOVE_TO_INVENTORY">Ins Inventar bewegen</>
-                  <container +is="OPEN_CONTAINER">Behälter öffnen</>
-                  <container *other>Unbekannte Aktion</>
-                </container>
+            <container *for-stack_action="stack_actions" *for-separator={<br/>}>
+              <&8>➥ <&7><&e *use="stack_action.enabled">
+                {lut.stack_action[stack_action.name] ?? "Unbekannte Aktion"}
               <&7>
             </container>
             <br/>
@@ -172,9 +167,9 @@ resultDisplay:
             <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
           </container>
           <container *else>
-            <&8>➥ <&e>Linksklick <&7>Zum Behälter teleportieren<br/>
-            <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
-            <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen
+            <&8>➥ <&e>Linksklick <&7>{lut.stack_action["TELEPORT_TO_CONTAINER"]}<br/>
+            <&8>➥ <&e>Werfen <&7>{lut.stack_action["MOVE_TO_INVENTORY"]}<br/>
+            <&8>➥ <&e>Alle Werfen <&7>{lut.stack_action["OPEN_CONTAINER"]}
           </container>
           <br/>
           {spacer}
@@ -190,13 +185,7 @@ resultDisplay:
             <br/>
             <container *for-collection_action="collection_actions" *for-separator={<br/>}>
               <&8>➥ <&7><&e *use="collection_action.enabled">
-                <container *when="collection_action.name">
-                  <container +is="GET_FOUR_STACKS">4 Stacks ins Inventar bewegen</>
-                  <container +is="GET_ONE_STACK">Einen Stack ins Inventar bewegen</>
-                  <container +is="FILL_INVENTORY">Inventar mit Items befüllen</>
-                  <container +is="SHOW_STACKS">Einzelstacks anzeigen</>
-                  <container *other>Unbekannte Aktion</>
-                </container>
+                {lut.collection_action[collection_action.name] ?? "Unbekannte Aktion"}
               <&7>
             </container>
             <br/>
@@ -205,10 +194,10 @@ resultDisplay:
             <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
           </container>
           <container *else>
-            <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
-            <&8>➥ <&e>Rechtsklick <&7>4 Stacks ins Inventar bewegen<br/>
-            <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
-            <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen
+            <&8>➥ <&e>Linksklick <&7>{lut.collection_action["SHOW_STACKS"]}<br/>
+            <&8>➥ <&e>Rechtsklick <&7>{lut.collection_action["GET_FOUR_STACKS"]}<br/>
+            <&8>➥ <&e>Werfen <&7>{lut.collection_action["GET_ONE_STACK"]}<br/>
+            <&8>➥ <&e>Alle Werfen <&7>{lut.collection_action["FILL_INVENTORY"]}
           </container>
           <br/>
           {spacer}
@@ -244,6 +233,15 @@ cLut:
       <&7 *if="number_stacks > 0"> und </>
       {single_items} Stück
     </container>
+  collection_action:
+    GET_FOUR_STACKS: '4 Stacks ins Inventar bewegen'
+    GET_ONE_STACK: 'Einen Stack ins Inventar bewegen'
+    FILL_INVENTORY: 'Inventar mit Items befüllen'
+    SHOW_STACKS: 'Einzelstacks anzeigen'
+  stack_action:
+    TELEPORT_TO_CONTAINER: 'Zum Behälter teleportieren'
+    MOVE_TO_INVENTORY: 'Ins Inventar bewegen'
+    OPEN_CONTAINER: 'Behälter öffnen'
 
 # File-global scalar lookup-table
 sLut:
