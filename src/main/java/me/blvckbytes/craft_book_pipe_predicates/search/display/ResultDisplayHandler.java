@@ -49,14 +49,14 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     return new ResultDisplay(config, plugin, player, displayData);
   }
 
-  private void handleStackClick(Player player, ResultDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
-    if (clickType == ClickType.LEFT) {
+  private void handleStackAction(Player player, ResultDisplay display, StackAction stackAction, ItemStackEntry itemEntry) {
+    if (stackAction == StackAction.TELEPORT_TO_CONTAINER) {
       player.closeInventory();
       teleportPlayerToContainer(player, itemEntry.itemAndSlot.block());
       return;
     }
 
-    if (clickType == ClickType.DROP) {
+    if (stackAction == StackAction.MOVE_TO_INVENTORY) {
       var amountBefore = itemEntry.itemAndSlot.item().getAmount();
       var moveResult = moveItemIntoInventory(player, itemEntry.itemAndSlot);
 
@@ -84,27 +84,90 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       return;
     }
 
-    if (clickType == ClickType.CONTROL_DROP)
+    if (stackAction == StackAction.OPEN_CONTAINER)
       openContainer(player, itemEntry.itemAndSlot);
   }
 
-  private void handleCollectionClick(Player player, ResultDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
+  private void handleStackClick(Player player, ResultDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
+    if (display.displayData.useActionCycle()) {
+      if (clickType == ClickType.LEFT) {
+        handleStackAction(player, display, display.getStackAction(), itemEntry);
+        return;
+      }
+
+      if (clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP) {
+        display.nextStackAction();
+        return;
+      }
+
+      return;
+    }
+
     if (clickType == ClickType.LEFT) {
-      show(player, new ResultDisplayData(null, collectionEntry.getMembersAsEntries(), display));
+      handleStackAction(player, display, StackAction.TELEPORT_TO_CONTAINER, itemEntry);
       return;
     }
 
     if (clickType == ClickType.DROP) {
-      handleMovingItems(player, display, collectionEntry, 1);
+      handleStackAction(player, display, StackAction.MOVE_TO_INVENTORY, itemEntry);
+      return;
+    }
+
+    if (clickType == ClickType.CONTROL_DROP)
+      handleStackAction(player, display, StackAction.OPEN_CONTAINER, itemEntry);
+  }
+
+  private void handleCollectionClick(Player player, ResultDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
+    if (display.displayData.useActionCycle()) {
+      if (clickType == ClickType.LEFT) {
+        handleCollectionAction(player, display, display.getCollectionAction(), collectionEntry);
+        return;
+      }
+
+      if (clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP) {
+        display.nextCollectionAction();
+        return;
+      }
+
+      return;
+    }
+
+    if (clickType == ClickType.LEFT) {
+      handleCollectionAction(player, display, CollectionAction.SHOW_STACKS, collectionEntry);
+      return;
+    }
+
+    if (clickType == ClickType.DROP) {
+      handleCollectionAction(player, display, CollectionAction.GET_ONE_STACK, collectionEntry);
       return;
     }
 
     if (clickType == ClickType.CONTROL_DROP) {
-      handleMovingItems(player, display, collectionEntry, 4 * 9);
+      handleCollectionAction(player, display, CollectionAction.FILL_INVENTORY, collectionEntry);
       return;
     }
 
     if (clickType == ClickType.RIGHT)
+      handleCollectionAction(player, display, CollectionAction.GET_FOUR_STACKS, collectionEntry);
+  }
+
+  private void handleCollectionAction(Player player, ResultDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
+    if (action == CollectionAction.SHOW_STACKS) {
+      show(player, new ResultDisplayData(true, null, collectionEntry.getMembersAsEntries(), display));
+      return;
+    }
+
+    if (action == CollectionAction.GET_ONE_STACK) {
+      handleMovingItems(player, display, collectionEntry, 1);
+      return;
+    }
+
+    if (action == CollectionAction.FILL_INVENTORY) {
+      handleMovingItems(player, display, collectionEntry, Integer.MAX_VALUE);
+      return;
+    }
+
+    if (action == CollectionAction.GET_FOUR_STACKS)
       handleMovingItems(player, display, collectionEntry, 4);
   }
 

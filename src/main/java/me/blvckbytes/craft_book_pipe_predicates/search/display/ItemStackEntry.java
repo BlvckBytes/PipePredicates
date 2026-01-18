@@ -15,12 +15,12 @@ public class ItemStackEntry implements ResultDisplayEntry {
   }
 
   @Override
-  public ItemStack makeRepresentative(ConfigKeeper<MainSection> config) {
+  public ItemStack makeRepresentative(InterpretationEnvironment baseEnvironment, ConfigKeeper<MainSection> config) {
     var representativeItem = new ItemStack(itemAndSlot.item());
 
     config.rootSection.resultDisplay.items.stackRepresentativePatch.patch(
       representativeItem,
-      new InterpretationEnvironment()
+      baseEnvironment.copy()
         .withVariable("container_x", itemAndSlot.block().getX())
         .withVariable("container_y", itemAndSlot.block().getY())
         .withVariable("container_z", itemAndSlot.block().getZ())

@@ -81,7 +81,7 @@ public class ItemCollectionEntry implements ResultDisplayEntry {
   }
 
   @Override
-  public ItemStack makeRepresentative(ConfigKeeper<MainSection> config) {
+  public ItemStack makeRepresentative(InterpretationEnvironment baseEnvironment, ConfigKeeper<MainSection> config) {
     var representativeItem = new ItemStack(type);
 
     var totalAmount = 0;
@@ -106,7 +106,7 @@ public class ItemCollectionEntry implements ResultDisplayEntry {
 
     config.rootSection.resultDisplay.items.collectionRepresentativePatch.patch(
       representativeItem,
-      new InterpretationEnvironment()
+      baseEnvironment.copy()
         .withVariable("number_stacks", numberStacks)
         .withVariable("number_double_chests", numberDoubleChests)
         .withVariable("single_items", singleItems)

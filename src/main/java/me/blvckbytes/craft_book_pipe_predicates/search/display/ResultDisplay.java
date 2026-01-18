@@ -20,6 +20,9 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   private int currentPage = 1;
 
+  private CollectionAction collectionAction = CollectionAction.first();
+  private StackAction stackAction = StackAction.first();
+
   public ResultDisplay(
     ConfigKeeper<MainSection> config,
     Plugin plugin,
@@ -123,6 +126,28 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     });
   }
 
+  public void nextCollectionAction() {
+    asyncQueue.enqueue(() -> {
+      this.collectionAction = this.collectionAction.nextAction();
+      renderItems();
+    });
+  }
+
+  public void nextStackAction() {
+    asyncQueue.enqueue(() -> {
+      this.stackAction = this.stackAction.nextAction();
+      renderItems();
+    });
+  }
+
+  public CollectionAction getCollectionAction() {
+    return this.collectionAction;
+  }
+
+  public StackAction getStackAction() {
+    return this.stackAction;
+  }
+
   private void updateNumberOfPages() {
     var numberOfDisplaySlots = config.rootSection.resultDisplay.getPaginationSlots().size();
     this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.entries().size() / (double) numberOfDisplaySlots));
@@ -147,6 +172,8 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     var itemsIndex = (currentPage - 1) * displaySlots.size();
     var numberOfItems = displayData.entries().size();
 
+    var pageEnvironment = makeEnvironment();
+
     for (var paginationSlotIndex = 0; paginationSlotIndex < displaySlots.size(); ++paginationSlotIndex) {
       var slot = displaySlots.get(paginationSlotIndex);
       var currentSlot = itemsIndex++;
@@ -162,7 +189,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
       ItemStack representativeItem;
 
       try {
-        representativeItem = entry.makeRepresentative(config);
+        representativeItem = entry.makeRepresentative(pageEnvironment, config);
       }
       // java.lang.IllegalStateException: Could not get meta of item
       // The above occurs if the item has been moved; simply remove such items from the UI as well.
@@ -180,8 +207,6 @@ public class ResultDisplay extends Display<ResultDisplayData> {
       slotMap[slot] = entry;
     }
 
-    var pageEnvironment = makePageEnvironment();
-
     // Render filler first, such that it may be overridden by conditionally displayed items
     config.rootSection.resultDisplay.items.filler.renderInto(inventory, pageEnvironment);
 
@@ -197,13 +222,27 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   @Override
   protected Inventory makeInventory() {
-    return config.rootSection.resultDisplay.createInventory(makePageEnvironment());
+    return config.rootSection.resultDisplay.createInventory(makeEnvironment());
   }
 
-  private InterpretationEnvironment makePageEnvironment() {
-    return config.rootSection.resultDisplay.inventoryEnvironment.copy()
+  private InterpretationEnvironment makeEnvironment() {
+    var environment = config.rootSection.resultDisplay.inventoryEnvironment.copy()
       .withVariable("predicate", this.displayData.predicateString())
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages);
+
+    if (displayData.useActionCycle()) {
+      environment.withVariable(
+        "collection_actions",
+        CollectionAction.values.stream().map(action -> new EnumEntry(action, action == collectionAction)).toList()
+      );
+
+      environment.withVariable(
+        "stack_actions",
+        StackAction.values.stream().map(action -> new EnumEntry(action, action == stackAction)).toList()
+      );
+    }
+
+    return environment;
   }
 }

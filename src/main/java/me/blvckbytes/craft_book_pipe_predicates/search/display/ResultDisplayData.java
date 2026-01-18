@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public record ResultDisplayData(
+  boolean useActionCycle,
   @Nullable String predicateString,
   List<? extends ResultDisplayEntry> entries,
   @Nullable ResultDisplay backToDisplay

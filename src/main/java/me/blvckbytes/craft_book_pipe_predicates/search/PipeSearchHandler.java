@@ -154,7 +154,7 @@ public class PipeSearchHandler implements Listener {
       // believe that there's not much of a need for the individual screen anymore.
       var displayData = ItemCollectionEntry.collectEntries(matches);
 
-      resultDisplayHandler.show(player, new ResultDisplayData(predicateString, displayData, null));
+      resultDisplayHandler.show(player, new ResultDisplayData(true, predicateString, displayData, null));
     });
   }
 

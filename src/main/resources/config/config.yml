@@ -153,9 +153,30 @@ resultDisplay:
           <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
           <&8>♦ <&7>Slot: <&e>{slot}<br/>
           {lut.spacer}<br/>
-          <&8>➥ <&e>Linksklick <&7>Hinteleportieren<br/>
-          <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
-          <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen<br/>
+          <container *if="has(stack_actions)">
+            <&8>♦ <&7>Aktuelle Aktion:<br/>
+            <br/>
+            <container *for-stack_action_action="stack_actions" *for-separator={<br/>}>
+              <&8>➥ <&7><&e *use="stack_action_action.enabled">
+                <container *when="stack_action_action.name">
+                  <container +is="TELEPORT_TO_CONTAINER">Zum Behälter teleportieren</>
+                  <container +is="MOVE_TO_INVENTORY">Ins Inventar bewegen</>
+                  <container +is="OPEN_CONTAINER">Behälter öffnen</>
+                  <container *other>Unbekannte Aktion</>
+                </container>
+              <&7>
+            </container>
+            <br/>
+            {lut.spacer}<br/>
+            <&8>➥ <&e>Linksklick <&7>Aktuelle Aktion ausführen<br/>
+            <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
+          </container>
+          <container *else>
+            <&8>➥ <&e>Linksklick <&7>Hinteleportieren<br/>
+            <&8>➥ <&e>Werfen <&7>Ins Inventar bewegen<br/>
+            <&8>➥ <&e>Alle Werfen <&7>Behälter öffnen
+          </container>
+          <br/>
           {lut.spacer}
     collectionRepresentativePatch:
       lore: |
@@ -164,10 +185,32 @@ resultDisplay:
           {lut.spacer}<br/>
           <&8>♦ <&7>Anzahl: <&e *let-display_dks>{lut.amount_display}</><br/>
           {lut.spacer}<br/>
-          <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
-          <&8>➥ <&e>Rechtsklick <&7>Vier Stacks ins Inventar bewegen<br/>
-          <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
-          <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen<br/>
+          <container *if="has(collection_actions)">
+            <&8>♦ <&7>Aktuelle Aktion:<br/>
+            <br/>
+            <container *for-collection_action="collection_actions" *for-separator={<br/>}>
+              <&8>➥ <&7><&e *use="collection_action.enabled">
+                <container *when="collection_action.name">
+                  <container +is="GET_FOUR_STACKS">4 Stacks ins Inventar bewegen</>
+                  <container +is="GET_ONE_STACK">Einen Stack ins Inventar bewegen</>
+                  <container +is="FILL_INVENTORY">Inventar mit Items befüllen</>
+                  <container +is="SHOW_STACKS">Einzelstacks anzeigen</>
+                  <container *other>Unbekannte Aktion</>
+                </container>
+              <&7>
+            </container>
+            <br/>
+            {lut.spacer}<br/>
+            <&8>➥ <&e>Linksklick <&7>Aktuelle Aktion ausführen<br/>
+            <&8>➥ <&e>Werfen <&7>Nächste Aktion wählen
+          </container>
+          <container *else>
+            <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
+            <&8>➥ <&e>Rechtsklick <&7>Vier Stacks ins Inventar bewegen<br/>
+            <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
+            <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen
+          </container>
+          <br/>
           {lut.spacer}
     filler:
       slots: '(last_slot - 7)..(last_slot - 1)'
