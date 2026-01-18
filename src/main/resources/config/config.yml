@@ -165,6 +165,7 @@ resultDisplay:
           <&8>♦ <&7>Anzahl: <&e *let-display_dks>{lut.amount_display}</><br/>
           {lut.spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Einzelstacks anzeigen<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Vier Stacks ins Inventar bewegen<br/>
           <&8>➥ <&e>Werfen <&7>Einen Stack ins Inventar bewegen<br/>
           <&8>➥ <&e>Alle Werfen <&7>Inventar mit Items befüllen<br/>
           {lut.spacer}

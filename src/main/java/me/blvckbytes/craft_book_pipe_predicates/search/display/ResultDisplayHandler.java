@@ -94,8 +94,18 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       return;
     }
 
-    if (clickType == ClickType.DROP || clickType == ClickType.CONTROL_DROP)
-      handleMovingItems(player, display, collectionEntry, clickType == ClickType.CONTROL_DROP);
+    if (clickType == ClickType.DROP) {
+      handleMovingItems(player, display, collectionEntry, 1);
+      return;
+    }
+
+    if (clickType == ClickType.CONTROL_DROP) {
+      handleMovingItems(player, display, collectionEntry, 4 * 9);
+      return;
+    }
+
+    if (clickType == ClickType.RIGHT)
+      handleMovingItems(player, display, collectionEntry, 4);
   }
 
   private void sendHandOutMessage(Player player, int totalHandOutAmount, int stackSize, Material type) {
@@ -114,7 +124,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     );
   }
 
-  private void handleMovingItems(Player player, ResultDisplay display, ItemCollectionEntry collectionEntry, boolean multiple) {
+  private void handleMovingItems(Player player, ResultDisplay display, ItemCollectionEntry collectionEntry, int maxMoveCount) {
     var totalHandOutAmount = 0;
     var ranOutOfSpace = false;
 
@@ -139,7 +149,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       if (moveResult == MoveResult.INVALID_ITEM || moveResult == MoveResult.DID_MOVE)
         collectionEntry.removeMember(nextMember);
 
-      if (!multiple)
+      if (--maxMoveCount <= 0)
         break;
     }
 
