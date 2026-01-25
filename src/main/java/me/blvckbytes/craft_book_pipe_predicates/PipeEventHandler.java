@@ -19,6 +19,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -26,7 +27,7 @@ import java.util.logging.Logger;
 
 public class PipeEventHandler implements Listener {
 
-  private record CachedSign(ItemPredicate predicate, int x, int y, int z) {}
+  private record CachedSign(@Nullable ItemPredicate predicate, int x, int y, int z) {}
 
   private final PredicateDataHandler dataHandler;
   private final ConfigKeeper<MainSection> config;
@@ -141,7 +142,7 @@ public class PipeEventHandler implements Listener {
 
     var cachedSign = signCache.get(CompactId.computeWorldlessBlockId(event.getBlock()));
 
-    if (cachedSign == null)
+    if (cachedSign == null || cachedSign.predicate == null)
       return;
 
     var result = new ArrayList<ItemStack>();
