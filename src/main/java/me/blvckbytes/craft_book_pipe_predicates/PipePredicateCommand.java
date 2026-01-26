@@ -414,13 +414,35 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
   @EventHandler
   public void onInteract(PlayerInteractEvent event) {
-    if (!(event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK))
+    var player = event.getPlayer();
+    var action = event.getAction();
+
+    if (player.isSneaking() && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)) {
+      var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
+
+      if (interactionSession != null) {
+        event.setCancelled(true);
+
+        if (!interactionSession.allowMultiUse) {
+          interactionSession.allowMultiUse = true;
+          interactionSession.touchExpiry();
+          config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player);
+          return;
+        }
+
+        interactionSessionByPlayerId.remove(player.getUniqueId());
+        showActionBarMessage(player, ""); // Immediately clear action-bar signal
+        config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player);
+        return;
+      }
+    }
+
+    if (!(action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK))
       return;
 
     if(event.getHand() == EquipmentSlot.OFF_HAND)
       return;
 
-    var player = event.getPlayer();
     var clickedBlock = event.getClickedBlock();
 
     if (clickedBlock == null)
@@ -469,31 +491,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     if (handleInteractionSessionAndGetIfCancel(player, event.getBlockClicked()))
       event.setCancelled(true);
-  }
-
-  @EventHandler
-  public void onSneak(PlayerToggleSneakEvent event) {
-    var player = event.getPlayer();
-
-    if (!event.isSneaking())
-      return;
-
-    var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
-
-    if (interactionSession == null)
-      return;
-
-    if (!interactionSession.allowMultiUse) {
-      interactionSession.allowMultiUse = true;
-      interactionSession.touchExpiry();
-      config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player);
-      return;
-    }
-
-    interactionSessionByPlayerId.remove(player.getUniqueId());
-    showActionBarMessage(player, ""); // Immediately clear action-bar signal
-
-    config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player);
   }
 
   private boolean handleInteractionSessionAndGetIfCancel(Player player, Block target) {

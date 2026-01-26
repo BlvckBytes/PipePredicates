@@ -28,17 +28,17 @@ playerMessages:
   commandPipePredicateNoPredicate: '{lut.prefix} <&c>Der zugehörige Kolben befindet sich aktuell nicht im Prädikat-Modus!'
   commandPipePredicatePredicateError: '{lut.prefix} <&c>Fehlerhaftes Prädikat: <&4>{error_message}'
   commandPipePredicateEmptyPredicate: '{lut.prefix} <&c>Bitte gib nur valide, nicht-leere Prädikate ein!'
-  commandPipePredicateRemoveInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um dessen Prädikat zu <&a>ENTFERNEN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
-  commandPipePredicateRemoveSuccess: '{lut.prefix} <&7>Das Prädikat <&a>{predicate} <&7>des zugehörigen Kolbens wurde <&a>erfolgreich entfernt<&7>!'
-  commandPipePredicateSetInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um dessen Prädikat auf <&a>{predicate} <&7>zu <&a>SETZEN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
-  commandPipePredicateSetSuccess: '{lut.prefix} <&7>Das Prädikat des zugehörigen Kolbens wurde <&a>erfolgreich <&7>auf <&a>{predicate} <&7>gesetzt<&7>!'
+  commandPipePredicateRemoveInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild<&7>, um dessen Prädikat zu <&a>entfernen<&7>; nutze <&a>Sneak + Linksklick<&7>, um den <&a>Mehrfachmodus <&7>zu aktivieren.'
+  commandPipePredicateRemoveSuccess: '{lut.prefix} <&7>Das Prädikat <&a>{predicate} <&7>des zugehörigen Kolbens wurde <&a>erfolgreich entfernt<&7>.'
+  commandPipePredicateSetInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild<&7>, um dessen Prädikat auf <&a>{predicate} <&7>zu <&a>setzen<&7>; nutze <&a>Sneak + Linksklick<&7>, um den <&a>Mehrfachmodus <&7>zu aktivieren.'
+  commandPipePredicateSetSuccess: '{lut.prefix} <&7>Das Prädikat des zugehörigen Kolbens wurde <&7>auf <&a>{predicate} <&7>gesetzt<&7>.'
   commandPipePredicateMissingLanguage: '{lut.prefix} <&c>Bitte gib die Sprache des Prädikats als nächsten Parameter an!'
   commandPipePredicateUnknownLanguage: '{lut.prefix} <&c>Die Eingabe <&4>{input} <&c>repräsentiert keine bekannte Sprache!'
-  commandPipePredicateInteractMultiEntered: '{lut.prefix} <&7>Du hast den <&a>Mehrfachmodus <&7>durch <&a>sneaking <&7>aktiviert - nun kann deine Aktion auf mehrere Kolben nacheinander angewandt werden; <&a>sneake erneut um den Modus zu verlassen<&7>.'
-  commandPipePredicateInteractMultiExited: '{lut.prefix} <&7>Du hast den <&a>Mehrfachmodus <&7>durch <&a>erneutes sneaken <&7>wieder <&a>verlassen.'
-  commandPipePredicateInteractMultiActionBarSignal: '<&a><&l>Du befindest dich im Mehrfachmodus; verlasse durchs sneaken.'
+  commandPipePredicateInteractMultiEntered: '{lut.prefix} <&7>Du hast den <&a>Mehrfachmodus <&7>aktiviert und kannst die Aktion nun auf mehrere Ein-/Ausgänge nacheinander anwenden; nutze <&a>Sneak + Linksklick <&7>erneut, um den Modus zu <&a>verlassen<&7>.'
+  commandPipePredicateInteractMultiExited: '{lut.prefix} <&7>Du hast den Mehrfachmodus <&a>verlassen<&7>.'
+  commandPipePredicateInteractMultiActionBarSignal: '<&a><&l>[Pipr] Mehrfachmodus aktiv; verlassen: Sneak + Linksklick'
   commandPipePredicateInteractExpired: '{lut.prefix} <&c>Deine ausstehende Interaktion ist aufgrund von Inaktivität ausgelaufen.'
-  commandPipePredicateGetInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um dessen Prädikat <&7>zu <&a>LESEN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
+  commandPipePredicateGetInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild<&7>, um dessen Prädikat <&7>zu <&a>lesen<&7>; nutze <&a>Sneak + Linksklick<&7>, um den <&a>Mehrfachmodus <&7>zu aktivieren.'
   commandPipePredicateGetPredicate: |
     {lut.prefix} <&7>Aktuell aktives Prädikat:<space/>
       <u>
@@ -48,8 +48,8 @@ playerMessages:
       </u>
     <&7>, Sprache: <&a>{predicate_language}<&7>.
   commandPipePredicateGetError: '{lut.prefix} <&7>Der zugehörige Kolben befindet sich im Fehlerzustand: <&c>{predicate_error}'
-  commandPipePredicateFrameLockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>SPERREN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
-  commandPipePredicateFrameUnlockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild <&7>um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>ENTSPERREN<&7>; <&a>sneake <&7>um den <&a>Mehrfachmodus <&7>zu aktivieren.'
+  commandPipePredicateFrameLockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild<&7>, um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>sperren<&7>; nutze <&a>Sneak + Linksklick<&7>, um den <&a>Mehrfachmodus <&7>zu aktivieren.'
+  commandPipePredicateFrameUnlockInit: '{lut.prefix} <&7>Interagiere mit einem <&a>Kolben, einem Behälter oder einem Schild<&7>, um <&a>Rahmen <&7>auf dem verbundenen Behälter zu <&a>entsperren<&7>; nutze <&a>Sneak + Linksklick<&7>, um den <&a>Mehrfachmodus <&7>zu aktivieren.'
   commandPipePredicateFrameLockNoFrames: '{lut.prefix} <&c>Konnte keine Rahmen auf dem zugehörigen Behälter finden!'
   commandPipePredicateFrameLockAlreadyLocked: '{lut.prefix} <&c>Alle Rahmen auf dem zugehörigen Behälter sind bereits gesperrt!'
   commandPipePredicateFrameLockFramesLocked: '{lut.prefix} <&7>Alle <&a>Rahmen <&7>auf dem zugehörigen Behälter sind nun gesperrt (<&a>{frame_count} Stück<&7>).'
