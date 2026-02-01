@@ -13,7 +13,7 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.ItemCollectionEnt
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
-import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
+import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -111,7 +111,7 @@ public class PipeSearchHandler implements Listener {
         return;
       }
 
-      var predicateString = query == null ? "/" : new StringifyState(true).appendPredicate(query.predicate()).toString();
+      var predicateString = query == null ? "/" : PlainStringifier.stringify(query.predicate(), true);
 
       var matches = new ArrayList<ItemAndSlot>();
 

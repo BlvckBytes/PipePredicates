@@ -5,7 +5,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
-import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
+import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
@@ -40,7 +40,7 @@ public class PredicateDataHandler {
     var container = sign.getPersistentDataContainer();
 
     if (data.parsedPredicate() != null)
-      container.set(expandedPredicateKey, PersistentDataType.STRING, new StringifyState(false).appendPredicate(data.parsedPredicate()).toString());
+      container.set(expandedPredicateKey, PersistentDataType.STRING, PlainStringifier.stringify(data.parsedPredicate(), false));
     else
       container.remove(expandedPredicateKey);
 

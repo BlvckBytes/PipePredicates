@@ -10,12 +10,11 @@ import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
-import me.blvckbytes.item_predicate_parser.predicate.StringifyState;
+import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import me.blvckbytes.syllables_matcher.TriState;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.NamespacedKey;
@@ -97,7 +96,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         config.rootSection.playerMessages.commandPipePredicateInteractExpired.sendMessage(session.player);
 
         if (session.allowMultiUse)
-          showActionBarMessage(session.player, ""); // Immediately clear action-bar signal
+          session.player.sendActionBar(Component.empty()); // Immediately clear action-bar signal
 
         continue;
       }
@@ -239,7 +238,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         config.rootSection.playerMessages.commandPipePredicateSetInit.sendMessage(
           sender,
           new InterpretationEnvironment()
-            .withVariable("predicate", new StringifyState(true).appendPredicate(predicateAndLanguage.predicate()).toString())
+            .withVariable("predicate", PlainStringifier.stringify(predicateAndLanguage.predicate(), true))
         );
 
         interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, predicateAndLanguage));
@@ -343,11 +342,11 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var completions = predicateHelper.createCompletion(language, tokens);
 
       if (completions.expandedPreviewOrError() != null)
-        showActionBarMessage(player, completions.expandedPreviewOrError());
+        player.sendActionBar(completions.expandedPreviewOrError());
 
       return completions.suggestions();
     } catch (ItemPredicateParseException e) {
-      showActionBarMessage(player, predicateHelper.createExceptionMessage(e));
+      player.sendActionBar(predicateHelper.createExceptionMessage(e));
       return null;
     }
   }
@@ -431,7 +430,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         }
 
         interactionSessionByPlayerId.remove(player.getUniqueId());
-        showActionBarMessage(player, ""); // Immediately clear action-bar signal
+        player.sendActionBar(Component.empty()); // Immediately clear action-bar signal
         config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player);
         return;
       }
@@ -601,7 +600,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
         player,
         new InterpretationEnvironment()
-          .withVariable("predicate", new StringifyState(true).appendPredicate(predicate))
+          .withVariable("predicate", PlainStringifier.stringify(predicate, true))
       );
 
       return true;
@@ -745,10 +744,5 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     return new PredicateAndLanguage(predicate, language);
-  }
-
-  @SuppressWarnings("deprecation")
-  private void showActionBarMessage(Player player, String message) {
-    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
   }
 }
