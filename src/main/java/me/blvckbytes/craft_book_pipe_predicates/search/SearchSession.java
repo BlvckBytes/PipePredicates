@@ -6,28 +6,33 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SearchSession extends EnumerationSession<SearchSession> {
+
+  private enum HandleFlag {
+    IGNORE_OTHER_CHEST_HALF,
+    CHECK_ONLY_FOR_HOPPERS,
+  }
 
   static class MutableInt { int value; }
 
   private final World world;
 
   private final List<InventoryAndBlock> snapshotInventories;
-  private final LongSet visitedPistons;
+  private final LongSet visitedBlocks;
 
   private int tubeCount;
+  private int pistonCount;
 
   private int chunksWaitingOn;
 
@@ -42,7 +47,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     this.world = origin.getWorld();
 
     this.snapshotInventories = new ArrayList<>();
-    this.visitedPistons = new LongOpenHashSet();
+    this.visitedBlocks = new LongOpenHashSet();
     this.containerCountByType = new EnumMap<>(Material.class);
   }
 
@@ -66,7 +71,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
   }
 
   public int getPistonCount() {
-    return visitedPistons.size();
+    return pistonCount;
   }
 
   public List<InventoryAndBlock> getSnapshotInventories() {
@@ -81,8 +86,8 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   @Override
   protected EnumerationDecision onPiston(Block block, int cachedBlock) {
-    if (visitedPistons.add(CompactId.computeWorldlessBlockId(block)))
-      handlePossibleContainer(block.getRelative(CachedBlock.getFacing(cachedBlock)), true);
+    if (handleBlock(block.getRelative(CachedBlock.getFacing(cachedBlock)), EnumSet.noneOf(HandleFlag.class)))
+      ++pistonCount;
 
     return EnumerationDecision.CONTINUE;
   }
@@ -108,12 +113,93 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     return chunksWaitingOn == 0;
   }
 
-  private void handlePossibleContainer(Block container, boolean checkForDoubleChests) {
-    var chunkX = container.getX() >> 4;
-    var chunkZ = container.getZ() >> 4;
+  private boolean handleBlock(Block block, EnumSet<HandleFlag> flags) {
+    if (!visitedBlocks.add(CompactId.computeWorldlessBlockId(block)))
+      return false;
+
+    ensureChunkIsLoaded(block, () -> {
+      if (terminated)
+        return;
+
+      var blockData = block.getBlockData();
+
+      if (blockData.getMaterial() == Material.HOPPER) {
+        var hopperFacing = ((Directional) blockData).getFacing();
+        handleBlock(block.getRelative(hopperFacing), EnumSet.noneOf(HandleFlag.class));
+      }
+
+      else if (flags.contains(HandleFlag.CHECK_ONLY_FOR_HOPPERS)) {
+        callIfDone();
+        return;
+      }
+
+      if (block.getState(false) instanceof Container container)
+        handleContainer(block, blockData, container, flags);
+
+      callIfDone();
+    });
+
+    return true;
+  }
+
+  private void handleContainer(Block block, BlockData blockData, Container container, EnumSet<HandleFlag> flags) {
+    int slotOffset = 0;
+
+    var ignoreOtherChestHalf = flags.contains(HandleFlag.IGNORE_OTHER_CHEST_HALF);
+
+    if (blockData instanceof Chest chest) {
+      var type = chest.getType();
+
+      if (type == Chest.Type.LEFT)
+        slotOffset = 3 * 9;
+
+      if (!ignoreOtherChestHalf && type != Chest.Type.SINGLE) {
+        int dx = 0, dz = 0;
+
+        // Left and right are relative to the chest itself, i.e. opposite to what
+        // a player placing the appropriate block would see.
+
+        switch (chest.getFacing()) {
+          case NORTH: // -z
+            dx = (type == Chest.Type.LEFT) ? 1 : -1;
+            break;
+          case SOUTH: // +z
+            dx = (type == Chest.Type.LEFT) ? -1 : 1;
+            break;
+          case EAST: // +x
+            dz = (type == Chest.Type.LEFT) ? 1 : -1;
+            break;
+          case WEST: // -x
+            dz = (type == Chest.Type.LEFT) ? -1 : 1;
+            break;
+        }
+
+        // Avoid calling completion if the piston-loop is already done and this block is within
+        // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
+        ++chunksWaitingOn;
+        handleBlock(block.getRelative(dx, 0, dz), EnumSet.of(HandleFlag.IGNORE_OTHER_CHEST_HALF));
+        --chunksWaitingOn;
+      }
+    }
+
+    // Do not count individual double-chest halves; if we're not checking for double-chests,
+    // that means we're coming from one (as to prevent recursion), so don't increment again.
+    if (!ignoreOtherChestHalf)
+      containerCountByType.computeIfAbsent(block.getType(), k -> new MutableInt()).value++;
+
+    snapshotInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
+
+    // Hoppers are only funneling out of containers if they sit right below them, which makes
+    // them become part of the chain items may travel down, so they are also walked into.
+    handleBlock(block.getRelative(BlockFace.DOWN), EnumSet.of(HandleFlag.CHECK_ONLY_FOR_HOPPERS));
+  }
+
+  private void ensureChunkIsLoaded(Block block, Runnable handler) {
+    var chunkX = block.getX() >> 4;
+    var chunkZ = block.getZ() >> 4;
 
     if (world.isChunkLoaded(chunkX, chunkZ)) {
-      handleState(container, container.getState(false), checkForDoubleChests);
+      handler.run();
       return;
     }
 
@@ -123,60 +209,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
         return;
 
       --chunksWaitingOn;
-      handleState(container, container.getState(false), checkForDoubleChests);
+      handler.run();
     });
-  }
-
-  private void handleState(Block block, BlockState state, boolean checkForDoubleChests) {
-    if (terminated)
-      return;
-
-    if (state instanceof Container container) {
-      int slotOffset = 0;
-
-      if (state.getBlockData() instanceof Chest chest) {
-        var type = chest.getType();
-
-        if (type == Chest.Type.LEFT)
-          slotOffset = 3 * 9;
-
-        if (checkForDoubleChests && type != Chest.Type.SINGLE) {
-          int dx = 0, dz = 0;
-
-          // Left and right are relative to the chest itself, i.e. opposite to what
-          // a player placing the appropriate block would see.
-
-          switch (chest.getFacing()) {
-            case NORTH: // -z
-              dx = (type == Chest.Type.LEFT) ? 1 : -1;
-              break;
-            case SOUTH: // +z
-              dx = (type == Chest.Type.LEFT) ? -1 : 1;
-              break;
-            case EAST: // +x
-              dz = (type == Chest.Type.LEFT) ? 1 : -1;
-              break;
-            case WEST: // -x
-              dz = (type == Chest.Type.LEFT) ? -1 : 1;
-              break;
-          }
-
-          // Avoid calling completion if the piston-loop is already done and this block is within
-          // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
-          ++chunksWaitingOn;
-          handlePossibleContainer(block.getRelative(dx, 0, dz), false);
-          --chunksWaitingOn;
-        }
-      }
-
-      // Do not count individual double-chest halves; if we're not checking for double-chests,
-      // that means we're coming from one (as to prevent recursion), so don't increment again.
-      if (checkForDoubleChests)
-        containerCountByType.computeIfAbsent(block.getType(), k -> new MutableInt()).value++;
-
-      snapshotInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
-    }
-
-    callIfDone();
   }
 }
