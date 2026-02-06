@@ -87,7 +87,7 @@ playerMessages:
   commandPipePredicateVisualizeClearedVisualization: '{lut.prefix} <&7>Die angezeigte Visualisierung wurde <&a>entfernt<&7>.'
   missingPermissionPipePredicateCommand: '{lut.prefix} <&c>Dir fehlen die nötigen Rechte um diesen Befehl zu benutzen!'
 
-resultDisplay:
+searchDisplay:
   title: '<&8>Pipesuche <&e>{current_page}<&8>/<&e>{number_pages}'
   rows: 6
   paginationSlots: '0..44'

@@ -4,9 +4,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record ResultDisplayData(
+public record SearchDisplayData(
   boolean useActionCycle,
   @Nullable String predicateString,
-  List<? extends ResultDisplayEntry> entries,
-  @Nullable ResultDisplay backToDisplay
+  List<? extends SearchDisplayEntry> entries,
+  @Nullable SearchDisplay backToDisplay
 ) {}

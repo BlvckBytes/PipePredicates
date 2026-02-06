@@ -4,7 +4,7 @@ import at.blvckbytes.cm_mapper.mapper.section.ConfigSection;
 import at.blvckbytes.cm_mapper.mapper.section.CSAlways;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import at.blvckbytes.component_markup.util.logging.InterpreterLogger;
-import me.blvckbytes.craft_book_pipe_predicates.config.result_display.ResultDisplaySection;
+import me.blvckbytes.craft_book_pipe_predicates.config.search_display.SearchDisplaySection;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class MainSection extends ConfigSection {
 
   public CommandsSection commands;
   public PlayerMessagesSection playerMessages;
-  public ResultDisplaySection resultDisplay;
+  public SearchDisplaySection searchDisplay;
 
   public TranslationLanguage defaultPredicateLanguage;
   public List<String> fakeEventSkippedListeners;

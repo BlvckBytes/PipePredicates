@@ -12,8 +12,8 @@ import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.ItemCollectionEntry;
-import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayData;
-import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.SearchDisplayData;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.SearchDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.syllables_matcher.TriState;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 public class PipeSearchHandler implements Listener {
 
   private final PistonPredicateRegistry predicateRegistry;
-  private final ResultDisplayHandler resultDisplayHandler;
+  private final SearchDisplayHandler searchDisplayHandler;
   private final CubeRenderer cubeRenderer;
   private final @Nullable FloodgateIntegration floodgateIntegration;
   private final ConfigKeeper<MainSection> config;
@@ -45,14 +45,14 @@ public class PipeSearchHandler implements Listener {
 
   public PipeSearchHandler(
     PistonPredicateRegistry predicateRegistry,
-    ResultDisplayHandler resultDisplayHandler,
+    SearchDisplayHandler searchDisplayHandler,
     CubeRenderer cubeRenderer,
     @Nullable FloodgateIntegration floodgateIntegration,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     this.predicateRegistry = predicateRegistry;
-    this.resultDisplayHandler = resultDisplayHandler;
+    this.searchDisplayHandler = searchDisplayHandler;
     this.cubeRenderer = cubeRenderer;
     this.floodgateIntegration = floodgateIntegration;
     this.config = config;
@@ -136,7 +136,7 @@ public class PipeSearchHandler implements Listener {
 
       var useActionCycle = floodgateIntegration != null && floodgateIntegration.isFloodgatePlayer(player);
 
-      resultDisplayHandler.show(player, new ResultDisplayData(useActionCycle, predicateString, displayData, null));
+      searchDisplayHandler.show(player, new SearchDisplayData(useActionCycle, predicateString, displayData, null));
     });
   }
 
@@ -166,11 +166,11 @@ public class PipeSearchHandler implements Listener {
       var capacityByPredicate = new HashMap<String, StorageCapacity>();
 
       for (var searchedInventory : session.getSearchedInventories()) {
-        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), k -> new StorageCapacity());
+        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), StorageCapacity::new);
 
         // Do not add continuation-blocks (e.g. other halves of double-chests)
         if (searchedInventory.slotOffset() == 0)
-          capacity.inventories.add(searchedInventory);
+          capacity.mainBlockInventories.add(searchedInventory);
 
         for (ItemStack item : searchedInventory.inventory().getStorageContents()) {
           if (item == null || item.getType().isAir()) {
@@ -189,6 +189,9 @@ public class PipeSearchHandler implements Listener {
       //       - Also, always sort by capacity ascending, to show the fullest parts first
       //       - What would also be super-cool is to have a ItemPredicate#intersects which would allow to specify a
       //         predicate on the CAPACITY subcommand to narrow down the results to only predicates which intersect.
+      //       - What item to use as a representative for the predicate-buckets? We could use the first non-air
+      //         item that has been encountered, or - possibly better yet - use colored concrete as indicators
+      //         for remaining capacity (green - <33%, yellow - >33% && <66%, orange - >66% && <99%, red - 100%).
 
       capacityByPredicate.forEach((k, v) -> player.sendMessage(k + " -> " + v.occupiedSlots + "/" + (v.vacantSlots + v.occupiedSlots) + " slots"));
     });

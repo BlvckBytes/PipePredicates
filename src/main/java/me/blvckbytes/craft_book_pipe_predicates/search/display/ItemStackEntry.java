@@ -6,7 +6,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemStackEntry implements ResultDisplayEntry {
+public class ItemStackEntry implements SearchDisplayEntry {
 
   public final ItemAndSlot itemAndSlot;
 
@@ -18,7 +18,7 @@ public class ItemStackEntry implements ResultDisplayEntry {
   public ItemStack makeRepresentative(InterpretationEnvironment baseEnvironment, ConfigKeeper<MainSection> config) {
     var representativeItem = new ItemStack(itemAndSlot.item());
 
-    config.rootSection.resultDisplay.items.stackRepresentativePatch.patch(
+    config.rootSection.searchDisplay.items.stackRepresentativePatch.patch(
       representativeItem,
       baseEnvironment.copy()
         .withVariable("container_x", itemAndSlot.block().getX())

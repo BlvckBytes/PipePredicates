@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemCollectionEntry implements ResultDisplayEntry {
+public class ItemCollectionEntry implements SearchDisplayEntry {
 
   private final List<ItemAndSlot> members;
 
@@ -104,7 +104,7 @@ public class ItemCollectionEntry implements ResultDisplayEntry {
     var singleItems = totalAmount % stackSize;
     var numberDoubleChests = (double) numberStacks / (6 * 9);
 
-    config.rootSection.resultDisplay.items.collectionRepresentativePatch.patch(
+    config.rootSection.searchDisplay.items.collectionRepresentativePatch.patch(
       representativeItem,
       baseEnvironment.copy()
         .withVariable("number_stacks", numberStacks)

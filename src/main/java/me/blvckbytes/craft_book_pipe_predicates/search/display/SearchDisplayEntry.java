@@ -5,7 +5,7 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.inventory.ItemStack;
 
-public interface ResultDisplayEntry {
+public interface SearchDisplayEntry {
 
   ItemStack makeRepresentative(InterpretationEnvironment baseEnvironment, ConfigKeeper<MainSection> config);
 

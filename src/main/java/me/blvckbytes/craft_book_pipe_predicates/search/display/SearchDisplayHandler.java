@@ -27,7 +27,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDisplayData> {
+public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDisplayData> {
 
   private static final BlockFace[] DIRECT_FACES = {
     BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST,
@@ -37,7 +37,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
   private final Logger logger;
 
-  public ResultDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
+  public SearchDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
     super(config, plugin);
 
     this.logger = plugin.getLogger();
@@ -45,11 +45,11 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   }
 
   @Override
-  public ResultDisplay instantiateDisplay(Player player, ResultDisplayData displayData) {
-    return new ResultDisplay(config, plugin, player, displayData);
+  public SearchDisplay instantiateDisplay(Player player, SearchDisplayData displayData) {
+    return new SearchDisplay(config, plugin, player, displayData);
   }
 
-  private void handleStackAction(Player player, ResultDisplay display, StackAction stackAction, ItemStackEntry itemEntry) {
+  private void handleStackAction(Player player, SearchDisplay display, StackAction stackAction, ItemStackEntry itemEntry) {
     if (stackAction == StackAction.TELEPORT_TO_CONTAINER) {
       player.closeInventory();
       teleportPlayerToContainer(player, itemEntry.itemAndSlot.block());
@@ -88,7 +88,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       openContainer(player, itemEntry.itemAndSlot);
   }
 
-  private void handleStackClick(Player player, ResultDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
+  private void handleStackClick(Player player, SearchDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
     if (display.displayData.useActionCycle()) {
       if (clickType == ClickType.LEFT) {
         handleStackAction(player, display, display.getStackAction(), itemEntry);
@@ -117,7 +117,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       handleStackAction(player, display, StackAction.OPEN_CONTAINER, itemEntry);
   }
 
-  private void handleCollectionClick(Player player, ResultDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
+  private void handleCollectionClick(Player player, SearchDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
     if (display.displayData.useActionCycle()) {
       if (clickType == ClickType.LEFT) {
         handleCollectionAction(player, display, display.getCollectionAction(), collectionEntry);
@@ -151,9 +151,9 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
       handleCollectionAction(player, display, CollectionAction.GET_FOUR_STACKS, collectionEntry);
   }
 
-  private void handleCollectionAction(Player player, ResultDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
+  private void handleCollectionAction(Player player, SearchDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
     if (action == CollectionAction.SHOW_STACKS) {
-      show(player, new ResultDisplayData(display.displayData.useActionCycle(), null, collectionEntry.getMembersAsEntries(), display));
+      show(player, new SearchDisplayData(display.displayData.useActionCycle(), null, collectionEntry.getMembersAsEntries(), display));
       return;
     }
 
@@ -187,7 +187,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     );
   }
 
-  private void handleMovingItems(Player player, ResultDisplay display, ItemCollectionEntry collectionEntry, int maxMoveCount) {
+  private void handleMovingItems(Player player, SearchDisplay display, ItemCollectionEntry collectionEntry, int maxMoveCount) {
     var totalHandOutAmount = 0;
     var ranOutOfSpace = false;
 
@@ -235,7 +235,7 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
   }
 
   @Override
-  protected void handleClick(Player player, ResultDisplay display, ClickType clickType, int slot) {
+  protected void handleClick(Player player, SearchDisplay display, ClickType clickType, int slot) {
     var targetEntry = display.getEntryCorrespondingToSlot(slot);
 
     if (targetEntry != null) {
@@ -254,29 +254,29 @@ public class ResultDisplayHandler extends DisplayHandler<ResultDisplay, ResultDi
     }
 
     if (clickType == ClickType.LEFT) {
-      if (config.rootSection.resultDisplay.items.previousPage.getDisplaySlots().contains(slot)) {
+      if (config.rootSection.searchDisplay.items.previousPage.getDisplaySlots().contains(slot)) {
         display.previousPage();
         return;
       }
 
-      if (config.rootSection.resultDisplay.items.nextPage.getDisplaySlots().contains(slot)) {
+      if (config.rootSection.searchDisplay.items.nextPage.getDisplaySlots().contains(slot)) {
         display.nextPage();
         return;
       }
 
-      if (display.displayData.backToDisplay() != null && config.rootSection.resultDisplay.items.backToCollectionsButton.getDisplaySlots().contains(slot)) {
+      if (display.displayData.backToDisplay() != null && config.rootSection.searchDisplay.items.backToCollectionsButton.getDisplaySlots().contains(slot)) {
         reopen(display.displayData.backToDisplay());
         return;
       }
     }
 
     if (clickType == ClickType.RIGHT) {
-      if (config.rootSection.resultDisplay.items.previousPage.getDisplaySlots().contains(slot)) {
+      if (config.rootSection.searchDisplay.items.previousPage.getDisplaySlots().contains(slot)) {
         display.firstPage();
         return;
       }
 
-      if (config.rootSection.resultDisplay.items.nextPage.getDisplaySlots().contains(slot))
+      if (config.rootSection.searchDisplay.items.nextPage.getDisplaySlots().contains(slot))
         display.lastPage();
     }
   }

@@ -9,7 +9,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSecti
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
-import me.blvckbytes.craft_book_pipe_predicates.search.display.ResultDisplayHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.SearchDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -24,7 +24,7 @@ import java.util.logging.Level;
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
   private int sessionTickerTaskId = -1;
-  private @Nullable ResultDisplayHandler resultDisplayHandler;
+  private @Nullable SearchDisplayHandler searchDisplayHandler;
 
   @Override
   public void onEnable() {
@@ -59,14 +59,14 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
-      resultDisplayHandler = new ResultDisplayHandler(config, this);
-      Bukkit.getServer().getPluginManager().registerEvents(resultDisplayHandler, this);
+      searchDisplayHandler = new SearchDisplayHandler(config, this);
+      Bukkit.getServer().getPluginManager().registerEvents(searchDisplayHandler, this);
 
       var cubeRenderer = new CubeRenderer(logger);
 
       Bukkit.getServer().getPluginManager().registerEvents(cubeRenderer, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(pipeEventHandler, resultDisplayHandler, cubeRenderer, floodgateIntegration, config, this);
+      var pipeSearchHandler = new PipeSearchHandler(pipeEventHandler, searchDisplayHandler, cubeRenderer, floodgateIntegration, config, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
@@ -106,9 +106,9 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
     if (sessionTickerTaskId >= 0)
       Bukkit.getScheduler().cancelTask(sessionTickerTaskId);
 
-    if (resultDisplayHandler != null) {
-      resultDisplayHandler.onShutdown();
-      resultDisplayHandler = null;
+    if (searchDisplayHandler != null) {
+      searchDisplayHandler.onShutdown();
+      searchDisplayHandler = null;
     }
   }
 

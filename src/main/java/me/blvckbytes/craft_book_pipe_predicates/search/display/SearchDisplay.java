@@ -11,11 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class ResultDisplay extends Display<ResultDisplayData> {
+public class SearchDisplay extends Display<SearchDisplayData> {
 
   private final AsyncTaskQueue asyncQueue;
 
-  private final ResultDisplayEntry[] slotMap;
+  private final SearchDisplayEntry[] slotMap;
   private int numberOfPages;
 
   private int currentPage = 1;
@@ -23,16 +23,16 @@ public class ResultDisplay extends Display<ResultDisplayData> {
   private CollectionAction collectionAction = CollectionAction.first();
   private StackAction stackAction = StackAction.first();
 
-  public ResultDisplay(
+  public SearchDisplay(
     ConfigKeeper<MainSection> config,
     Plugin plugin,
     Player player,
-    ResultDisplayData displayData
+    SearchDisplayData displayData
   ) {
     super(player, displayData, config, plugin);
 
     this.asyncQueue = new AsyncTaskQueue(plugin);
-    this.slotMap = new ResultDisplayEntry[9 * 6];
+    this.slotMap = new SearchDisplayEntry[9 * 6];
 
     setupEnvironments();
 
@@ -49,7 +49,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     show();
   }
 
-  public @Nullable ResultDisplayEntry getEntryCorrespondingToSlot(int slot) {
+  public @Nullable SearchDisplayEntry getEntryCorrespondingToSlot(int slot) {
     return slotMap[slot];
   }
 
@@ -65,7 +65,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     super.onShutdown();
   }
 
-  public void removeEntry(ResultDisplayEntry entry) {
+  public void removeEntry(SearchDisplayEntry entry) {
     displayData.entries().remove(entry);
 
     var priorNumberOfPages = numberOfPages;
@@ -149,7 +149,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
   }
 
   private void updateNumberOfPages() {
-    var numberOfDisplaySlots = config.rootSection.resultDisplay.getPaginationSlots().size();
+    var numberOfDisplaySlots = config.rootSection.searchDisplay.getPaginationSlots().size();
     this.numberOfPages = Math.max(1, (int) Math.ceil(displayData.entries().size() / (double) numberOfDisplaySlots));
   }
 
@@ -168,7 +168,7 @@ public class ResultDisplay extends Display<ResultDisplayData> {
 
   @Override
   protected void renderItems() {
-    var displaySlots = new ArrayList<>(config.rootSection.resultDisplay.getPaginationSlots());
+    var displaySlots = new ArrayList<>(config.rootSection.searchDisplay.getPaginationSlots());
     var itemsIndex = (currentPage - 1) * displaySlots.size();
     var numberOfItems = displayData.entries().size();
 
@@ -208,25 +208,25 @@ public class ResultDisplay extends Display<ResultDisplayData> {
     }
 
     // Render filler first, such that it may be overridden by conditionally displayed items
-    config.rootSection.resultDisplay.items.filler.renderInto(inventory, pageEnvironment);
+    config.rootSection.searchDisplay.items.filler.renderInto(inventory, pageEnvironment);
 
-    config.rootSection.resultDisplay.items.previousPage.renderInto(inventory, pageEnvironment);
-    config.rootSection.resultDisplay.items.nextPage.renderInto(inventory, pageEnvironment);
+    config.rootSection.searchDisplay.items.previousPage.renderInto(inventory, pageEnvironment);
+    config.rootSection.searchDisplay.items.nextPage.renderInto(inventory, pageEnvironment);
 
     if (displayData.backToDisplay() != null)
-      config.rootSection.resultDisplay.items.backToCollectionsButton.renderInto(inventory, pageEnvironment);
+      config.rootSection.searchDisplay.items.backToCollectionsButton.renderInto(inventory, pageEnvironment);
 
     else if (displayData.predicateString() != null)
-      config.rootSection.resultDisplay.items.searchDetails.renderInto(inventory, pageEnvironment);
+      config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, pageEnvironment);
   }
 
   @Override
   protected Inventory makeInventory() {
-    return config.rootSection.resultDisplay.createInventory(makeEnvironment());
+    return config.rootSection.searchDisplay.createInventory(makeEnvironment());
   }
 
   private InterpretationEnvironment makeEnvironment() {
-    var environment = config.rootSection.resultDisplay.inventoryEnvironment.copy()
+    var environment = config.rootSection.searchDisplay.inventoryEnvironment.copy()
       .withVariable("predicate", this.displayData.predicateString())
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages);

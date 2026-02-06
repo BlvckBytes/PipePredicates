@@ -135,7 +135,7 @@ public abstract class DisplayHandler<DisplayType extends Display<DisplayDataType
 
     var slot = event.getRawSlot();
 
-    if (slot < 0 || slot >= config.rootSection.resultDisplay.getRows() * 9)
+    if (slot < 0 || slot >= config.rootSection.searchDisplay.getRows() * 9)
       return;
 
     handleClick(player, display, event.getClick(), slot);
