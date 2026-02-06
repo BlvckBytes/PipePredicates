@@ -1,9 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
-import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
-import com.sk89q.craftbook.mechanics.pipe.EnumerationDecision;
-import com.sk89q.craftbook.mechanics.pipe.Pipes;
-import com.sk89q.craftbook.mechanics.pipe.TubeColor;
+import com.sk89q.craftbook.mechanics.pipe.*;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +62,12 @@ public class VisualizeSession extends EnumerationSession<VisualizeSession> {
   @Override
   protected void afterSubPipe() {
     lastColor = lastColorStack.pop();
+  }
+
+  @Override
+  protected EnumSet<EnumerationBehavior> getEnumerationBehavior() {
+    // Do not ignore check-valves when visualizing
+    return EnumSet.noneOf(EnumerationBehavior.class);
   }
 
   @Override

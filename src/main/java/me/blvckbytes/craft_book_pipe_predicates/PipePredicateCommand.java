@@ -187,6 +187,24 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
+    if (normalizedAction.constant == CommandAction.CAPACITIES) {
+      var targetBlock = resolveFacedTargetBlock(player);
+
+      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
+        return true;
+      }
+
+      var searchResult = pipeSearchHandler.handleCapacityCalculation(player, targetBlock);
+
+      if (searchResult == TriState.FALSE) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
+        return true;
+      }
+
+      return true;
+    }
+
     if (normalizedAction.constant == CommandAction.SEARCH) {
       PredicateAndLanguage predicateAndLanguage = null;
 

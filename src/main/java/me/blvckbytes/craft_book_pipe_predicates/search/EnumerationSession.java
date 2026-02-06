@@ -13,8 +13,6 @@ import java.util.function.Consumer;
 
 public abstract class EnumerationSession<T extends EnumerationSession<T>> {
 
-  // TODO: Whether we ignore check-valves should be a flag, since the visual debugger should acknowledge them
-
   // TODO: This limit should be configurable
   public static final int MAX_RETRY_COUNT  = 20 * 60; // ~1m
 
@@ -88,6 +86,8 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
 
   protected abstract void afterSubPipe();
 
+  protected abstract EnumSet<EnumerationBehavior> getEnumerationBehavior();
+
   protected void callIfDone() {
     if (completedEnumeration && isDone()) {
       beforeCompletion();
@@ -115,7 +115,7 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
     pistonCount = 0;
     tubeCount = 0;
 
-    var result = pipesMechanic.enumeratePipeBlocks(origin, visitedBlocks, EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES), this::handlePipeEnumeration);
+    var result = pipesMechanic.enumeratePipeBlocks(origin, visitedBlocks, getEnumerationBehavior(), this::handlePipeEnumeration);
 
     if (result == EnumerationResult.EXCEEDED_TUBE_COUNT_LIMIT) {
       flags.add(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT);
@@ -163,8 +163,11 @@ public abstract class EnumerationSession<T extends EnumerationSession<T>> {
     // Recurse down into the sub-pipe first, as for the piston/tube encounter-order to end up congruent
     // with the real-world pipe - this is crucial for stepwise visualization later on.
     if (isSubPipe) {
-      var behaviorFlags = EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.DO_NOT_RESET_CACHE_AND_MAX_COUNTERS);
+      var behaviorFlags = getEnumerationBehavior();
+      behaviorFlags.add(EnumerationBehavior.DO_NOT_RESET_CACHE_AND_MAX_COUNTERS);
+
       visitedBlocks.add(CompactId.computeWorldlessBlockId(putBlock));
+
       beforeSubPipe();
       pipesMechanic.enumeratePipeBlocks(putBlock, visitedBlocks, behaviorFlags, this::handlePipeEnumeration);
       afterSubPipe();

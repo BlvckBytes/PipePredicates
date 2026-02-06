@@ -3,9 +3,11 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import com.sk89q.craftbook.bukkit.CraftBookPlugin;
+import com.sk89q.craftbook.mechanics.pipe.EnumerationBehavior;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
+import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -21,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +33,7 @@ import java.util.function.Supplier;
 
 public class PipeSearchHandler implements Listener {
 
+  private final PistonPredicateRegistry predicateRegistry;
   private final ResultDisplayHandler resultDisplayHandler;
   private final CubeRenderer cubeRenderer;
   private final @Nullable FloodgateIntegration floodgateIntegration;
@@ -40,12 +44,14 @@ public class PipeSearchHandler implements Listener {
   private final Map<UUID, EnumerationSession<?>> enumerationSessionByPlayerId;
 
   public PipeSearchHandler(
+    PistonPredicateRegistry predicateRegistry,
     ResultDisplayHandler resultDisplayHandler,
     CubeRenderer cubeRenderer,
     @Nullable FloodgateIntegration floodgateIntegration,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
+    this.predicateRegistry = predicateRegistry;
     this.resultDisplayHandler = resultDisplayHandler;
     this.cubeRenderer = cubeRenderer;
     this.floodgateIntegration = floodgateIntegration;
@@ -63,6 +69,8 @@ public class PipeSearchHandler implements Listener {
     return handleEnumeration(player, () -> (
       new SearchSession(
         origin, pipesMechanic, plugin,
+        predicateRegistry,
+        EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES),
         session -> handleEnumerationWarmup(session, player),
         session -> handleSearchCompletion(session, player, query)
       )
@@ -75,50 +83,18 @@ public class PipeSearchHandler implements Listener {
     if (!session.didEncounterPipeBlocks())
       return;
 
+    if (handleWarningsAndGetIfEmpty(session, player))
+      return;
+
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("limit", pipesMechanic.getMaxTubeBlockCount())
-        );
-      }
-
-      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("limit", pipesMechanic.getMaxPistonBlockCount())
-        );
-      }
-
-      if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT)) {
-        config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("limit", SearchSession.MAX_RETRY_COUNT)
-        );
-      }
-
-      if (session.getSnapshotInventories().isEmpty()) {
-        config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("piston_count", session.getPistonCount())
-            .withVariable("tube_count", session.getTubeCount())
-        );
-
-        return;
-      }
-
       var predicateString = query == null ? "/" : PlainStringifier.stringify(query.predicate(), true);
 
       var matches = new ArrayList<ItemAndSlot>();
 
       var resultCounter = 0;
 
-      for (var containerResult : session.getSnapshotInventories()) {
-        var blockContents = containerResult.inventory().getStorageContents();
+      for (var searchedInventory : session.getSearchedInventories()) {
+        var blockContents = searchedInventory.inventory().getStorageContents();
 
         for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
           var item = blockContents[slotIndex];
@@ -131,7 +107,7 @@ public class PipeSearchHandler implements Listener {
           if (query != null && !query.predicate().test(item))
             continue;
 
-          matches.add(new ItemAndSlot(item, containerResult.block(), slotIndex + containerResult.slotOffset()));
+          matches.add(new ItemAndSlot(item, searchedInventory.block(), slotIndex + searchedInventory.slotOffset()));
         }
       }
 
@@ -162,6 +138,99 @@ public class PipeSearchHandler implements Listener {
 
       resultDisplayHandler.show(player, new ResultDisplayData(useActionCycle, predicateString, displayData, null));
     });
+  }
+
+  public TriState handleCapacityCalculation(Player player, Block origin) {
+    return handleEnumeration(player, () -> (
+      new SearchSession(
+        origin, pipesMechanic, plugin,
+        predicateRegistry,
+        // Ensure that all signs are loaded and cached within the piston-predicate-registry for later access
+        EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.LOAD_PISTON_SIGNS),
+        session -> handleEnumerationWarmup(session, player),
+        session -> handleCapacityCalculationCompletion(session, player)
+      )
+    ));
+  }
+
+  private void handleCapacityCalculationCompletion(SearchSession session, Player player) {
+    enumerationSessionByPlayerId.remove(player.getUniqueId());
+
+    if (!session.didEncounterPipeBlocks())
+      return;
+
+    if (handleWarningsAndGetIfEmpty(session, player))
+      return;
+
+    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+      var capacityByPredicate = new HashMap<String, StorageCapacity>();
+
+      for (var searchedInventory : session.getSearchedInventories()) {
+        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), k -> new StorageCapacity());
+
+        // Do not add continuation-blocks (e.g. other halves of double-chests)
+        if (searchedInventory.slotOffset() == 0)
+          capacity.inventories.add(searchedInventory);
+
+        for (ItemStack item : searchedInventory.inventory().getStorageContents()) {
+          if (item == null || item.getType().isAir()) {
+            ++capacity.vacantSlots;
+            continue;
+          }
+
+          ++capacity.occupiedSlots;
+        }
+      }
+
+      // TODO: We now essentially have a list of tuples of [Predicate, Capacity]
+      //       - Have a UI that shows one representative for each predicate, displaying the overall capacity
+      //       - Then, when clicking on the predicate, show another UI where each inventory shows its own
+      //         capacity, with the representative being its block-type, allowing to teleport on click.
+      //       - Also, always sort by capacity ascending, to show the fullest parts first
+      //       - What would also be super-cool is to have a ItemPredicate#intersects which would allow to specify a
+      //         predicate on the CAPACITY subcommand to narrow down the results to only predicates which intersect.
+
+      capacityByPredicate.forEach((k, v) -> player.sendMessage(k + " -> " + v.occupiedSlots + "/" + (v.vacantSlots + v.occupiedSlots) + " slots"));
+    });
+  }
+
+  private boolean handleWarningsAndGetIfEmpty(SearchSession session, Player player) {
+    if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_TUBE_COUNT)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchExceededPipes.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("limit", pipesMechanic.getMaxTubeBlockCount())
+      );
+    }
+
+    if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_PISTON_COUNT)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchExceededPistons.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("limit", pipesMechanic.getMaxPistonBlockCount())
+      );
+    }
+
+    if (session.hasFlag(SearchResultFlag.EXCEEDED_MAX_RETRY_COUNT)) {
+      config.rootSection.playerMessages.commandPipePredicateSearchExceededRetry.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("limit", SearchSession.MAX_RETRY_COUNT)
+      );
+    }
+
+    if (session.getSearchedInventories().isEmpty()) {
+      config.rootSection.playerMessages.commandPipePredicateSearchNoContainers.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("piston_count", session.getPistonCount())
+          .withVariable("tube_count", session.getTubeCount())
+      );
+
+      return true;
+    }
+
+    return false;
   }
 
   private void handleEnumerationWarmup(EnumerationSession<?> session, Player player) {

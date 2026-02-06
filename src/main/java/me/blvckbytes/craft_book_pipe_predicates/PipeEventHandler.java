@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PipeEventHandler implements Listener {
+public class PipeEventHandler implements Listener, PistonPredicateRegistry {
 
   private record CachedSign(@Nullable ItemPredicate predicate, int x, int y, int z) {}
 
@@ -45,6 +45,21 @@ public class PipeEventHandler implements Listener {
     this.logger = logger;
 
     this.cachedSignByPistonIdByWorldId = new HashMap<>();
+  }
+
+  @Override
+  public @Nullable ItemPredicate getPredicateForPiston(Block block) {
+    var worldBucket = cachedSignByPistonIdByWorldId.get(block.getWorld().getUID());
+
+    if (worldBucket == null)
+      return null;
+
+    var cachedSign = worldBucket.get(CompactId.computeWorldlessBlockId(block));
+
+    if (cachedSign == null)
+      return null;
+
+    return cachedSign.predicate;
   }
 
   private void callFakeEvent(Event event) {

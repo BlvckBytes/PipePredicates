@@ -3,6 +3,8 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
+import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -12,6 +14,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -26,9 +29,11 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   static class MutableInt { int value; }
 
+  private final PistonPredicateRegistry predicateRegistry;
+  private final EnumSet<EnumerationBehavior> behaviorFlags;
   private final World world;
 
-  private final List<InventoryAndBlock> snapshotInventories;
+  private final List<SearchedInventory> searchedInventories;
   private final LongSet visitedBlocks;
 
   private int tubeCount;
@@ -38,17 +43,25 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   private final EnumMap<Material, MutableInt> containerCountByType;
 
+  private @Nullable ItemPredicate lastPredicate;
+  private final Stack<@Nullable ItemPredicate> lastPredicateStack;
+
   public SearchSession(
     Block origin, Pipes pipesMechanic, Plugin plugin,
+    PistonPredicateRegistry predicateRegistry,
+    EnumSet<EnumerationBehavior> behaviorFlags,
     Consumer<SearchSession> warmupHandler,
     Consumer<SearchSession> completionHandler
   ) {
     super(origin, pipesMechanic, plugin, warmupHandler, completionHandler);
-    this.world = origin.getWorld();
 
-    this.snapshotInventories = new ArrayList<>();
+    this.predicateRegistry = predicateRegistry;
+    this.behaviorFlags = behaviorFlags;
+    this.world = origin.getWorld();
+    this.searchedInventories = new ArrayList<>();
     this.visitedBlocks = new LongOpenHashSet();
     this.containerCountByType = new EnumMap<>(Material.class);
+    this.lastPredicateStack = new Stack<>();
   }
 
   public int getTubeCount() {
@@ -74,8 +87,8 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     return pistonCount;
   }
 
-  public List<InventoryAndBlock> getSnapshotInventories() {
-    return snapshotInventories;
+  public List<SearchedInventory> getSearchedInventories() {
+    return searchedInventories;
   }
 
   @Override
@@ -86,6 +99,8 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   @Override
   protected EnumerationDecision onPiston(Block block, int cachedBlock) {
+    lastPredicate = predicateRegistry.getPredicateForPiston(block);
+
     if (handleBlock(block.getRelative(CachedBlock.getFacing(cachedBlock)), EnumSet.noneOf(HandleFlag.class)))
       ++pistonCount;
 
@@ -96,10 +111,19 @@ public class SearchSession extends EnumerationSession<SearchSession> {
   protected void beforeCompletion() {}
 
   @Override
-  protected void beforeSubPipe() {}
+  protected void beforeSubPipe() {
+    lastPredicateStack.push(lastPredicate);
+  }
 
   @Override
-  protected void afterSubPipe() {}
+  protected void afterSubPipe() {
+    lastPredicateStack.pop();
+  }
+
+  @Override
+  protected EnumSet<EnumerationBehavior> getEnumerationBehavior() {
+    return behaviorFlags;
+  }
 
   @Override
   protected void beforeRetry() {
@@ -182,12 +206,14 @@ public class SearchSession extends EnumerationSession<SearchSession> {
       }
     }
 
+    var blockType = block.getType();
+
     // Do not count individual double-chest halves; if we're not checking for double-chests,
     // that means we're coming from one (as to prevent recursion), so don't increment again.
     if (!ignoreOtherChestHalf)
-      containerCountByType.computeIfAbsent(block.getType(), k -> new MutableInt()).value++;
+      containerCountByType.computeIfAbsent(blockType, k -> new MutableInt()).value++;
 
-    snapshotInventories.add(new InventoryAndBlock(container.getSnapshotInventory(), block, slotOffset));
+    searchedInventories.add(new SearchedInventory(container.getSnapshotInventory(), block, blockType, slotOffset, getCurrentlyActivePredicate()));
 
     // Hoppers are only funneling out of containers if they sit right below them, which makes
     // them become part of the chain items may travel down, so they are also walked into.
@@ -211,5 +237,19 @@ public class SearchSession extends EnumerationSession<SearchSession> {
       --chunksWaitingOn;
       handler.run();
     });
+  }
+
+  private @Nullable ItemPredicate getCurrentlyActivePredicate() {
+    if (lastPredicate != null)
+      return lastPredicate;
+
+    for (var stackIndex = lastPredicateStack.size() - 1; stackIndex >= 0; --stackIndex) {
+      var stackPredicate = lastPredicateStack.get(stackIndex);
+
+      if (stackPredicate != null)
+        return stackPredicate;
+    }
+
+    return null;
   }
 }
