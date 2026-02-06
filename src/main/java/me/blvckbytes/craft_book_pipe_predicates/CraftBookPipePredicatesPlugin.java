@@ -9,7 +9,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSecti
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
-import me.blvckbytes.craft_book_pipe_predicates.search.display.SearchDisplayHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

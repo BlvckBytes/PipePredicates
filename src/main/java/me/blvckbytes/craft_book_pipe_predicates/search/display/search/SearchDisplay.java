@@ -1,8 +1,11 @@
-package me.blvckbytes.craft_book_pipe_predicates.search.display;
+package me.blvckbytes.craft_book_pipe_predicates.search.display.search;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.AsyncTaskQueue;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.Display;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.EnumEntry;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;

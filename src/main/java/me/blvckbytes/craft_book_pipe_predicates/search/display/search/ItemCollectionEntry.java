@@ -1,4 +1,4 @@
-package me.blvckbytes.craft_book_pipe_predicates.search.display;
+package me.blvckbytes.craft_book_pipe_predicates.search.display.search;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
