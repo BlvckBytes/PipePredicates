@@ -125,7 +125,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   @Override
   protected EnumSet<EnumerationBehavior> getEnumerationBehavior() {
-    return behaviorFlags;
+    return EnumSet.copyOf(behaviorFlags);
   }
 
   @Override
