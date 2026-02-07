@@ -101,7 +101,7 @@ searchDisplay:
           <container *if="current_page > 1"><&8>» <&6>Vorherige Seite <&8>«</container>
           <container *else><&8>» <&c>Keine vorherige Seite <&8>«</container>
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           <br/>
           {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite<br/>
@@ -114,7 +114,7 @@ searchDisplay:
         <reset>
           <&8>» <&6>Aktuelle Suche <&8>«
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
           <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
           {spacer}
@@ -126,7 +126,7 @@ searchDisplay:
         <reset>
           <&8>» <&6>Zurück <&8>«
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Gelange zurück zur Übersicht<br/>
           {spacer}
@@ -139,7 +139,7 @@ searchDisplay:
           <container *if="current_page < number_pages"><&8>» <&6>Nächste Seite <&8>«</container>
           <container *else><&8>» <&c>Keine nächste Seite <&8>«</container>
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           <br/>
           {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
@@ -147,7 +147,7 @@ searchDisplay:
           {spacer}
     stackRepresentativePatch:
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           <br/>
           {spacer}<br/>
           <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
@@ -175,7 +175,7 @@ searchDisplay:
           {spacer}
     collectionRepresentativePatch:
       lore: |
-        <reset *let-spacer="has(stack_actions) then lut.spacer_bedrock else lut.spacer">
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           <br/>
           {spacer}<br/>
           <&8>♦ <&7>Anzahl: <&e *let-display_dks>{lut.amount_display}</><br/>
@@ -206,6 +206,112 @@ searchDisplay:
       type: BLACK_STAINED_GLASS_PANE
       name: " "
 
+capacityDisplay:
+  title: '<&8>Kapazitäten <&e>{current_page}<&8>/<&e>{number_pages}'
+  rows: 6
+  paginationSlots: '0..44'
+  items:
+    previousPage:
+      slots: 'last_slot - 8'
+      type: PLAYER_HEAD
+      textures: '{lut.textures[current_page > 1 then "ARROW_LEFT" else "ARROW_LEFT_RED"]}'
+      name: |
+        <reset>
+          <container *if="current_page > 1"><&8>» <&6>Vorherige Seite <&8>«</container>
+          <container *else><&8>» <&c>Keine vorherige Seite <&8>«</container>
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          <br/>
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Navigiere zur vorherigen Seite<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite<br/>
+          {spacer}
+    searchDetails:
+      slots: 'last_slot - 4'
+      type: OAK_SIGN
+      name: |
+        <reset>
+          <&8>» <&6>Aktuelle Suche <&8>«
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          {spacer}<br/>
+          <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
+          {spacer}
+    backToPredicatesButton:
+      slots: 'last_slot - 4'
+      type: PLAYER_HEAD
+      textures: '{lut.textures["ARROW_LEFT_BLACK"]}'
+      name: |
+        <reset>
+          <&8>» <&6>Zurück <&8>«
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Gelange zurück zur Übersicht<br/>
+          {spacer}
+    nextPage:
+      slots: 'last_slot'
+      type: PLAYER_HEAD
+      textures: '{lut.textures[current_page < number_pages then "ARROW_RIGHT" else "ARROW_RIGHT_RED"]}'
+      name: |
+        <reset>
+          <container *if="current_page < number_pages"><&8>» <&6>Nächste Seite <&8>«</container>
+          <container *else><&8>» <&c>Keine nächste Seite <&8>«</container>
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          <br/>
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Springe zur letzten Seite<br/>
+          {spacer}
+    predicateRepresentative:
+      type: |
+        <container *if="usage_percentage eq 0">LIGHT_GRAY_CONCRETE</container>
+        <container *else-if="usage_percentage < 33">GREEN_CONCRETE</container>
+        <container *else-if="usage_percentage < 66">YELLOW_CONCRETE</container>
+        <container *else-if="usage_percentage < 99">ORANGE_CONCRETE</container>
+        <container *else>RED_CONCRETE</container>
+      name: |
+        <reset>
+          <&8>»<space/>
+        <container *if="usage_percentage eq 0"><&7>Keine Benutzung</container>
+          <container *else-if="usage_percentage < 33"><&a>Mäßige Benutzung</container>
+          <container *else-if="usage_percentage < 66"><&e>Häufige Benutzung</container>
+          <container *else-if="usage_percentage < 99"><&6>Starke Benutzung</container>
+          <container *else><&c>Vollständig Ausgelastet</container>
+          <space/><&8>«
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          {spacer}<br/>
+          <&8>♦ <&7>Benutzung: <&e>{occupied_slot_count}<&7>/<&e>{total_slot_count} <&7>(<&e><container *let-value="usage_percentage" [lut.percentage_display] /><&7>)<br/>
+          <container *if="predicate">
+            <&8>♦ <&e><word-wrap [value]="predicate" width=40 prefix={<&7>Prädikat:<space/>} subsequent-prefix={<space/><space/>} /><br/>
+          </container>
+          <container *else>
+            <&8>♦ <&7>Prädikat: <&c>Kein Prädikat<br/>
+          </container>
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Einzelne Behälter anzeigen<br/>
+          {spacer}
+    containerRepresentative:
+      type: '{container_type}'
+      name: |
+        <reset>
+          <&8>» <&6>Behälter <&8>«
+      lore: |
+        <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
+          <br/>
+          {spacer}<br/>
+          <&8>♦ <&7>Benutzung: <&e>{occupied_slot_count}<&7>/<&e>{total_slot_count} <&7>(<&e><container *let-value="usage_percentage" [lut.percentage_display] /><&7>)<br/>
+          <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
+          {spacer}<br/>
+          <&8>➥ <&e>Linksklick <&7>Zum Behälter teleportieren<br/>
+          {spacer}
+    filler:
+      slots: '(last_slot - 7)..(last_slot - 1)'
+      type: BLACK_STAINED_GLASS_PANE
+      name: " "
+
 defaultPredicateLanguage: 'GERMAN_DE'
 
 # Fully qualified names of classes which represent listeners for the SignChangeEvent - an event
@@ -225,7 +331,7 @@ cLut:
       <container *if="has(display_dks) and number_stacks > 1">
         <container *if="number_double_chests eq 1"><&7> (</>eine DK<&7>)</container>
         <container *else-if="number_double_chests > 0">
-          <&7> (</><number [value]="number_double_chests" format="0.0" locale="de_AT" rounding="UP"/> DKs<&7>)
+          <&7> (</><number [value]="number_double_chests" format="0.0" locale="de_DE" rounding="UP"/> DKs<&7>)
         </container>
       </container>
     </container>
@@ -233,6 +339,7 @@ cLut:
       <&7 *if="number_stacks > 0"> und </>
       {single_items} Stück
     </container>
+  percentage_display: <number [value] format="0.0" locale="de_DE" rounding="UP" />%
   collection_action:
     GET_FOUR_STACKS: '4 Stacks ins Inventar bewegen'
     GET_ONE_STACK: 'Einen Stack ins Inventar bewegen'

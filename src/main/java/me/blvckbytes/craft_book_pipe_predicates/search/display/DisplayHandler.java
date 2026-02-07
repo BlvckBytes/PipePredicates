@@ -1,6 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
+import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,18 +27,21 @@ public abstract class DisplayHandler<DisplayType extends Display<DisplayDataType
 
   protected final ConfigKeeper<MainSection> config;
   protected final Plugin plugin;
+  protected final FloodgateIntegration floodgateIntegration;
 
   private final Map<UUID, DisplayType> displayByPlayerId;
   private final Map<UUID, Long> lastMoveToOwnInventoryStampByPlayerId;
 
   protected DisplayHandler(
     ConfigKeeper<MainSection> config,
-    Plugin plugin
+    Plugin plugin,
+    FloodgateIntegration floodgateIntegration
   ) {
     this.displayByPlayerId = new HashMap<>();
     this.lastMoveToOwnInventoryStampByPlayerId = new HashMap<>();
     this.config = config;
     this.plugin = plugin;
+    this.floodgateIntegration = floodgateIntegration;
 
     config.registerReloadListener(() -> {
       for (var display : displayByPlayerId.values())

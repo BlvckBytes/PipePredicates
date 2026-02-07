@@ -27,28 +27,23 @@ public class SearchDisplay extends Display<SearchDisplayData> {
   private StackAction stackAction = StackAction.first();
 
   public SearchDisplay(
-    ConfigKeeper<MainSection> config,
-    Plugin plugin,
     Player player,
-    SearchDisplayData displayData
+    boolean isFloodgate,
+    SearchDisplayData displayData,
+    ConfigKeeper<MainSection> config,
+    Plugin plugin
   ) {
-    super(player, displayData, config, plugin);
+    super(player, isFloodgate, displayData, config, plugin);
 
     this.asyncQueue = new AsyncTaskQueue(plugin);
     this.slotMap = new SearchDisplayEntry[9 * 6];
-
-    setupEnvironments();
 
     // Within async context already, see corresponding command
     show();
   }
 
-  private void setupEnvironments() {
-  }
-
   @Override
   public void onConfigReload() {
-    setupEnvironments();
     show();
   }
 
@@ -175,7 +170,7 @@ public class SearchDisplay extends Display<SearchDisplayData> {
     var itemsIndex = (currentPage - 1) * displaySlots.size();
     var numberOfItems = displayData.entries().size();
 
-    var pageEnvironment = makeEnvironment();
+    var environment = makeEnvironment();
 
     for (var paginationSlotIndex = 0; paginationSlotIndex < displaySlots.size(); ++paginationSlotIndex) {
       var slot = displaySlots.get(paginationSlotIndex);
@@ -192,7 +187,7 @@ public class SearchDisplay extends Display<SearchDisplayData> {
       ItemStack representativeItem;
 
       try {
-        representativeItem = entry.makeRepresentative(pageEnvironment, config);
+        representativeItem = entry.makeRepresentative(environment, config);
       }
       // java.lang.IllegalStateException: Could not get meta of item
       // The above occurs if the item has been moved; simply remove such items from the UI as well.
@@ -210,17 +205,15 @@ public class SearchDisplay extends Display<SearchDisplayData> {
       slotMap[slot] = entry;
     }
 
-    // Render filler first, such that it may be overridden by conditionally displayed items
-    config.rootSection.searchDisplay.items.filler.renderInto(inventory, pageEnvironment);
-
-    config.rootSection.searchDisplay.items.previousPage.renderInto(inventory, pageEnvironment);
-    config.rootSection.searchDisplay.items.nextPage.renderInto(inventory, pageEnvironment);
+    config.rootSection.searchDisplay.items.filler.renderInto(inventory, environment);
+    config.rootSection.searchDisplay.items.previousPage.renderInto(inventory, environment);
+    config.rootSection.searchDisplay.items.nextPage.renderInto(inventory, environment);
 
     if (displayData.backToDisplay() != null)
-      config.rootSection.searchDisplay.items.backToCollectionsButton.renderInto(inventory, pageEnvironment);
+      config.rootSection.searchDisplay.items.backToCollectionsButton.renderInto(inventory, environment);
 
     else if (displayData.predicateString() != null)
-      config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, pageEnvironment);
+      config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, environment);
   }
 
   @Override
@@ -232,9 +225,10 @@ public class SearchDisplay extends Display<SearchDisplayData> {
     var environment = config.rootSection.searchDisplay.inventoryEnvironment.copy()
       .withVariable("predicate", this.displayData.predicateString())
       .withVariable("current_page", this.currentPage)
-      .withVariable("number_pages", this.numberOfPages);
+      .withVariable("number_pages", this.numberOfPages)
+      .withVariable("is_floodgate", isFloodgate);
 
-    if (displayData.useActionCycle()) {
+    if (isFloodgate) {
       environment.withVariable(
         "collection_actions",
         CollectionAction.values.stream().map(action -> new EnumEntry(action, action == collectionAction)).toList()

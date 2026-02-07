@@ -1,18 +1,21 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
-import at.blvckbytes.component_markup.markup.interpreter.DirectFieldAccess;
-import org.jetbrains.annotations.Nullable;
+import at.blvckbytes.cm_mapper.ConfigKeeper;
+import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
+import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayRenderable;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class StorageCapacity implements DirectFieldAccess {
+public class StorageCapacity implements CapacityDisplayRenderable {
 
-  public List<SearchedInventory> mainBlockInventories = new ArrayList<>();
+  public List<StorageBlock> storageBlocks = new ArrayList<>();
 
-  public int vacantSlots;
-  public int occupiedSlots;
+  public int vacantSlotCount;
+  public int occupiedSlotCount;
 
   private final String predicateString;
 
@@ -20,23 +23,20 @@ public class StorageCapacity implements DirectFieldAccess {
     this.predicateString = predicateString;
   }
 
-  public int getUsagePercent() {
-    return (int) Math.round(occupiedSlots / (double) (occupiedSlots + vacantSlots));
+  @Override
+  public double getUsagePercentage() {
+    return (occupiedSlotCount / (double) (occupiedSlotCount + vacantSlotCount)) * 100;
   }
 
   @Override
-  public @Nullable Object accessField(String rawIdentifier) {
-    return switch (rawIdentifier) {
-      case "vacant_slot_count" -> vacantSlots;
-      case "occupied_slot_count" -> occupiedSlots;
-      case "usage_percent" -> getUsagePercent();
-      case "predicate" -> predicateString;
-      default -> DirectFieldAccess.UNKNOWN_FIELD_SENTINEL;
-    };
-  }
-
-  @Override
-  public @Nullable Set<String> getAvailableFields() {
-    return Set.of("vacant_slot_count", "occupied_slot_count", "usage_percent", "predicate");
+  public ItemStack render(ConfigKeeper<MainSection> config, InterpretationEnvironment environment) {
+    return config.rootSection.capacityDisplay.items.predicateRepresentative.build(
+      environment.copy()
+        .withVariable("vacant_slot_count", vacantSlotCount)
+        .withVariable("occupied_slot_count", occupiedSlotCount)
+        .withVariable("total_slot_count", occupiedSlotCount + vacantSlotCount)
+        .withVariable("usage_percentage", getUsagePercentage())
+        .withVariable("predicate", predicateString)
+    );
   }
 }

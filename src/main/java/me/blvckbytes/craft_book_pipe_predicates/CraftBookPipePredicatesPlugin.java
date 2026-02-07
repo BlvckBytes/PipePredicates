@@ -9,6 +9,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.PipePredicateCommandSecti
 import me.blvckbytes.craft_book_pipe_predicates.config.PipeSearchCommandSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
@@ -25,6 +26,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
   private int sessionTickerTaskId = -1;
   private @Nullable SearchDisplayHandler searchDisplayHandler;
+  private @Nullable CapacityDisplayHandler capacityDisplayHandler;
 
   @Override
   public void onEnable() {
@@ -46,7 +48,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var predicateHelper = parserPlugin.getPredicateHelper();
 
-      FloodgateIntegration floodgateIntegration = null;
+      FloodgateIntegration floodgateIntegration = player -> false;
 
       if (Bukkit.getPluginManager().isPluginEnabled("floodgate")) {
         var floodgate = FloodgateApi.getInstance();
@@ -59,14 +61,17 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipeEventHandler = new PipeEventHandler(dataHandler, config, logger);
       Bukkit.getServer().getPluginManager().registerEvents(pipeEventHandler, this);
 
-      searchDisplayHandler = new SearchDisplayHandler(config, this);
+      searchDisplayHandler = new SearchDisplayHandler(config, this, floodgateIntegration);
       Bukkit.getServer().getPluginManager().registerEvents(searchDisplayHandler, this);
+
+      capacityDisplayHandler = new CapacityDisplayHandler(config, this, floodgateIntegration);
+      Bukkit.getServer().getPluginManager().registerEvents(capacityDisplayHandler, this);
 
       var cubeRenderer = new CubeRenderer(logger);
 
       Bukkit.getServer().getPluginManager().registerEvents(cubeRenderer, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(pipeEventHandler, searchDisplayHandler, cubeRenderer, floodgateIntegration, config, this);
+      var pipeSearchHandler = new PipeSearchHandler(pipeEventHandler, searchDisplayHandler, capacityDisplayHandler, cubeRenderer, config, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
@@ -109,6 +114,11 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
     if (searchDisplayHandler != null) {
       searchDisplayHandler.onShutdown();
       searchDisplayHandler = null;
+    }
+
+    if (capacityDisplayHandler != null) {
+      capacityDisplayHandler.onShutdown();
+      capacityDisplayHandler = null;
     }
   }
 

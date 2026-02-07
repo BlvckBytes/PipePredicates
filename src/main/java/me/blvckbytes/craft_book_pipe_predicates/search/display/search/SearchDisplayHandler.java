@@ -5,6 +5,7 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import com.sk89q.craftbook.mechanics.pipe.CompactId;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.ItemAndSlot;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.DisplayHandler;
@@ -38,8 +39,12 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
   private final Map<UUID, Long2ObjectMap<MutableInt>> viewCountByChunkHashByWorldId;
   private final Logger logger;
 
-  public SearchDisplayHandler(ConfigKeeper<MainSection> config, Plugin plugin) {
-    super(config, plugin);
+  public SearchDisplayHandler(
+    ConfigKeeper<MainSection> config,
+    Plugin plugin,
+    FloodgateIntegration floodgateIntegration
+  ) {
+    super(config, plugin, floodgateIntegration);
 
     this.logger = plugin.getLogger();
     this.viewCountByChunkHashByWorldId = new HashMap<>();
@@ -47,13 +52,13 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
 
   @Override
   public SearchDisplay instantiateDisplay(Player player, SearchDisplayData displayData) {
-    return new SearchDisplay(config, plugin, player, displayData);
+    return new SearchDisplay(player, floodgateIntegration.isFloodgatePlayer(player), displayData, config, plugin);
   }
 
   private void handleStackAction(Player player, SearchDisplay display, StackAction stackAction, ItemStackEntry itemEntry) {
     if (stackAction == StackAction.TELEPORT_TO_CONTAINER) {
       player.closeInventory();
-      teleportPlayerToContainer(player, itemEntry.itemAndSlot.block());
+      teleportPlayerToContainer(player, itemEntry.itemAndSlot.block(), config);
       return;
     }
 
@@ -90,7 +95,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
   }
 
   private void handleStackClick(Player player, SearchDisplay display, ClickType clickType, ItemStackEntry itemEntry) {
-    if (display.displayData.useActionCycle()) {
+    if (display.isFloodgate) {
       if (clickType == ClickType.LEFT) {
         handleStackAction(player, display, display.getStackAction(), itemEntry);
         return;
@@ -119,7 +124,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
   }
 
   private void handleCollectionClick(Player player, SearchDisplay display, ClickType clickType, ItemCollectionEntry collectionEntry) {
-    if (display.displayData.useActionCycle()) {
+    if (display.isFloodgate) {
       if (clickType == ClickType.LEFT) {
         handleCollectionAction(player, display, display.getCollectionAction(), collectionEntry);
         return;
@@ -154,7 +159,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
 
   private void handleCollectionAction(Player player, SearchDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
     if (action == CollectionAction.SHOW_STACKS) {
-      show(player, new SearchDisplayData(display.displayData.useActionCycle(), null, collectionEntry.getMembersAsEntries(), display));
+      show(player, new SearchDisplayData(null, collectionEntry.getMembersAsEntries(), display));
       return;
     }
 
@@ -290,7 +295,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
     modifyInventoryViewCounter(event.getPlayer().getOpenInventory().getTopInventory(), false);
   }
 
-  private void teleportPlayerToContainer(Player player, Block block) {
+  public static void teleportPlayerToContainer(Player player, Block block, ConfigKeeper<MainSection> config) {
     var destinationBlock = block;
     var targetContainer = block;
 
@@ -500,7 +505,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
       plugin.getLogger().log(Level.WARNING, "Could not remove chunk-ticket for block at " + block.getLocation());
   }
 
-  private InterpretationEnvironment getBlockEnvironment(Block block) {
+  public static InterpretationEnvironment getBlockEnvironment(Block block) {
     return new InterpretationEnvironment()
       .withVariable("container_x", block.getX())
       .withVariable("container_y", block.getY())

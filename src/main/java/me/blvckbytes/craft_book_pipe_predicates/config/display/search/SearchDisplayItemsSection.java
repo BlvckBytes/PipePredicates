@@ -1,4 +1,4 @@
-package me.blvckbytes.craft_book_pipe_predicates.config.search_display;
+package me.blvckbytes.craft_book_pipe_predicates.config.display.search;
 
 import at.blvckbytes.cm_mapper.mapper.section.CSAlways;
 import at.blvckbytes.cm_mapper.mapper.section.ConfigSection;

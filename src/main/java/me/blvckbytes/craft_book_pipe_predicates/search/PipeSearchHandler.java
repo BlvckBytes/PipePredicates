@@ -6,11 +6,13 @@ import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.EnumerationBehavior;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
-import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
 import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayData;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.ItemCollectionEntry;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayHandler;
@@ -35,8 +37,8 @@ public class PipeSearchHandler implements Listener {
 
   private final PistonPredicateRegistry predicateRegistry;
   private final SearchDisplayHandler searchDisplayHandler;
+  private final CapacityDisplayHandler capacityDisplayHandler;
   private final CubeRenderer cubeRenderer;
-  private final @Nullable FloodgateIntegration floodgateIntegration;
   private final ConfigKeeper<MainSection> config;
   private final Plugin plugin;
   private final Pipes pipesMechanic;
@@ -46,15 +48,15 @@ public class PipeSearchHandler implements Listener {
   public PipeSearchHandler(
     PistonPredicateRegistry predicateRegistry,
     SearchDisplayHandler searchDisplayHandler,
+    CapacityDisplayHandler capacityDisplayHandler,
     CubeRenderer cubeRenderer,
-    @Nullable FloodgateIntegration floodgateIntegration,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     this.predicateRegistry = predicateRegistry;
     this.searchDisplayHandler = searchDisplayHandler;
+    this.capacityDisplayHandler = capacityDisplayHandler;
     this.cubeRenderer = cubeRenderer;
-    this.floodgateIntegration = floodgateIntegration;
     this.config = config;
     this.plugin = plugin;
     this.pipesMechanic = (Pipes) CraftBookPlugin.inst().getMechanic(Pipes.class);
@@ -134,9 +136,7 @@ public class PipeSearchHandler implements Listener {
       // believe that there's not much of a need for the individual screen anymore.
       var displayData = ItemCollectionEntry.collectEntries(matches);
 
-      var useActionCycle = floodgateIntegration != null && floodgateIntegration.isFloodgatePlayer(player);
-
-      searchDisplayHandler.show(player, new SearchDisplayData(useActionCycle, predicateString, displayData, null));
+      searchDisplayHandler.show(player, new SearchDisplayData(predicateString, displayData, null));
     });
   }
 
@@ -167,33 +167,31 @@ public class PipeSearchHandler implements Listener {
 
       for (var searchedInventory : session.getSearchedInventories()) {
         var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), StorageCapacity::new);
+        var storageContents = searchedInventory.inventory().getStorageContents();
 
-        // Do not add continuation-blocks (e.g. other halves of double-chests)
-        if (searchedInventory.slotOffset() == 0)
-          capacity.mainBlockInventories.add(searchedInventory);
+        var occupiedSlotCount = 0;
 
-        for (ItemStack item : searchedInventory.inventory().getStorageContents()) {
+        for (ItemStack item : storageContents) {
           if (item == null || item.getType().isAir()) {
-            ++capacity.vacantSlots;
+            ++capacity.vacantSlotCount;
             continue;
           }
 
-          ++capacity.occupiedSlots;
+          ++occupiedSlotCount;
         }
+
+        capacity.occupiedSlotCount += occupiedSlotCount;
+
+        // TODO: Would be helpful to combine half-blocks at this point, because it's really confusing from a user-perspective.
+        capacity.storageBlocks.add(new StorageBlock(
+          searchedInventory.block(),
+          searchedInventory.material(),
+          occupiedSlotCount,
+          storageContents.length
+        ));
       }
 
-      // TODO: We now essentially have a list of tuples of [Predicate, Capacity]
-      //       - Have a UI that shows one representative for each predicate, displaying the overall capacity
-      //       - Then, when clicking on the predicate, show another UI where each inventory shows its own
-      //         capacity, with the representative being its block-type, allowing to teleport on click.
-      //       - Also, always sort by capacity ascending, to show the fullest parts first
-      //       - What would also be super-cool is to have a ItemPredicate#intersects which would allow to specify a
-      //         predicate on the CAPACITY subcommand to narrow down the results to only predicates which intersect.
-      //       - What item to use as a representative for the predicate-buckets? We could use the first non-air
-      //         item that has been encountered, or - possibly better yet - use colored concrete as indicators
-      //         for remaining capacity (green - <33%, yellow - >33% && <66%, orange - >66% && <99%, red - 100%).
-
-      capacityByPredicate.forEach((k, v) -> player.sendMessage(k + " -> " + v.occupiedSlots + "/" + (v.vacantSlots + v.occupiedSlots) + " slots"));
+      capacityDisplayHandler.show(player, new CapacityDisplayData(new ArrayList<>(capacityByPredicate.values()), null));
     });
   }
 

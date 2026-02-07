@@ -10,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 public abstract class Display<DisplayDataType> {
 
   protected final Player player;
+  public final boolean isFloodgate;
   protected final ConfigKeeper<MainSection> config;
   protected final Plugin plugin;
   public final DisplayDataType displayData;
@@ -17,11 +18,13 @@ public abstract class Display<DisplayDataType> {
 
   protected Display(
     Player player,
+    boolean isFloodgate,
     DisplayDataType displayData,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     this.player = player;
+    this.isFloodgate = isFloodgate;
     this.displayData = displayData;
     this.config = config;
     this.plugin = plugin;
