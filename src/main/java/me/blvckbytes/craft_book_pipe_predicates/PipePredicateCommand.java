@@ -188,6 +188,17 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.CAPACITIES) {
+      ItemPredicate containedPredicate = null;
+
+      if (args.length > 1) {
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+
+        if (predicateAndLanguage == null)
+          return true;
+
+        containedPredicate = predicateAndLanguage.predicate();
+      }
+
       var targetBlock = resolveFacedTargetBlock(player);
 
       if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
@@ -195,7 +206,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
-      var searchResult = pipeSearchHandler.handleCapacityCalculation(player, targetBlock);
+      var searchResult = pipeSearchHandler.handleCapacityCalculation(player, targetBlock, containedPredicate);
 
       if (searchResult == TriState.FALSE) {
         config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
@@ -331,7 +342,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (normalizedAction == null)
       return null;
 
-    if (normalizedAction.constant != CommandAction.SET && normalizedAction.constant != CommandAction.SEARCH && normalizedAction.constant != CommandAction.SET_LANGUAGE)
+    if (
+      normalizedAction.constant != CommandAction.SET
+        && normalizedAction.constant != CommandAction.SEARCH
+        && normalizedAction.constant != CommandAction.CAPACITIES
+        && normalizedAction.constant != CommandAction.SET_LANGUAGE
+    )
       return null;
 
     TranslationLanguage language;

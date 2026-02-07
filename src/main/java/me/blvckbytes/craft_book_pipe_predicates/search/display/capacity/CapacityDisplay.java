@@ -5,6 +5,7 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.AsyncTaskQueue;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.Display;
+import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
@@ -115,7 +116,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     if (displayData.selectedCapacity != null)
       config.rootSection.capacityDisplay.items.backToPredicatesButton.renderInto(inventory, environment);
 
-    if (displayData.predicateString != null)
+    if (displayData.containedPredicate != null)
       config.rootSection.capacityDisplay.items.searchDetails.renderInto(inventory, environment);
   }
 
@@ -135,7 +136,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
 
   private InterpretationEnvironment makeEnvironment() {
     return new InterpretationEnvironment()
-      .withVariable("predicate", this.displayData.predicateString)
+      .withVariable("predicate", this.displayData.containedPredicate == null ? null : PlainStringifier.stringify(this.displayData.containedPredicate, false))
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages)
       .withVariable("is_floodgate", isFloodgate);

@@ -16,6 +16,8 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.search.ItemCollec
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
+import me.blvckbytes.item_predicate_parser.predicate.ComparisonFlag;
+import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
@@ -139,7 +141,7 @@ public class PipeSearchHandler implements Listener {
     });
   }
 
-  public TriState handleCapacityCalculation(Player player, Block origin) {
+  public TriState handleCapacityCalculation(Player player, Block origin, @Nullable ItemPredicate containedPredicate) {
     return handleEnumeration(player, () -> (
       new SearchSession(
         origin, pipesMechanic, plugin,
@@ -147,12 +149,12 @@ public class PipeSearchHandler implements Listener {
         // Ensure that all signs are loaded and cached within the piston-predicate-registry for later access
         EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.LOAD_PISTON_SIGNS),
         session -> handleEnumerationWarmup(session, player),
-        session -> handleCapacityCalculationCompletion(session, player)
+        session -> handleCapacityCalculationCompletion(session, player, containedPredicate)
       )
     ));
   }
 
-  private void handleCapacityCalculationCompletion(SearchSession session, Player player) {
+  private void handleCapacityCalculationCompletion(SearchSession session, Player player, @Nullable ItemPredicate containedPredicate) {
     enumerationSessionByPlayerId.remove(player.getUniqueId());
 
     if (!session.didEncounterPipeBlocks())
@@ -163,10 +165,17 @@ public class PipeSearchHandler implements Listener {
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       var capacityByPredicate = new HashMap<String, StorageCapacity>();
-
-      // TODO: Allow a predicate to be passed which then has to be contained in the activePredicate of the searchedInventory
+      var comparisonFlags = EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES);
 
       for (var searchedInventory : session.getSearchedInventories()) {
+        if (containedPredicate != null) {
+          if (searchedInventory.activePredicate() == null)
+            continue;
+
+          if (!searchedInventory.activePredicate().containsOrEqualsPredicate(containedPredicate, comparisonFlags))
+            continue;
+        }
+
         var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), StorageCapacity::new);
         var storageContents = searchedInventory.inventory().getStorageContents();
 
@@ -188,7 +197,7 @@ public class PipeSearchHandler implements Listener {
       var capacities = new ArrayList<>(capacityByPredicate.values());
       capacities.forEach(StorageCapacity::combineStorageBlocks);
 
-      capacityDisplayHandler.show(player, new CapacityDisplayData(capacities, null));
+      capacityDisplayHandler.show(player, new CapacityDisplayData(capacities, containedPredicate));
     });
   }
 
