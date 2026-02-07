@@ -40,10 +40,10 @@ public class StorageBlock implements CapacityDisplayRenderable {
   public ItemStack render(ConfigKeeper<MainSection> config, InterpretationEnvironment environment) {
     return config.rootSection.capacityDisplay.items.containerRepresentative.build(
       environment.copy()
-        .withVariable("container_type", searchedInventory.material().name())
-        .withVariable("container_x", searchedInventory.block().getX())
-        .withVariable("container_y", searchedInventory.block().getY())
-        .withVariable("container_z", searchedInventory.block().getZ())
+        .withVariable("container_type", searchedInventory.material.name())
+        .withVariable("container_x", searchedInventory.block.getX())
+        .withVariable("container_y", searchedInventory.block.getY())
+        .withVariable("container_z", searchedInventory.block.getZ())
         .withVariable("occupied_slot_count", occupiedSlotCount)
         .withVariable("total_slot_count", inventorySize)
         .withVariable("usage_percentage", usagePercentage)

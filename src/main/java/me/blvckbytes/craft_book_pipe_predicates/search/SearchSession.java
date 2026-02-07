@@ -222,7 +222,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     if (!ignoreOtherChestHalf)
       containerCountByType.computeIfAbsent(blockType, k -> new MutableInt()).value++;
 
-    searchedInventories.add(new SearchedInventory(container.getSnapshotInventory(), block, otherChestBlock, blockType, slotOffset, getCurrentlyActivePredicate()));
+    searchedInventories.add(new SearchedInventory(container.getSnapshotInventory(), block, otherChestBlock, blockType, slotOffset, getCurrentlyActivePredicates()));
 
     // Hoppers are only funneling out of containers if they sit right below them, which makes
     // them become part of the chain items may travel down, so they are also walked into.
@@ -248,17 +248,20 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     });
   }
 
-  private @Nullable ItemPredicate getCurrentlyActivePredicate() {
-    if (lastPredicate != null)
-      return lastPredicate;
+  private List<ItemPredicate> getCurrentlyActivePredicates() {
+    if (lastPredicate == null && lastPredicateStack.isEmpty())
+      return Collections.emptyList();
 
-    for (var stackIndex = lastPredicateStack.size() - 1; stackIndex >= 0; --stackIndex) {
-      var stackPredicate = lastPredicateStack.get(stackIndex);
+    var result = new ArrayList<ItemPredicate>(lastPredicateStack.size());
 
-      if (stackPredicate != null)
-        return stackPredicate;
+    for (ItemPredicate predicate : lastPredicateStack) {
+      if (predicate != null)
+        result.add(predicate);
     }
 
-    return null;
+    if (lastPredicate != null)
+      result.add(lastPredicate);
+
+    return result;
   }
 }

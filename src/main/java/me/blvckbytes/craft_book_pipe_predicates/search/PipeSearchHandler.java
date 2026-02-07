@@ -16,7 +16,6 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.search.ItemCollec
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
-import me.blvckbytes.item_predicate_parser.predicate.ComparisonFlag;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.syllables_matcher.TriState;
@@ -97,7 +96,7 @@ public class PipeSearchHandler implements Listener {
       var resultCounter = 0;
 
       for (var searchedInventory : session.getSearchedInventories()) {
-        var blockContents = searchedInventory.inventory().getStorageContents();
+        var blockContents = searchedInventory.inventory.getStorageContents();
 
         for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
           var item = blockContents[slotIndex];
@@ -110,7 +109,7 @@ public class PipeSearchHandler implements Listener {
           if (query != null && !query.predicate().test(item))
             continue;
 
-          matches.add(new ItemAndSlot(item, searchedInventory.block(), slotIndex + searchedInventory.slotOffset()));
+          matches.add(new ItemAndSlot(item, searchedInventory.block, slotIndex + searchedInventory.slotOffset));
         }
       }
 
@@ -165,19 +164,15 @@ public class PipeSearchHandler implements Listener {
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       var capacityByPredicate = new HashMap<String, StorageCapacity>();
-      var comparisonFlags = EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES);
 
       for (var searchedInventory : session.getSearchedInventories()) {
         if (containedPredicate != null) {
-          if (searchedInventory.activePredicate() == null)
-            continue;
-
-          if (!searchedInventory.activePredicate().containsOrEqualsPredicate(containedPredicate, comparisonFlags))
+          if (!searchedInventory.matchesPredicate(containedPredicate))
             continue;
         }
 
-        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), StorageCapacity::new);
-        var storageContents = searchedInventory.inventory().getStorageContents();
+        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.nearestActivePredicateString, StorageCapacity::new);
+        var storageContents = searchedInventory.inventory.getStorageContents();
 
         var occupiedSlotCount = 0;
 

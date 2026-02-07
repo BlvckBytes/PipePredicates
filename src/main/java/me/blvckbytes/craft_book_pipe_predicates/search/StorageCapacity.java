@@ -50,7 +50,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
       var storageBlock = entry.getValue();
 
-      var otherChestBlock = storageBlock.searchedInventory.otherChestBlock();
+      var otherChestBlock = storageBlock.searchedInventory.otherChestBlock;
 
       if (otherChestBlock != null) {
         var otherId = CompactId.computeWorldlessBlockId(otherChestBlock);
@@ -81,7 +81,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
   public void addEntry(SearchedInventory searchedInventory, int occupiedSlotCount, int inventorySize) {
     var storageBlock = new StorageBlock(searchedInventory, occupiedSlotCount, inventorySize);
-    storageBlockByCompactId.put(CompactId.computeWorldlessBlockId(searchedInventory.block()), storageBlock);
+    storageBlockByCompactId.put(CompactId.computeWorldlessBlockId(searchedInventory.block), storageBlock);
   }
 
   @Override

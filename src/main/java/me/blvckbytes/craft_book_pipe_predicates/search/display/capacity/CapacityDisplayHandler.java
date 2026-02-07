@@ -47,7 +47,7 @@ public class CapacityDisplayHandler extends DisplayHandler<CapacityDisplay, Capa
 
     if (targetRenderable != null) {
       if (targetRenderable instanceof StorageBlock storageBlock) {
-        SearchDisplayHandler.teleportPlayerToContainer(player, storageBlock.searchedInventory.block(), config);
+        SearchDisplayHandler.teleportPlayerToContainer(player, storageBlock.searchedInventory.block, config);
         return;
       }
 
