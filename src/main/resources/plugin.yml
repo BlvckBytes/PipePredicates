@@ -21,6 +21,9 @@ permissions:
   craftbookpipepredicates.command.pipepredicate.search:
     description: 'Search the whole pipe using predicates'
     default: op
+  craftbookpipepredicates.command.pipepredicate.capacities:
+    description: 'Analyze the remaining capacities of a pipe''s containers'
+    default: op
   craftbookpipepredicates.auto-init-signs:
     description: 'Automatically initialize blank signs to a valid pipe sign'
     default: op
