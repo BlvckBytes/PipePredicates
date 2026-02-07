@@ -4,7 +4,6 @@ import com.sk89q.craftbook.mechanics.pipe.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
-import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -43,8 +42,8 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   private final EnumMap<Material, MutableInt> containerCountByType;
 
-  private @Nullable ItemPredicate lastPredicate;
-  private final Stack<@Nullable ItemPredicate> lastPredicateStack;
+  private @Nullable PredicateAndLabels lastPredicate;
+  private final Stack<@Nullable PredicateAndLabels> lastPredicateStack;
 
   public SearchSession(
     Block origin, Pipes pipesMechanic, Plugin plugin,
@@ -102,7 +101,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     // TODO: This does not check for whether we are walking in the opposite direction of a check-valve, which
     //       then completely changes the algorithm; in that case, we need to keep a list of inventories without
     //       a predicate and set it once we encounter the first check-valve that points in our direction while walking.
-    lastPredicate = predicateRegistry.getPredicateForPiston(block);
+    lastPredicate = PredicateAndLabels.of(predicateRegistry.getPredicateForPiston(block));
 
     if (handleBlock(block.getRelative(CachedBlock.getFacing(cachedBlock)), EnumSet.noneOf(HandleFlag.class)))
       ++pistonCount;
@@ -248,13 +247,13 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     });
   }
 
-  private List<ItemPredicate> getCurrentlyActivePredicates() {
+  private List<PredicateAndLabels> getCurrentlyActivePredicates() {
     if (lastPredicate == null && lastPredicateStack.isEmpty())
       return Collections.emptyList();
 
-    var result = new ArrayList<ItemPredicate>(lastPredicateStack.size());
+    var result = new ArrayList<PredicateAndLabels>(lastPredicateStack.size());
 
-    for (ItemPredicate predicate : lastPredicateStack) {
+    for (var predicate : lastPredicateStack) {
       if (predicate != null)
         result.add(predicate);
     }

@@ -6,6 +6,7 @@ import com.sk89q.craftbook.mechanics.pipe.CompactId;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayRenderable;
@@ -18,6 +19,7 @@ import java.util.List;
 
 public class StorageCapacity implements CapacityDisplayRenderable {
 
+  private final CaseInsensitiveSet allLabelValues;
   private final Long2ObjectMap<StorageBlock> storageBlockByCompactId;
   private @Nullable List<StorageBlock> combinedStorageBlocks;
 
@@ -30,6 +32,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
   private UsageLevel usageLevel = null;
 
   public StorageCapacity(String predicateString) {
+    this.allLabelValues = new CaseInsensitiveSet();
     this.predicateString = predicateString;
     this.storageBlockByCompactId = new Long2ObjectOpenHashMap<>();
   }
@@ -80,6 +83,8 @@ public class StorageCapacity implements CapacityDisplayRenderable {
   }
 
   public void addEntry(SearchedInventory searchedInventory, int occupiedSlotCount, int inventorySize) {
+    allLabelValues.addAll(searchedInventory.getLabelValues());
+
     var storageBlock = new StorageBlock(searchedInventory, occupiedSlotCount, inventorySize);
     storageBlockByCompactId.put(CompactId.computeWorldlessBlockId(searchedInventory.block), storageBlock);
   }
@@ -110,6 +115,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
         .withVariable("usage_percentage", getUsagePercentage())
         .withVariable("usage_level", getUsageLevel().name())
         .withVariable("predicate", predicateString)
+        .withVariable("labels", allLabelValues)
         .withVariable("container_count", getCombinedStorageBlocks().size())
     );
   }

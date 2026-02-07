@@ -6,10 +6,12 @@ import com.sk89q.craftbook.bukkit.CraftBookPlugin;
 import com.sk89q.craftbook.mechanics.pipe.EnumerationBehavior;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
+import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
 import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityInfo;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.ItemCollectionEntry;
@@ -95,6 +97,8 @@ public class PipeSearchHandler implements Listener {
 
       var resultCounter = 0;
 
+      // TODO: Support searching for labels
+
       for (var searchedInventory : session.getSearchedInventories()) {
         var blockContents = searchedInventory.inventory.getStorageContents();
 
@@ -162,16 +166,21 @@ public class PipeSearchHandler implements Listener {
     if (handleWarningsAndGetIfEmpty(session, player))
       return;
 
+    var query = PredicateAndLabels.of(containedPredicate);
+
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       var capacityByPredicate = new HashMap<String, StorageCapacity>();
+      var encounteredLabelValues = new CaseInsensitiveSet();
 
       for (var searchedInventory : session.getSearchedInventories()) {
-        if (containedPredicate != null) {
-          if (!searchedInventory.matchesPredicate(containedPredicate))
+        encounteredLabelValues.addAll(searchedInventory.getLabelValues());
+
+        if (query != null) {
+          if (!searchedInventory.matches(query))
             continue;
         }
 
-        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.nearestActivePredicateString, StorageCapacity::new);
+        var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getNearestActivePredicateString(), StorageCapacity::new);
         var storageContents = searchedInventory.inventory.getStorageContents();
 
         var occupiedSlotCount = 0;
@@ -192,7 +201,9 @@ public class PipeSearchHandler implements Listener {
       var capacities = new ArrayList<>(capacityByPredicate.values());
       capacities.forEach(StorageCapacity::combineStorageBlocks);
 
-      capacityDisplayHandler.show(player, new CapacityDisplayData(capacities, containedPredicate));
+      var capacityInfo = new CapacityInfo(query, capacities, encounteredLabelValues);
+
+      capacityDisplayHandler.show(player, new CapacityDisplayData(capacityInfo));
     });
   }
 

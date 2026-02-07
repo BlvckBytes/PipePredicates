@@ -5,7 +5,6 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.AsyncTaskQueue;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.Display;
-import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
@@ -44,7 +43,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     if (displayData.selectedCapacity != null)
       this.renderables = displayData.selectedCapacity.getCombinedStorageBlocks();
     else
-      this.renderables = displayData.capacities;
+      this.renderables = displayData.capacityInfo.capacities();
 
     applySorting();
 
@@ -162,8 +161,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
 
     if (displayData.selectedCapacity != null)
       config.rootSection.capacityDisplay.items.backToPredicatesButton.renderInto(inventory, environment);
-
-    if (displayData.containedPredicate != null)
+    else
       config.rootSection.capacityDisplay.items.searchDetails.renderInto(inventory, environment);
   }
 
@@ -183,7 +181,9 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
 
   private InterpretationEnvironment makeEnvironment() {
     var environment = new InterpretationEnvironment()
-      .withVariable("predicate", this.displayData.containedPredicate == null ? null : PlainStringifier.stringify(this.displayData.containedPredicate, false))
+      .withVariable("predicate", this.displayData.capacityInfo.containedPredicate() == null ? null : this.displayData.capacityInfo.containedPredicate().getStringification())
+      .withVariable("predicate_labels", this.displayData.capacityInfo.containedPredicate() == null ? null : displayData.capacityInfo.containedPredicate().getLabelValues())
+      .withVariable("encountered_labels", this.displayData.capacityInfo.encounteredLabelValues())
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages)
       .withVariable("is_floodgate", isFloodgate);

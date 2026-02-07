@@ -235,7 +235,23 @@ capacityDisplay:
       lore: |
         <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
-          <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
+          <&8>♦ <&7>Angegebenes Prädikat:<space/>
+          <container *if="predicate">
+            <&e>{predicate}
+          </container>
+          <container *else>
+            <&7>/
+          </container>
+          <br/>
+          <&8>♦ <&7>Angegebene Label:<space/>
+          <container *if="len(predicate_labels) > 0">
+            <&e *for-label="predicate_labels" *for-separator={<&7>,<space/>}>{label}</>
+          </container>
+          <container *else>
+            <&7>/
+          </container>
+          <br/>
+          <container +let-title="Verfügbare Label:" *let-labels="encountered_labels" [lut.label_line] /><br/>
           {spacer}
     backToPredicatesButton:
       slots: 'last_slot - 4'
@@ -305,6 +321,9 @@ capacityDisplay:
           <container *else>
             <&8>♦ <&7>Prädikat: <&c>Kein Prädikat<br/>
           </container>
+          <container *if="len(labels) > 0">
+            <container +let-title="Label:" [lut.label_line] /><br/>
+          </container>
           {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Einzelne Behälter anzeigen<br/>
           {spacer}
@@ -319,6 +338,9 @@ capacityDisplay:
           {spacer}<br/>
           <&8>♦ <&7>Benutzung: <&e>{occupied_slot_count}<&7>/<&e>{total_slot_count} <&7>(<&e><container *let-value="usage_percentage" [lut.percentage_display] /><&7>)<br/>
           <&8>♦ <&7>Koordinaten: <&e>{container_x} {container_y} {container_z}<br/>
+          <container *if="len(labels) > 0">
+            <container +let-title="Label:" [lut.label_line] /><br/>
+          </container>
           {spacer}<br/>
           <&8>➥ <&e>Linksklick <&7>Zum Behälter teleportieren<br/>
           {spacer}
@@ -388,6 +410,19 @@ cLut:
     FULL_USAGE:
       name: '<&c>Vollständig Ausgelastet'
       material: 'RED_CONCRETE'
+  label_line: |
+    <&8>♦ <&e><word-wrap
+      [@value]="labels"
+      width=40
+      value-separator={<&7>,<space/>}
+      prefix={
+        <&7>{title}<space/>
+        <container *if="len(labels) eq 0">
+          <&c>Keine
+        </container>
+      }
+      subsequent-prefix={<space/><space/>}
+    />
 
 # File-global scalar lookup-table
 sLut:

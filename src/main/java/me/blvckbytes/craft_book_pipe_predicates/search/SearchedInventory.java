@@ -1,15 +1,15 @@
 package me.blvckbytes.craft_book_pipe_predicates.search;
 
+import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
 import me.blvckbytes.item_predicate_parser.predicate.ComparisonFlag;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
-import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
+import me.blvckbytes.item_predicate_parser.predicate.LabelPredicate;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 public class SearchedInventory {
 
@@ -23,10 +23,13 @@ public class SearchedInventory {
   // other half need to be offset by the number if slots in a single chest.
   public final int slotOffset;
 
-  public final List<ItemPredicate> activePredicatesInOrder;
-  public final @Nullable String nearestActivePredicateString;
+  private final List<PredicateAndLabels> activePredicatesInOrder;
+  private @Nullable List<LabelPredicate> allLabels;
+  private @Nullable CaseInsensitiveSet allLabelValues;
 
-  public SearchedInventory(Inventory inventory, Block block, @Nullable Block otherChestBlock, Material material, int slotOffset, List<ItemPredicate> activePredicatesInOrder) {
+  private @Nullable String nearestActivePredicateString;
+
+  public SearchedInventory(Inventory inventory, Block block, @Nullable Block otherChestBlock, Material material, int slotOffset, List<PredicateAndLabels> activePredicatesInOrder) {
     this.inventory = inventory;
     this.block = block;
     this.otherChestBlock = otherChestBlock;
@@ -34,14 +37,65 @@ public class SearchedInventory {
     this.slotOffset = slotOffset;
     this.activePredicatesInOrder = activePredicatesInOrder;
 
-    this.nearestActivePredicateString = activePredicatesInOrder.isEmpty()
-      ? null
-      : PlainStringifier.stringify(activePredicatesInOrder.getLast(), false);
+    for (var activePredicate : activePredicatesInOrder) {
+      if (allLabels == null)
+        allLabels = new ArrayList<>();
+
+      if (allLabelValues == null)
+        allLabelValues = new CaseInsensitiveSet();
+
+      allLabels.addAll(activePredicate.labels);
+
+      for (var label : activePredicate.labels)
+        allLabelValues.add(label.token.value());
+    }
+
+    for (var index = activePredicatesInOrder.size() - 1; index >= 0; --index) {
+      var stringification = activePredicatesInOrder.get(index).getStringification();
+
+      if (stringification != null) {
+        nearestActivePredicateString = stringification;
+        break;
+      }
+    }
   }
 
-  public boolean matchesPredicate(ItemPredicate predicate) {
+  public @Nullable String getNearestActivePredicateString() {
+    return nearestActivePredicateString;
+  }
+
+  public Collection<String> getLabelValues() {
+    if (allLabels == null)
+      return Collections.emptyList();
+
+    return allLabelValues;
+  }
+
+  public boolean matches(PredicateAndLabels predicateAndLabels) {
+    if (!predicateAndLabels.labels.isEmpty() && predicateAndLabels.labels.stream().noneMatch(this::isLabelled))
+      return false;
+
+    return predicateAndLabels.itemPredicate == null || matchesPredicate(predicateAndLabels.itemPredicate);
+  }
+
+  private boolean isLabelled(LabelPredicate label) {
+    if (allLabels == null)
+      return false;
+
+    for (var currentLabel : allLabels) {
+      if (currentLabel.containsOrEqualsPredicate(label, EnumSet.of(ComparisonFlag.LABEL_PREDICATE__USE_MATCHER)))
+        return true;
+    }
+
+    return false;
+  }
+
+  private boolean matchesPredicate(ItemPredicate predicate) {
     for (var activePredicate : activePredicatesInOrder) {
-      if (activePredicate.containsOrEqualsPredicate(predicate, EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES)))
+      if (activePredicate.itemPredicate == null)
+        continue;
+
+      if (activePredicate.itemPredicate.containsOrEqualsPredicate(predicate, EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES)))
         return true;
     }
 
