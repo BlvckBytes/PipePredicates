@@ -110,6 +110,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
         .withVariable("usage_percentage", getUsagePercentage())
         .withVariable("usage_level", getUsageLevel().name())
         .withVariable("predicate", predicateString)
+        .withVariable("container_count", getCombinedStorageBlocks().size())
     );
   }
 

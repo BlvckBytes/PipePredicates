@@ -297,6 +297,7 @@ capacityDisplay:
       lore: |
         <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
+          <&8>♦ <&7>Anzahl Behälter: <&e>{container_count}<br/>
           <&8>♦ <&7>Benutzung: <&e>{occupied_slot_count}<&7>/<&e>{total_slot_count} <&7>(<&e><container *let-value="usage_percentage" [lut.percentage_display] /><&7>)<br/>
           <container *if="predicate">
             <&8>♦ <&e><word-wrap [value]="predicate" width=40 prefix={<&7>Prädikat:<space/>} subsequent-prefix={<space/><space/>} /><br/>
