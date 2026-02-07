@@ -10,7 +10,6 @@ import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
 import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
-import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayData;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayHandler;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.search.ItemCollectionEntry;
@@ -165,6 +164,8 @@ public class PipeSearchHandler implements Listener {
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
       var capacityByPredicate = new HashMap<String, StorageCapacity>();
 
+      // TODO: Allow a predicate to be passed which then has to be contained in the activePredicate of the searchedInventory
+
       for (var searchedInventory : session.getSearchedInventories()) {
         var capacity = capacityByPredicate.computeIfAbsent(searchedInventory.getExpandedActivePredicateString(), StorageCapacity::new);
         var storageContents = searchedInventory.inventory().getStorageContents();
@@ -181,17 +182,13 @@ public class PipeSearchHandler implements Listener {
         }
 
         capacity.occupiedSlotCount += occupiedSlotCount;
-
-        // TODO: Would be helpful to combine half-blocks at this point, because it's really confusing from a user-perspective.
-        capacity.storageBlocks.add(new StorageBlock(
-          searchedInventory.block(),
-          searchedInventory.material(),
-          occupiedSlotCount,
-          storageContents.length
-        ));
+        capacity.addEntry(searchedInventory, occupiedSlotCount, storageContents.length);
       }
 
-      capacityDisplayHandler.show(player, new CapacityDisplayData(new ArrayList<>(capacityByPredicate.values()), null));
+      var capacities = new ArrayList<>(capacityByPredicate.values());
+      capacities.forEach(StorageCapacity::combineStorageBlocks);
+
+      capacityDisplayHandler.show(player, new CapacityDisplayData(capacities, null));
     });
   }
 

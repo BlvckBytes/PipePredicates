@@ -174,13 +174,15 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
     var ignoreOtherChestHalf = flags.contains(HandleFlag.IGNORE_OTHER_CHEST_HALF);
 
+    Block otherChestBlock = null;
+
     if (blockData instanceof Chest chest) {
       var type = chest.getType();
 
       if (type == Chest.Type.LEFT)
         slotOffset = 3 * 9;
 
-      if (!ignoreOtherChestHalf && type != Chest.Type.SINGLE) {
+      if (type != Chest.Type.SINGLE) {
         int dx = 0, dz = 0;
 
         // Left and right are relative to the chest itself, i.e. opposite to what
@@ -201,11 +203,15 @@ public class SearchSession extends EnumerationSession<SearchSession> {
             break;
         }
 
-        // Avoid calling completion if the piston-loop is already done and this block is within
-        // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
-        ++chunksWaitingOn;
-        handleBlock(block.getRelative(dx, 0, dz), EnumSet.of(HandleFlag.IGNORE_OTHER_CHEST_HALF));
-        --chunksWaitingOn;
+        otherChestBlock = block.getRelative(dx, 0, dz);
+
+        if (!ignoreOtherChestHalf) {
+          // Avoid calling completion if the piston-loop is already done and this block is within
+          // the same chunk; simply don't allow; simply don't allow other-halves to call completion.
+          ++chunksWaitingOn;
+          handleBlock(otherChestBlock, EnumSet.of(HandleFlag.IGNORE_OTHER_CHEST_HALF));
+          --chunksWaitingOn;
+        }
       }
     }
 
@@ -216,7 +222,7 @@ public class SearchSession extends EnumerationSession<SearchSession> {
     if (!ignoreOtherChestHalf)
       containerCountByType.computeIfAbsent(blockType, k -> new MutableInt()).value++;
 
-    searchedInventories.add(new SearchedInventory(container.getSnapshotInventory(), block, blockType, slotOffset, getCurrentlyActivePredicate()));
+    searchedInventories.add(new SearchedInventory(container.getSnapshotInventory(), block, otherChestBlock, blockType, slotOffset, getCurrentlyActivePredicate()));
 
     // Hoppers are only funneling out of containers if they sit right below them, which makes
     // them become part of the chain items may travel down, so they are also walked into.

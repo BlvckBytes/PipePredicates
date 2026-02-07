@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 public record SearchedInventory(
   Inventory inventory,
   Block block,
+  @Nullable Block otherChestBlock,
   Material material,
   // Double-chests are represented by two individual containers, with each side
   // having its own snapshot-inventory. When accessing the double-chest in a live

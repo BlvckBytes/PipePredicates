@@ -36,7 +36,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     this.slotMap = new CapacityDisplayRenderable[9 * 6];
 
     if (displayData.selectedCapacity != null)
-      this.renderables = displayData.selectedCapacity.storageBlocks;
+      this.renderables = displayData.selectedCapacity.getCombinedStorageBlocks();
     else
       this.renderables = displayData.capacities;
 

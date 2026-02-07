@@ -2,17 +2,23 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
+import com.sk89q.craftbook.mechanics.pipe.CompactId;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayRenderable;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class StorageCapacity implements CapacityDisplayRenderable {
 
-  public List<StorageBlock> storageBlocks = new ArrayList<>();
+  private final Long2ObjectMap<StorageBlock> storageBlockByCompactId;
+  private @Nullable List<StorageBlock> combinedStorageBlocks;
 
   public int vacantSlotCount;
   public int occupiedSlotCount;
@@ -21,6 +27,57 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
   public StorageCapacity(String predicateString) {
     this.predicateString = predicateString;
+    this.storageBlockByCompactId = new Long2ObjectOpenHashMap<>();
+  }
+
+  public void combineStorageBlocks() {
+    if (combinedStorageBlocks != null)
+      throw new IllegalStateException("Called the combine-method twice");
+
+    var seenIds = new LongOpenHashSet();
+
+    combinedStorageBlocks = new ArrayList<>();
+
+    for (var entry : storageBlockByCompactId.long2ObjectEntrySet()) {
+      var currentId = entry.getLongKey();
+
+      if (!seenIds.add(currentId))
+        continue;
+
+      var storageBlock = entry.getValue();
+
+      var otherChestBlock = storageBlock.searchedInventory().otherChestBlock();
+
+      if (otherChestBlock != null) {
+        var otherId = CompactId.computeWorldlessBlockId(otherChestBlock);
+
+        if (seenIds.add(otherId)) {
+          var otherStorage = storageBlockByCompactId.get(otherId);
+
+          if (otherStorage != null) {
+            storageBlock = new StorageBlock(
+              storageBlock.searchedInventory(),
+              storageBlock.occupiedSlotCount() + otherStorage.occupiedSlotCount(),
+              storageBlock.inventorySize() + otherStorage.inventorySize()
+            );
+          }
+        }
+      }
+
+      combinedStorageBlocks.add(storageBlock);
+    }
+  }
+
+  public List<StorageBlock> getCombinedStorageBlocks() {
+    if (combinedStorageBlocks == null)
+      throw new IllegalStateException("Did not call the combine-method first");
+
+    return combinedStorageBlocks;
+  }
+
+  public void addEntry(SearchedInventory searchedInventory, int occupiedSlotCount, int inventorySize) {
+    var storageBlock = new StorageBlock(searchedInventory, occupiedSlotCount, inventorySize);
+    storageBlockByCompactId.put(CompactId.computeWorldlessBlockId(searchedInventory.block()), storageBlock);
   }
 
   @Override
