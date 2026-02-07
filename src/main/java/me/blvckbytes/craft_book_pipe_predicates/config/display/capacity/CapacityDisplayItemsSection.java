@@ -14,6 +14,7 @@ public class CapacityDisplayItemsSection extends ConfigSection {
   public ItemStackSection predicateRepresentative;
   public ItemStackSection containerRepresentative;
   public GuiItemStackSection searchDetails;
+  public GuiItemStackSection sorting;
   public GuiItemStackSection backToPredicatesButton;
 
   public CapacityDisplayItemsSection(InterpretationEnvironment baseEnvironment, InterpreterLogger interpreterLogger) {

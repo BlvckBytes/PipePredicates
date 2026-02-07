@@ -16,20 +16,29 @@ import java.util.logging.Logger;
 public class CapacityDisplayHandler extends DisplayHandler<CapacityDisplay, CapacityDisplayData> {
 
   private final Logger logger;
+  private final SelectionStateStore selectionStateStore;
 
   public CapacityDisplayHandler(
     ConfigKeeper<MainSection> config,
     Plugin plugin,
     FloodgateIntegration floodgateIntegration
-  ) {
+  ) throws Exception {
     super(config, plugin, floodgateIntegration);
 
-    logger = plugin.getLogger();
+    this.logger = plugin.getLogger();
+    this.selectionStateStore = new SelectionStateStore(plugin, logger);
+  }
+
+  @Override
+  public void onShutdown() {
+    super.onShutdown();
+
+    selectionStateStore.onShutdown();
   }
 
   @Override
   public CapacityDisplay instantiateDisplay(Player player, CapacityDisplayData displayData) {
-    return new CapacityDisplay(player, floodgateIntegration.isFloodgatePlayer(player), displayData, config, plugin);
+    return new CapacityDisplay(player, floodgateIntegration.isFloodgatePlayer(player), displayData, selectionStateStore.loadState(player), config, plugin);
   }
 
   @Override
@@ -38,7 +47,7 @@ public class CapacityDisplayHandler extends DisplayHandler<CapacityDisplay, Capa
 
     if (targetRenderable != null) {
       if (targetRenderable instanceof StorageBlock storageBlock) {
-        SearchDisplayHandler.teleportPlayerToContainer(player, storageBlock.searchedInventory().block(), config);
+        SearchDisplayHandler.teleportPlayerToContainer(player, storageBlock.searchedInventory.block(), config);
         return;
       }
 
@@ -62,6 +71,11 @@ public class CapacityDisplayHandler extends DisplayHandler<CapacityDisplay, Capa
         return;
       }
 
+      if (config.rootSection.capacityDisplay.items.sorting.getDisplaySlots().contains(slot)) {
+        display.nextSortingOrder();
+        return;
+      }
+
       if (display.displayData.selectedCapacity != null && config.rootSection.capacityDisplay.items.backToPredicatesButton.getDisplaySlots().contains(slot)) {
         if (display.displayData.previousDisplay != null)
           reopen(display.displayData.previousDisplay);
@@ -75,8 +89,27 @@ public class CapacityDisplayHandler extends DisplayHandler<CapacityDisplay, Capa
         return;
       }
 
-      if (config.rootSection.capacityDisplay.items.nextPage.getDisplaySlots().contains(slot))
+      if (config.rootSection.capacityDisplay.items.nextPage.getDisplaySlots().contains(slot)) {
         display.lastPage();
+        return;
+      }
+
+      if (config.rootSection.capacityDisplay.items.sorting.getDisplaySlots().contains(slot))
+        display.resetSortingState();
+
+      return;
+    }
+
+    if (clickType == ClickType.DROP) {
+      if (config.rootSection.capacityDisplay.items.sorting.getDisplaySlots().contains(slot))
+        display.nextSortingSelection();
+
+      return;
+    }
+
+    if (clickType == ClickType.CONTROL_DROP) {
+      if (config.rootSection.capacityDisplay.items.sorting.getDisplaySlots().contains(slot))
+        display.moveSortingSelectionDown();
     }
   }
 }

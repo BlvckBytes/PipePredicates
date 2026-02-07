@@ -9,6 +9,10 @@ public interface CapacityDisplayRenderable {
 
   ItemStack render(ConfigKeeper<MainSection> config, InterpretationEnvironment environment);
 
+  int getTotalCapacity();
+
   double getUsagePercentage();
+
+  UsageLevel getUsageLevel();
 
 }

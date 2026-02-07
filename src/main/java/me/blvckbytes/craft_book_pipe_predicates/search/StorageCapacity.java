@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.StorageBlock;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayRenderable;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.UsageLevel;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,9 @@ public class StorageCapacity implements CapacityDisplayRenderable {
   public int occupiedSlotCount;
 
   private final String predicateString;
+
+  private double usagePercentage = -1;
+  private UsageLevel usageLevel = null;
 
   public StorageCapacity(String predicateString) {
     this.predicateString = predicateString;
@@ -46,7 +50,7 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
       var storageBlock = entry.getValue();
 
-      var otherChestBlock = storageBlock.searchedInventory().otherChestBlock();
+      var otherChestBlock = storageBlock.searchedInventory.otherChestBlock();
 
       if (otherChestBlock != null) {
         var otherId = CompactId.computeWorldlessBlockId(otherChestBlock);
@@ -56,9 +60,9 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
           if (otherStorage != null) {
             storageBlock = new StorageBlock(
-              storageBlock.searchedInventory(),
-              storageBlock.occupiedSlotCount() + otherStorage.occupiedSlotCount(),
-              storageBlock.inventorySize() + otherStorage.inventorySize()
+              storageBlock.searchedInventory,
+              storageBlock.occupiedSlotCount + otherStorage.occupiedSlotCount,
+              storageBlock.inventorySize + otherStorage.inventorySize
             );
           }
         }
@@ -82,7 +86,18 @@ public class StorageCapacity implements CapacityDisplayRenderable {
 
   @Override
   public double getUsagePercentage() {
-    return (occupiedSlotCount / (double) (occupiedSlotCount + vacantSlotCount)) * 100;
+    if (usagePercentage < 0)
+      usagePercentage = (occupiedSlotCount / (double) (occupiedSlotCount + vacantSlotCount)) * 100;
+
+    return usagePercentage;
+  }
+
+  @Override
+  public UsageLevel getUsageLevel() {
+    if (usageLevel == null)
+      usageLevel = UsageLevel.fromUsagePercentage(getUsagePercentage());
+
+    return usageLevel;
   }
 
   @Override
@@ -93,7 +108,13 @@ public class StorageCapacity implements CapacityDisplayRenderable {
         .withVariable("occupied_slot_count", occupiedSlotCount)
         .withVariable("total_slot_count", occupiedSlotCount + vacantSlotCount)
         .withVariable("usage_percentage", getUsagePercentage())
+        .withVariable("usage_level", getUsageLevel().name())
         .withVariable("predicate", predicateString)
     );
+  }
+
+  @Override
+  public int getTotalCapacity() {
+    return occupiedSlotCount + vacantSlotCount;
   }
 }

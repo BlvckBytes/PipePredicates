@@ -17,8 +17,11 @@ import java.util.List;
 public class CapacityDisplay extends Display<CapacityDisplayData> {
 
   private final AsyncTaskQueue asyncQueue;
+  private final SelectionState selectionState;
 
   private final List<? extends CapacityDisplayRenderable> renderables;
+  private List<? extends CapacityDisplayRenderable> sortedRenderables;
+
   private final CapacityDisplayRenderable[] slotMap;
   private int numberOfPages;
 
@@ -28,11 +31,13 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     Player player,
     boolean isFloodgate,
     CapacityDisplayData displayData,
+    SelectionState selectionState,
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
     super(player, isFloodgate, displayData, config, plugin);
 
+    this.selectionState = selectionState;
     this.asyncQueue = new AsyncTaskQueue(plugin);
     this.slotMap = new CapacityDisplayRenderable[9 * 6];
 
@@ -41,10 +46,19 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     else
       this.renderables = displayData.capacities;
 
-    this.renderables.sort((a, b) -> -Double.compare(a.getUsagePercentage(), b.getUsagePercentage()));
+    applySorting();
 
     // Within async context already, see corresponding command
     show();
+  }
+
+  private void renderSortingItem(InterpretationEnvironment environment) {
+    config.rootSection.capacityDisplay.items.sorting.renderInto(inventory, environment);
+  }
+
+  public void applySorting() {
+    sortedRenderables = new ArrayList<>(renderables);
+    selectionState.applySort(sortedRenderables);
   }
 
   public void nextPage() {
@@ -87,13 +101,44 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     });
   }
 
+  public void nextSortingSelection() {
+    asyncQueue.enqueue(() -> {
+      this.selectionState.nextSortingSelection();
+      renderSortingItem(makeEnvironment());
+    });
+  }
+
+  public void nextSortingOrder() {
+    asyncQueue.enqueue(() -> {
+      this.selectionState.nextSortingOrder();
+      applySorting();
+      renderItems();
+    });
+  }
+
+  public void moveSortingSelectionDown() {
+    asyncQueue.enqueue(() -> {
+      this.selectionState.moveSortingSelectionDown();
+      applySorting();
+      renderItems();
+    });
+  }
+
+  public void resetSortingState() {
+    asyncQueue.enqueue(() -> {
+      this.selectionState.resetSorting();
+      applySorting();
+      renderItems();
+    });
+  }
+
   @Override
   protected void renderItems() {
     var environment = makeEnvironment();
 
     var displaySlots = new ArrayList<>(config.rootSection.searchDisplay.getPaginationSlots());
     var itemsIndex = (currentPage - 1) * displaySlots.size();
-    var numberOfItems = renderables.size();
+    var numberOfItems = sortedRenderables.size();
 
     for (Integer slot : displaySlots) {
       var currentSlot = itemsIndex++;
@@ -104,7 +149,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
         continue;
       }
 
-      var renderable = renderables.get(currentSlot);
+      var renderable = sortedRenderables.get(currentSlot);
       inventory.setItem(slot, renderable.render(config, environment));
       slotMap[slot] = renderable;
     }
@@ -112,6 +157,8 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
     config.rootSection.capacityDisplay.items.filler.renderInto(inventory, environment);
     config.rootSection.capacityDisplay.items.previousPage.renderInto(inventory, environment);
     config.rootSection.capacityDisplay.items.nextPage.renderInto(inventory, environment);
+
+    renderSortingItem(environment);
 
     if (displayData.selectedCapacity != null)
       config.rootSection.capacityDisplay.items.backToPredicatesButton.renderInto(inventory, environment);
@@ -123,7 +170,7 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
   @Override
   protected Inventory makeInventory() {
     var numberOfDisplaySlots = config.rootSection.searchDisplay.getPaginationSlots().size();
-    this.numberOfPages = Math.max(1, (int) Math.ceil(renderables.size() / (double) numberOfDisplaySlots));
+    this.numberOfPages = Math.max(1, (int) Math.ceil(sortedRenderables.size() / (double) numberOfDisplaySlots));
     return config.rootSection.capacityDisplay.createInventory(makeEnvironment());
   }
 
@@ -135,10 +182,14 @@ public class CapacityDisplay extends Display<CapacityDisplayData> {
   public void onConfigReload() {}
 
   private InterpretationEnvironment makeEnvironment() {
-    return new InterpretationEnvironment()
+    var environment = new InterpretationEnvironment()
       .withVariable("predicate", this.displayData.containedPredicate == null ? null : PlainStringifier.stringify(this.displayData.containedPredicate, false))
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages)
       .withVariable("is_floodgate", isFloodgate);
+
+    selectionState.extendSortingEnvironment(environment);
+
+    return environment;
   }
 }

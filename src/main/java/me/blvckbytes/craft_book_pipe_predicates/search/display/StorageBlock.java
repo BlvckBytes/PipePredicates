@@ -5,17 +5,35 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.SearchedInventory;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityDisplayRenderable;
+import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.UsageLevel;
 import org.bukkit.inventory.ItemStack;
 
-public record StorageBlock(
-  SearchedInventory searchedInventory,
-  int occupiedSlotCount,
-  int inventorySize
-) implements CapacityDisplayRenderable {
+public class StorageBlock implements CapacityDisplayRenderable {
+
+  public final SearchedInventory searchedInventory;
+  public final int occupiedSlotCount;
+  public final int inventorySize;
+
+  private final double usagePercentage;
+  private final UsageLevel usageLevel;
+
+  public StorageBlock(SearchedInventory searchedInventory, int occupiedSlotCount, int inventorySize) {
+    this.searchedInventory = searchedInventory;
+    this.occupiedSlotCount = occupiedSlotCount;
+    this.inventorySize = inventorySize;
+
+    this.usagePercentage = (occupiedSlotCount / (double) inventorySize) * 100;
+    this.usageLevel = UsageLevel.fromUsagePercentage(usagePercentage);
+  }
 
   @Override
   public double getUsagePercentage() {
-    return (occupiedSlotCount / (double) inventorySize) * 100;
+    return usagePercentage;
+  }
+
+  @Override
+  public UsageLevel getUsageLevel() {
+    return usageLevel;
   }
 
   @Override
@@ -28,7 +46,13 @@ public record StorageBlock(
         .withVariable("container_z", searchedInventory.block().getZ())
         .withVariable("occupied_slot_count", occupiedSlotCount)
         .withVariable("total_slot_count", inventorySize)
-        .withVariable("usage_percentage", getUsagePercentage())
+        .withVariable("usage_percentage", usagePercentage)
+        .withVariable("usage_level", usageLevel.name())
     );
+  }
+
+  @Override
+  public int getTotalCapacity() {
+    return inventorySize;
   }
 }

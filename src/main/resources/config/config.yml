@@ -227,7 +227,7 @@ capacityDisplay:
           <&8>➥ <&e>Rechtsklick <&7>Springe zur ersten Seite<br/>
           {spacer}
     searchDetails:
-      slots: 'last_slot - 4'
+      slots: 'last_slot - 6'
       type: OAK_SIGN
       name: |
         <reset>
@@ -264,22 +264,36 @@ capacityDisplay:
           <&8>➥ <&e>Linksklick <&7>Navigiere zur nächsten Seite<br/>
           <&8>➥ <&e>Rechtsklick <&7>Springe zur letzten Seite<br/>
           {spacer}
-    predicateRepresentative:
-      type: |
-        <container *if="usage_percentage eq 0">LIGHT_GRAY_CONCRETE</container>
-        <container *else-if="usage_percentage < 33">GREEN_CONCRETE</container>
-        <container *else-if="usage_percentage < 66">YELLOW_CONCRETE</container>
-        <container *else-if="usage_percentage < 99">ORANGE_CONCRETE</container>
-        <container *else>RED_CONCRETE</container>
+    sorting:
+      slots: 'last_slot - 2'
+      type: COMPARATOR
       name: |
         <reset>
-          <&8>»<space/>
-        <container *if="usage_percentage eq 0"><&7>Keine Benutzung</container>
-          <container *else-if="usage_percentage < 33"><&a>Mäßige Benutzung</container>
-          <container *else-if="usage_percentage < 66"><&e>Häufige Benutzung</container>
-          <container *else-if="usage_percentage < 99"><&6>Starke Benutzung</container>
-          <container *else><&c>Vollständig Ausgelastet</container>
-          <space/><&8>«
+          <&8>» <&6>Sortierung <&8>«
+      lore: |
+        <reset>
+          <br/>
+          {lut.spacer}<br/>
+          <container
+            *for-sorting="sorting_selections"
+            *for-separator={<br/>}
+            *let-criterion="lut.sorting_criteria[sorting.criterion] ?? sorting.criterion"
+            *let-renderer="lut.sorting_selection[sorting.selection] ?? sorting.selection"
+          >
+            <&8><&e *use="sorting.active">➥ <container [renderer] />
+          </container>
+          <br/>
+          {lut.spacer}<br/>
+          <&8>➥ <&e>Werfen <&7>Kriterium auswählen<br/>
+          <&8>➥ <&e>Linksklick <&7>Sortierrichtung ändern<br/>
+          <&8>➥ <&e>Alle werfen <&7>Nach unten verschieben<br/>
+          <&8>➥ <&e>Rechtsklick <&7>Auswahlen zurücksetzen<br/>
+          {lut.spacer}
+    predicateRepresentative:
+      type: '{lut.usage_level[usage_level].material}'
+      name: |
+        <reset>
+          <&8>» {lut.usage_level[usage_level].name} <&8>«
       lore: |
         <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
@@ -349,6 +363,30 @@ cLut:
     TELEPORT_TO_CONTAINER: 'Zum Behälter teleportieren'
     MOVE_TO_INVENTORY: 'Ins Inventar bewegen'
     OPEN_CONTAINER: 'Behälter öffnen'
+  sorting_criteria:
+    USAGE_LEVEL: 'Stufe der Benutzung'
+    USAGE_PERCENTAGE: 'Benutzung in Prozent'
+    TOTAL_CAPACITY: 'Kapazität'
+  sorting_selection:
+    ASCENDING: '<&a>+ {criterion}'
+    DESCENDING: '<&c>- {criterion}'
+    INACTIVE: '<&7>/ <&m>{criterion}'
+  usage_level:
+    NO_USAGE:
+      name: '<&7>Keine Benutzung'
+      material: 'LIGHT_GRAY_CONCRETE'
+    MODERATE_USAGE:
+      name: '<&a>Mäßige Benutzung'
+      material: 'GREEN_CONCRETE'
+    MEDIUM_USAGE:
+      name: '<&e>Häufige Benutzung'
+      material: 'YELLOW_CONCRETE'
+    HIGH_USAGE:
+      name: '<&6>Starke Benutzung'
+      material: 'ORANGE_CONCRETE'
+    FULL_USAGE:
+      name: '<&c>Vollständig Ausgelastet'
+      material: 'RED_CONCRETE'
 
 # File-global scalar lookup-table
 sLut:
