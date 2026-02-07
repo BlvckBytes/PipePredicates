@@ -2,7 +2,6 @@ package me.blvckbytes.craft_book_pipe_predicates.search;
 
 import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
 import me.blvckbytes.item_predicate_parser.predicate.ComparisonFlag;
-import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.LabelPredicate;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -71,31 +70,32 @@ public class SearchedInventory {
     return allLabelValues;
   }
 
-  public boolean matches(PredicateAndLabels predicateAndLabels) {
-    if (!predicateAndLabels.labels.isEmpty() && predicateAndLabels.labels.stream().noneMatch(this::isLabelled))
-      return false;
+  public boolean isLabelled(PredicateAndLabels predicateAndLabels) {
+    if (predicateAndLabels.labels.isEmpty())
+      return true;
 
-    return predicateAndLabels.itemPredicate == null || matchesPredicate(predicateAndLabels.itemPredicate);
-  }
-
-  private boolean isLabelled(LabelPredicate label) {
     if (allLabels == null)
       return false;
 
-    for (var currentLabel : allLabels) {
-      if (currentLabel.containsOrEqualsPredicate(label, EnumSet.of(ComparisonFlag.LABEL_PREDICATE__USE_MATCHER)))
-        return true;
+    for (var predicateLabel : predicateAndLabels.labels) {
+      for (var currentLabel : allLabels) {
+        if (currentLabel.containsOrEqualsPredicate(predicateLabel, EnumSet.of(ComparisonFlag.LABEL_PREDICATE__USE_MATCHER)))
+          return true;
+      }
     }
 
     return false;
   }
 
-  private boolean matchesPredicate(ItemPredicate predicate) {
+  public boolean containsOrEqualsPredicate(PredicateAndLabels predicateAndLabels) {
+    if (predicateAndLabels.itemPredicate == null)
+      return true;
+
     for (var activePredicate : activePredicatesInOrder) {
       if (activePredicate.itemPredicate == null)
         continue;
 
-      if (activePredicate.itemPredicate.containsOrEqualsPredicate(predicate, EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES)))
+      if (activePredicate.itemPredicate.containsOrEqualsPredicate(predicateAndLabels.itemPredicate, EnumSet.of(ComparisonFlag.MATERIAL_PREDICATE__INTERSECTION_SUFFICES)))
         return true;
     }
 

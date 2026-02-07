@@ -212,8 +212,7 @@ public class SearchDisplay extends Display<SearchDisplayData> {
     if (displayData.backToDisplay() != null)
       config.rootSection.searchDisplay.items.backToCollectionsButton.renderInto(inventory, environment);
 
-    else if (displayData.predicateString() != null)
-      config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, environment);
+    config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, environment);
   }
 
   @Override
@@ -223,7 +222,9 @@ public class SearchDisplay extends Display<SearchDisplayData> {
 
   private InterpretationEnvironment makeEnvironment() {
     var environment = config.rootSection.searchDisplay.inventoryEnvironment.copy()
-      .withVariable("predicate", this.displayData.predicateString())
+      .withVariable("predicate", this.displayData.getQueryPredicateString())
+      .withVariable("predicate_labels", this.displayData.getQueryPredicateLabels())
+      .withVariable("encountered_labels", this.displayData.encounteredLabelValues())
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages)
       .withVariable("is_floodgate", isFloodgate);

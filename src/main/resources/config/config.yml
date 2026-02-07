@@ -116,7 +116,23 @@ searchDisplay:
       lore: |
         <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
-          <&8>♦ <&7>Prädikat: <&e>{predicate}<br/>
+          <&8>♦ <&7>Angegebenes Prädikat:<space/>
+          <container *if="predicate">
+            <&e>{predicate}
+          </container>
+          <container *else>
+            <&7>/
+          </container>
+          <br/>
+          <&8>♦ <&7>Angegebene Label:<space/>
+          <container *if="len(predicate_labels) > 0">
+            <&e *for-label="predicate_labels" *for-separator={<&7>,<space/>}>{label}</>
+          </container>
+          <container *else>
+            <&7>/
+          </container>
+          <br/>
+          <container +let-title="Verfügbare Label:" *let-labels="encountered_labels" [lut.label_line] /><br/>
           {spacer}
     backToCollectionsButton:
       slots: 'last_slot - 4'

@@ -8,7 +8,6 @@ import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
 import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
-import me.blvckbytes.craft_book_pipe_predicates.PredicateAndLanguage;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.capacity.CapacityInfo;
@@ -69,19 +68,20 @@ public class PipeSearchHandler implements Listener {
     this.enumerationSessionByPlayerId = new HashMap<>();
   }
 
-  public TriState handleSearch(Player player, Block origin, @Nullable PredicateAndLanguage query) {
+  public TriState handleSearch(Player player, Block origin, @Nullable ItemPredicate predicate) {
     return handleEnumeration(player, () -> (
       new SearchSession(
         origin, pipesMechanic, plugin,
         predicateRegistry,
-        EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES),
+        // Ensure that all signs are loaded and cached within the piston-predicate-registry for later access
+        EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.LOAD_PISTON_SIGNS),
         session -> handleEnumerationWarmup(session, player),
-        session -> handleSearchCompletion(session, player, query)
+        session -> handleSearchCompletion(session, player, predicate)
       )
     ));
   }
 
-  private void handleSearchCompletion(SearchSession session, Player player, @Nullable PredicateAndLanguage query) {
+  private void handleSearchCompletion(SearchSession session, Player player, @Nullable ItemPredicate predicate) {
     enumerationSessionByPlayerId.remove(player.getUniqueId());
 
     if (!session.didEncounterPipeBlocks())
@@ -91,15 +91,21 @@ public class PipeSearchHandler implements Listener {
       return;
 
     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-      var predicateString = query == null ? "/" : PlainStringifier.stringify(query.predicate(), true);
-
       var matches = new ArrayList<ItemAndSlot>();
 
       var resultCounter = 0;
 
-      // TODO: Support searching for labels
+      var query = PredicateAndLabels.of(predicate);
+      var encounteredLabelValues = new CaseInsensitiveSet();
 
       for (var searchedInventory : session.getSearchedInventories()) {
+        encounteredLabelValues.addAll(searchedInventory.getLabelValues());
+
+        if (query != null) {
+          if (!searchedInventory.isLabelled(query))
+            continue;
+        }
+
         var blockContents = searchedInventory.inventory.getStorageContents();
 
         for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
@@ -110,7 +116,7 @@ public class PipeSearchHandler implements Listener {
 
           ++resultCounter;
 
-          if (query != null && !query.predicate().test(item))
+          if (predicate != null && !predicate.test(item))
             continue;
 
           matches.add(new ItemAndSlot(item, searchedInventory.block, slotIndex + searchedInventory.slotOffset));
@@ -121,7 +127,7 @@ public class PipeSearchHandler implements Listener {
       var totalContainerCount = session.forEachContainerCountAndGetSum((material, amount) -> containerCounts.add(new ContainerCount(material, amount)));
 
       var environment = new InterpretationEnvironment()
-        .withVariable("predicate", predicateString)
+        .withVariable("predicate", predicate == null ? "/" : PlainStringifier.stringify(predicate, true))
         .withVariable("item_count", resultCounter)
         .withVariable("total_container_count", totalContainerCount)
         .withVariable("container_counts", containerCounts)
@@ -140,7 +146,7 @@ public class PipeSearchHandler implements Listener {
       // believe that there's not much of a need for the individual screen anymore.
       var displayData = ItemCollectionEntry.collectEntries(matches);
 
-      searchDisplayHandler.show(player, new SearchDisplayData(predicateString, displayData, null));
+      searchDisplayHandler.show(player, new SearchDisplayData(query, encounteredLabelValues, displayData, null));
     });
   }
 
@@ -176,7 +182,7 @@ public class PipeSearchHandler implements Listener {
         encounteredLabelValues.addAll(searchedInventory.getLabelValues());
 
         if (query != null) {
-          if (!searchedInventory.matches(query))
+          if (!searchedInventory.isLabelled(query) || !searchedInventory.containsOrEqualsPredicate(query))
             continue;
         }
 

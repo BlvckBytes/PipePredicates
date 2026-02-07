@@ -159,7 +159,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
 
   private void handleCollectionAction(Player player, SearchDisplay display, CollectionAction action, ItemCollectionEntry collectionEntry) {
     if (action == CollectionAction.SHOW_STACKS) {
-      show(player, new SearchDisplayData(null, collectionEntry.getMembersAsEntries(), display));
+      show(player, new SearchDisplayData(display.displayData.query(), display.displayData.encounteredLabelValues(), collectionEntry.getMembersAsEntries(), display));
       return;
     }
 

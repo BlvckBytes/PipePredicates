@@ -233,7 +233,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
-      var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage);
+      var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage == null ? null : predicateAndLanguage.predicate());
 
       if (searchResult == TriState.FALSE) {
         config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
