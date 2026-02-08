@@ -86,6 +86,22 @@ playerMessages:
   commandPipePredicateVisualizeClearedPriorVisualization: '{lut.prefix} <&7>Die <&6>vorherige Visualisierung <&7>wurde automatisch <&6>entfernt<&7>!'
   commandPipePredicateVisualizeClearedVisualization: '{lut.prefix} <&7>Die angezeigte Visualisierung wurde <&a>entfernt<&7>.'
   missingPermissionPipePredicateCommand: '{lut.prefix} <&c>Dir fehlen die nötigen Rechte um diesen Befehl zu benutzen!'
+  commandPipePredicateLocatePredicateEmptyQuery: '{lut.prefix} <&c>Bitte gib eine Zeichenkette an, nach der innerhalb von Prädikaten gesucht werden soll!'
+  commandPipePredicateLocatePredicateNoMatches: '{lut.prefix} <&c>Die Suche <&4>{query} <&c>ergab <&4>keine Ergebnisse<&c>!'
+  commandPipePredicateLocatePredicateMatches: |
+    {lut.prefix} <&7>Die Suche <&a>{query} <&7>ergab <&a>{len(results)} Übereinstimmung(en)<&7>:
+    <br/>
+    <container *for-result="results" *for-separator={<br/>}>
+      <&7>- <&a *for-part="result.predicate split query" *for-separator={<&2>{query}}>{part}</> <&7>(bei<space/>
+      <hover-text
+        *let-command=`tppos {result.x} {result.y} {result.z}`
+        value={<&a>Klicke, um /{command} auszuführen!}
+      >
+        <run-command value=`{command}`>
+          <u><&a>{result.x} {result.y} {result.z}
+      </hover-text>
+      <&7>)
+    </container>
 
 searchDisplay:
   title: '<&8>Pipesuche <&e>{current_page}<&8>/<&e>{number_pages}'

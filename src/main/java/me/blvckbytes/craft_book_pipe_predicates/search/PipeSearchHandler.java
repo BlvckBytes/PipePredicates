@@ -68,6 +68,51 @@ public class PipeSearchHandler implements Listener {
     this.enumerationSessionByPlayerId = new HashMap<>();
   }
 
+  public TriState handleLocatePredicate(Player player, Block origin, String containedString) {
+    return handleEnumeration(player, () -> (
+      new PredicateLocateSession(
+        origin, pipesMechanic, plugin,
+        predicateRegistry,
+        session -> handleEnumerationWarmup(session, player),
+        session -> handleLocatePredicateCompletion(session, player, containedString)
+      )
+    ));
+  }
+
+  private void handleLocatePredicateCompletion(PredicateLocateSession session, Player player, String containedString) {
+    enumerationSessionByPlayerId.remove(player.getUniqueId());
+
+    if (!session.didEncounterPipeBlocks())
+      return;
+
+    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+      var containedStringLower = containedString.toLowerCase();
+      var results = new ArrayList<PredicateAndPiston>();
+
+      for (var resultItem : session.result) {
+        if (resultItem.predicateString.toLowerCase().contains(containedStringLower))
+          results.add(resultItem);
+      }
+
+      if (results.isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateLocatePredicateNoMatches.sendMessage(
+          player,
+          new InterpretationEnvironment()
+            .withVariable("query", containedString)
+        );
+
+        return;
+      }
+
+      config.rootSection.playerMessages.commandPipePredicateLocatePredicateMatches.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("query", containedString)
+          .withVariable("results", results)
+      );
+    });
+  }
+
   public TriState handleSearch(Player player, Block origin, @Nullable ItemPredicate predicate) {
     return handleEnumeration(player, () -> (
       new SearchSession(
@@ -155,8 +200,8 @@ public class PipeSearchHandler implements Listener {
       new SearchSession(
         origin, pipesMechanic, plugin,
         predicateRegistry,
-        // Ensure that all signs are loaded and cached within the piston-predicate-registry for later access
-        EnumSet.of(EnumerationBehavior.IGNORE_CHECK_VALVES, EnumerationBehavior.LOAD_PISTON_SIGNS),
+        // Ensure that all signs are loaded and cached within the piston-predicate-registry for later access.
+        EnumSet.of(EnumerationBehavior.LOAD_PISTON_SIGNS, EnumerationBehavior.DEPTH_FIRST),
         session -> handleEnumerationWarmup(session, player),
         session -> handleCapacityCalculationCompletion(session, player, containedPredicate)
       )

@@ -62,6 +62,9 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateVisualizeClearedPriorVisualization;
   public ComponentMarkup commandPipePredicateVisualizeClearedVisualization;
   public ComponentMarkup missingPermissionPipePredicateCommand;
+  public ComponentMarkup commandPipePredicateLocatePredicateEmptyQuery;
+  public ComponentMarkup commandPipePredicateLocatePredicateMatches;
+  public ComponentMarkup commandPipePredicateLocatePredicateNoMatches;
 
   public PlayerMessagesSection(InterpretationEnvironment baseEnvironment, InterpreterLogger interpreterLogger) {
     super(baseEnvironment, interpreterLogger);

@@ -98,9 +98,6 @@ public class SearchSession extends EnumerationSession<SearchSession> {
 
   @Override
   protected EnumerationDecision onPiston(Block block, int cachedBlock) {
-    // TODO: This does not check for whether we are walking in the opposite direction of a check-valve, which
-    //       then completely changes the algorithm; in that case, we need to keep a list of inventories without
-    //       a predicate and set it once we encounter the first check-valve that points in our direction while walking.
     lastPredicate = PredicateAndLabels.of(predicateRegistry.getPredicateForPiston(block));
 
     if (handleBlock(block.getRelative(CachedBlock.getFacing(cachedBlock)), EnumSet.noneOf(HandleFlag.class)))

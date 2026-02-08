@@ -216,6 +216,36 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
+    if (normalizedAction.constant == CommandAction.LOCATE_PREDICATES) {
+      var containedBuilder = new StringJoiner(" ");
+
+      for (var argsIndex = 1; argsIndex < args.length; ++argsIndex)
+        containedBuilder.add(args[argsIndex]);
+
+      var containedString = containedBuilder.toString();
+
+      if (containedString.isBlank()) {
+        config.rootSection.playerMessages.commandPipePredicateLocatePredicateEmptyQuery.sendMessage(player);
+        return true;
+      }
+
+      var targetBlock = resolveFacedTargetBlock(player);
+
+      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
+        return true;
+      }
+
+      var searchResult = pipeSearchHandler.handleLocatePredicate(player, targetBlock, containedString);
+
+      if (searchResult == TriState.FALSE) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
+        return true;
+      }
+
+      return true;
+    }
+
     if (normalizedAction.constant == CommandAction.SEARCH) {
       PredicateAndLanguage predicateAndLanguage = null;
 
