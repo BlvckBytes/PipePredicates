@@ -67,6 +67,7 @@ playerMessages:
     {lut.prefix} <&c>Die Suche <&4>{predicate} <&c>ergab bei <&4>{item_count} Items <&c>keine Ergebnisse (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>, <u><hover-text value={
       <&c *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate key=`{entry.translation_key}`/>
     }><&4>{total_container_count} Behälter</u><&c>)!
+  commandPipePredicateSearchLabelsAreUnsupported: '{lut.prefix} <&c>Label werden (aktuell) aus internen Gründen nicht bei der Suchfunktion unterstützt!'
   commandPipePredicateSearchShowingResults: |
     {lut.prefix} <&7>Die Suche <&a>{predicate} <&7>lieferte bei insgesamt <&a>{item_count} <&7>Items <&a>{match_count} <&7>Übereinstimmungen (<&a>{piston_count} Kolben<&7>, <&a>{tube_count} Rohrblöcke<&7>, <u><hover-text value={
       <&a *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate key=`{entry.translation_key}`/>
@@ -132,23 +133,7 @@ searchDisplay:
       lore: |
         <reset *let-spacer="is_floodgate then lut.spacer_bedrock else lut.spacer">
           {spacer}<br/>
-          <&8>♦ <&7>Angegebenes Prädikat:<space/>
-          <container *if="predicate">
-            <&e>{predicate}
-          </container>
-          <container *else>
-            <&7>/
-          </container>
-          <br/>
-          <&8>♦ <&7>Angegebene Label:<space/>
-          <container *if="len(predicate_labels) > 0">
-            <&e *for-label="predicate_labels" *for-separator={<&7>,<space/>}>{label}</>
-          </container>
-          <container *else>
-            <&7>/
-          </container>
-          <br/>
-          <container +let-title="Verfügbare Label:" *let-labels="encountered_labels" [lut.label_line] /><br/>
+          <&8>♦ <&7>Angegebenes Prädikat: <&e>{predicate}<br/>
           {spacer}
     backToCollectionsButton:
       slots: 'last_slot - 4'

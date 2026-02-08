@@ -6,6 +6,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.AsyncTaskQueue;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.Display;
 import me.blvckbytes.craft_book_pipe_predicates.search.display.EnumEntry;
+import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -212,7 +213,8 @@ public class SearchDisplay extends Display<SearchDisplayData> {
     if (displayData.backToDisplay() != null)
       config.rootSection.searchDisplay.items.backToCollectionsButton.renderInto(inventory, environment);
 
-    config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, environment);
+    if (displayData.predicate() != null)
+      config.rootSection.searchDisplay.items.searchDetails.renderInto(inventory, environment);
   }
 
   @Override
@@ -222,9 +224,7 @@ public class SearchDisplay extends Display<SearchDisplayData> {
 
   private InterpretationEnvironment makeEnvironment() {
     var environment = config.rootSection.searchDisplay.inventoryEnvironment.copy()
-      .withVariable("predicate", this.displayData.getQueryPredicateString())
-      .withVariable("predicate_labels", this.displayData.getQueryPredicateLabels())
-      .withVariable("encountered_labels", this.displayData.encounteredLabelValues())
+      .withVariable("predicate", this.displayData.predicate() == null ? null : PlainStringifier.stringify(this.displayData.predicate(), true))
       .withVariable("current_page", this.currentPage)
       .withVariable("number_pages", this.numberOfPages)
       .withVariable("is_floodgate", isFloodgate);

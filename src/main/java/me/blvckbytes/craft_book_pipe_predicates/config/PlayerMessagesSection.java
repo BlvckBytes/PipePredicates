@@ -46,6 +46,7 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateSearchNoContainers;
   public ComponentMarkup commandPipePredicateSearchActionbarWarmup;
   public ComponentMarkup commandPipePredicateSearchNoResults;
+  public ComponentMarkup commandPipePredicateSearchLabelsAreUnsupported;
   public ComponentMarkup commandPipePredicateSearchShowingResults;
   public ComponentMarkup commandPipePredicateSearchGetItemContainerAbsent;
   public ComponentMarkup commandPipePredicateSearchGetItemContainerSizeChanged;

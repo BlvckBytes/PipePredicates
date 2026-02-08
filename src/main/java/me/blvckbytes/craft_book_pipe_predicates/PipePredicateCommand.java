@@ -5,6 +5,7 @@ import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvir
 import com.sk89q.craftbook.mechanics.pipe.CachedBlock;
 import com.sk89q.craftbook.mechanics.pipe.InvalidateCachedBlockEvent;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
+import me.blvckbytes.craft_book_pipe_predicates.search.PredicateAndLabels;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
@@ -247,13 +248,15 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
 
     if (normalizedAction.constant == CommandAction.SEARCH) {
-      PredicateAndLanguage predicateAndLanguage = null;
+      ItemPredicate predicate = null;
 
       if (args.length > 1) {
-        predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
 
         if (predicateAndLanguage == null)
           return true;
+
+        predicate = predicateAndLanguage.predicate();
       }
 
       var targetBlock = resolveFacedTargetBlock(player);
@@ -263,7 +266,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
         return true;
       }
 
-      var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicateAndLanguage == null ? null : predicateAndLanguage.predicate());
+      var predicateAndLabels = PredicateAndLabels.of(predicate);
+
+      if (predicateAndLabels != null && !predicateAndLabels.labels.isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateSearchLabelsAreUnsupported.sendMessage(player);
+        return true;
+      }
+
+      var searchResult = pipeSearchHandler.handleSearch(player, targetBlock, predicate);
 
       if (searchResult == TriState.FALSE) {
         config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);

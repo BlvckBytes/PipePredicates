@@ -140,17 +140,7 @@ public class PipeSearchHandler implements Listener {
 
       var resultCounter = 0;
 
-      var query = PredicateAndLabels.of(predicate);
-      var encounteredLabelValues = new CaseInsensitiveSet();
-
       for (var searchedInventory : session.getSearchedInventories()) {
-        encounteredLabelValues.addAll(searchedInventory.getLabelValues());
-
-        if (query != null) {
-          if (!searchedInventory.isLabelled(query))
-            continue;
-        }
-
         var blockContents = searchedInventory.inventory.getStorageContents();
 
         for (var slotIndex = 0; slotIndex < blockContents.length; ++slotIndex) {
@@ -191,7 +181,7 @@ public class PipeSearchHandler implements Listener {
       // believe that there's not much of a need for the individual screen anymore.
       var displayData = ItemCollectionEntry.collectEntries(matches);
 
-      searchDisplayHandler.show(player, new SearchDisplayData(query, encounteredLabelValues, displayData, null));
+      searchDisplayHandler.show(player, new SearchDisplayData(predicate, displayData, null));
     });
   }
 
