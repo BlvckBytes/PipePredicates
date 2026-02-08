@@ -71,7 +71,12 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       Bukkit.getServer().getPluginManager().registerEvents(cubeRenderer, this);
 
-      var pipeSearchHandler = new PipeSearchHandler(pipeEventHandler, searchDisplayHandler, capacityDisplayHandler, cubeRenderer, config, this);
+      var pipeTeleportCommandHandler = new PipeTeleportCommand(config);
+      Bukkit.getServer().getPluginManager().registerEvents(pipeTeleportCommandHandler, this);
+      var pipeTeleportCommand = Objects.requireNonNull(getCommand("pipeteleport"));
+      pipeTeleportCommand.setExecutor(pipeTeleportCommandHandler);
+
+      var pipeSearchHandler = new PipeSearchHandler(pipeTeleportCommandHandler, pipeEventHandler, searchDisplayHandler, capacityDisplayHandler, cubeRenderer, config, this);
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 

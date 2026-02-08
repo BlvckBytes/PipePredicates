@@ -8,6 +8,7 @@ softdepend: [floodgate]
 commands:
   pipepredicate:
   pipesearch:
+  pipeteleport:
 permissions:
   craftbookpipepredicates.command.pipepredicate.read:
     description: 'Read predicates on pipe outputs'

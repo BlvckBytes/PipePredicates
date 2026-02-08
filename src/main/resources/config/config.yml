@@ -90,19 +90,20 @@ playerMessages:
   commandPipePredicateLocatePredicateEmptyQuery: '{lut.prefix} <&c>Bitte gib eine Zeichenkette an, nach der innerhalb von Prädikaten gesucht werden soll!'
   commandPipePredicateLocatePredicateNoMatches: '{lut.prefix} <&c>Die Suche <&4>{query} <&c>ergab <&4>keine Ergebnisse<&c>!'
   commandPipePredicateLocatePredicateMatches: |
-    {lut.prefix} <&7>Die Suche <&a>{query} <&7>ergab <&a>{len(results)} Übereinstimmung(en)<&7>:
-    <br/>
+    {lut.spacer}<br/>
     <container *for-result="results" *for-separator={<br/>}>
       <&7>- <&a *for-part="result.predicate split query" *for-separator={<&2>{query}}>{part}</> <&7>(bei<space/>
-      <hover-text
-        *let-command=`tppos {result.x} {result.y} {result.z}`
-        value={<&a>Klicke, um /{command} auszuführen!}
-      >
-        <run-command value=`{command}`>
+      <hover-text value={<&a>Klicke, um dich zu teleportieren!}>
+        <run-command value=`pipeteleport {result.x} {result.y} {result.z}`>
           <u><&a>{result.x} {result.y} {result.z}
       </hover-text>
       <&7>)
     </container>
+    <br/>
+    {lut.spacer}<br/>
+    {lut.prefix} <&7>Die Suche <&a>{query} <&7>ergab die o.g. <&a>{len(results)} Übereinstimmung(en)<&7>.
+  commandPipeTeleportExpired: '{lut.prefix} <&c>Der temporäre Befehl zur Teleportation nach <&4>{x} {y} {z} <&c>ist abgelaufen; versuche ihn erneut ausstellen zu lassen!'
+  commandPipeTeleportTeleported: '{lut.prefix} <&7>Du wurdest zu den Koordinaten <&a>{x} {y} {z} <&7>teleportiert.'
 
 searchDisplay:
   title: '<&8>Pipesuche <&e>{current_page}<&8>/<&e>{number_pages}'

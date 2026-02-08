@@ -7,6 +7,7 @@ import com.sk89q.craftbook.mechanics.pipe.EnumerationBehavior;
 import com.sk89q.craftbook.mechanics.pipe.Pipes;
 import com.sk89q.craftbook.mechanics.pipe.TubeColor;
 import me.blvckbytes.craft_book_pipe_predicates.CaseInsensitiveSet;
+import me.blvckbytes.craft_book_pipe_predicates.PipeTeleportCommand;
 import me.blvckbytes.craft_book_pipe_predicates.PistonPredicateRegistry;
 import me.blvckbytes.craft_book_pipe_predicates.config.ContainerCount;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -36,6 +37,7 @@ import java.util.function.Supplier;
 
 public class PipeSearchHandler implements Listener {
 
+  private final PipeTeleportCommand teleportCommand;
   private final PistonPredicateRegistry predicateRegistry;
   private final SearchDisplayHandler searchDisplayHandler;
   private final CapacityDisplayHandler capacityDisplayHandler;
@@ -47,6 +49,7 @@ public class PipeSearchHandler implements Listener {
   private final Map<UUID, EnumerationSession<?>> enumerationSessionByPlayerId;
 
   public PipeSearchHandler(
+    PipeTeleportCommand teleportCommand,
     PistonPredicateRegistry predicateRegistry,
     SearchDisplayHandler searchDisplayHandler,
     CapacityDisplayHandler capacityDisplayHandler,
@@ -54,6 +57,7 @@ public class PipeSearchHandler implements Listener {
     ConfigKeeper<MainSection> config,
     Plugin plugin
   ) {
+    this.teleportCommand = teleportCommand;
     this.predicateRegistry = predicateRegistry;
     this.searchDisplayHandler = searchDisplayHandler;
     this.capacityDisplayHandler = capacityDisplayHandler;
@@ -90,8 +94,10 @@ public class PipeSearchHandler implements Listener {
       var results = new ArrayList<PredicateAndPiston>();
 
       for (var resultItem : session.result) {
-        if (resultItem.predicateString.toLowerCase().contains(containedStringLower))
+        if (resultItem.predicateString.toLowerCase().contains(containedStringLower)) {
+          teleportCommand.temporarilyAllow(player, resultItem.pistonBlock.getLocation());
           results.add(resultItem);
+        }
       }
 
       if (results.isEmpty()) {
