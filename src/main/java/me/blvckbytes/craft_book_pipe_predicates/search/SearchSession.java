@@ -137,7 +137,9 @@ public class SearchSession extends EnumerationSession<SearchSession> {
   }
 
   private boolean handleBlock(Block block, EnumSet<HandleFlag> flags) {
-    if (!visitedBlocks.add(CompactId.computeWorldlessBlockId(block)))
+    var blockId = CompactId.computeWorldlessBlockId(block);
+
+    if (visitedBlocks.contains(blockId))
       return false;
 
     ensureChunkIsLoaded(block, () -> {
@@ -147,14 +149,19 @@ public class SearchSession extends EnumerationSession<SearchSession> {
       var blockData = block.getBlockData();
 
       if (blockData.getMaterial() == Material.HOPPER) {
+        visitedBlocks.add(blockId);
         var hopperFacing = ((Directional) blockData).getFacing();
         handleBlock(block.getRelative(hopperFacing), EnumSet.noneOf(HandleFlag.class));
       }
 
+      // Do not add block to visited-set if we only looked for hoppers but encountered another type - otherwise,
+      // that block will remain unscanned and thus unaccounted for in the list of results.
       else if (flags.contains(HandleFlag.CHECK_ONLY_FOR_HOPPERS)) {
         callIfDone();
         return;
       }
+
+      visitedBlocks.add(blockId);
 
       if (block.getState(false) instanceof Container container)
         handleContainer(block, blockData, container, flags);
