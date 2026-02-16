@@ -148,7 +148,7 @@ public class PipeEventHandler implements Listener, PistonPredicateRegistry {
   }
 
   @EventHandler
-  public void onPipeFilter(PipeFilterEvent event) {
+  public void onPipePredicate(PipePredicateEvent event) {
     var worldId = event.getBlock().getWorld().getUID();
     var signCache = cachedSignByPistonIdByWorldId.get(worldId);
 
@@ -157,16 +157,7 @@ public class PipeEventHandler implements Listener, PistonPredicateRegistry {
 
     var cachedSign = signCache.get(CompactId.computeWorldlessBlockId(event.getBlock()));
 
-    if (cachedSign == null || cachedSign.predicate == null)
-      return;
-
-    var result = new ArrayList<ItemStack>();
-
-    for (var item : event.getItems()) {
-      if (cachedSign.predicate.test(item))
-        result.add(item);
-    }
-
-    event.setFilteredItems(result);
+    if (cachedSign != null && cachedSign.predicate != null)
+      event.setPredicate(cachedSign.predicate);
   }
 }

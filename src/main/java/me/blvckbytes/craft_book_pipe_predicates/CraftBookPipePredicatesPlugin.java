@@ -134,9 +134,9 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       throw new IllegalStateException("Expected there to be a loaded instance of CraftBook present");
 
     try {
-      Class.forName("com.sk89q.craftbook.mechanics.pipe.PipeFilterEvent");
+      Class.forName("com.sk89q.craftbook.mechanics.pipe.PipePredicateEvent");
     } catch (Throwable e) {
-      throw new IllegalStateException("Expected the PipeFilterEvent to be implemented; your version of CraftBook is likely too outdated.");
+      throw new IllegalStateException("Expected the PipePredicateEvent to be implemented; we only support custom forks with it being available!");
     }
   }
 }
