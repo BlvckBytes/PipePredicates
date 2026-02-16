@@ -193,6 +193,7 @@ public class SearchDisplayHandler extends DisplayHandler<SearchDisplay, SearchDi
     );
   }
 
+  // TODO: Move four stacks will get four partial stacks => in the worst case less than a full stack
   private void handleMovingItems(Player player, SearchDisplay display, ItemCollectionEntry collectionEntry, int maxMoveCount) {
     var totalHandOutAmount = 0;
     var ranOutOfSpace = false;
