@@ -9,10 +9,9 @@ import me.blvckbytes.craft_book_pipe_predicates.search.PredicateAndLabels;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.item_predicate_parser.PredicateHelper;
+import me.blvckbytes.item_predicate_parser.event.*;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
-import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
-import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import me.blvckbytes.syllables_matcher.TriState;
 import net.kyori.adventure.text.Component;
@@ -53,8 +52,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PipePredicateCommand implements CommandExecutor, TabCompleter, Listener {
-
-  private record SignAndPiston(@Nullable Sign sign, Block piston) {}
 
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
@@ -192,12 +189,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       ItemPredicate containedPredicate = null;
 
       if (args.length > 1) {
-        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
 
         if (predicateAndLanguage == null)
           return true;
 
-        containedPredicate = predicateAndLanguage.predicate();
+        containedPredicate = predicateAndLanguage.predicate;
       }
 
       var targetBlock = resolveFacedTargetBlock(player);
@@ -251,12 +248,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       ItemPredicate predicate = null;
 
       if (args.length > 1) {
-        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, true);
+        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args);
 
         if (predicateAndLanguage == null)
           return true;
 
-        predicate = predicateAndLanguage.predicate();
+        predicate = predicateAndLanguage.predicate;
       }
 
       var targetBlock = resolveFacedTargetBlock(player);
@@ -283,39 +280,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    switch (normalizedAction.constant) {
-      case REMOVE -> {
-        config.rootSection.playerMessages.commandPipePredicateRemoveInit.sendMessage(sender);
-
-        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, null));
-        return true;
-      }
-
-      case GET -> {
-        config.rootSection.playerMessages.commandPipePredicateGetInit.sendMessage(sender);
-
-        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateGetSession(player));
-        return true;
-      }
-
-      case SET, SET_LANGUAGE -> {
-        var predicateAndLanguage = tryParsePredicateAndLanguage(player, args, normalizedAction.constant == CommandAction.SET);
-
-        if (predicateAndLanguage == null)
-          return true;
-
-        config.rootSection.playerMessages.commandPipePredicateSetInit.sendMessage(
-          sender,
-          new InterpretationEnvironment()
-            .withVariable("predicate", PlainStringifier.stringify(predicateAndLanguage.predicate(), true))
-        );
-
-        interactionSessionByPlayerId.put(player.getUniqueId(), new PredicateSetSession(player, predicateAndLanguage));
-        return true;
-      }
-
-      default -> { return true; }
-    }
+    return true;
   }
 
   private Block resolveFacedTargetBlock(Player player) {
@@ -382,37 +347,13 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (normalizedAction == null)
       return null;
 
-    if (
-      normalizedAction.constant != CommandAction.SET
-        && normalizedAction.constant != CommandAction.SEARCH
-        && normalizedAction.constant != CommandAction.CAPACITIES
-        && normalizedAction.constant != CommandAction.SET_LANGUAGE
-    )
+    if (normalizedAction.constant != CommandAction.SEARCH && normalizedAction.constant != CommandAction.CAPACITIES)
       return null;
 
-    TranslationLanguage language;
-    int argsOffset;
-
-    if (normalizedAction.constant == CommandAction.SET_LANGUAGE) {
-      if (args.length == 2)
-        return TranslationLanguage.matcher.createCompletions(args[1]);
-
-      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
-
-      if (languageSelection == null)
-        return null;
-
-      language = languageSelection.constant;
-      argsOffset = 2;
-    }
-
-    else {
-      language = predicateHelper.getSelectedLanguage(player);
-      argsOffset = 1;
-    }
+    var language = predicateHelper.getSelectedLanguage(player);
 
     try {
-      var tokens = predicateHelper.parseTokens(args, argsOffset);
+      var tokens = predicateHelper.parseTokens(args, 1);
       var completions = predicateHelper.createCompletion(language, tokens);
 
       if (completions.expandedPreviewOrError() != null)
@@ -566,6 +507,71 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       event.setCancelled(true);
   }
 
+  @EventHandler
+  public void onPredicateGet(PredicateGetEvent event) {
+    var sign = tryResolveSignFromEventAndAcknowledge(event);
+
+    if (sign == null)
+      return;
+
+    var predicateData = dataHandler.access(sign);
+
+    if (predicateData != null) {
+      if (predicateData.parsedPredicate() != null) {
+        event.setResult(new PredicateAndLanguage(predicateData.parsedPredicate(), predicateData.predicateLanguage()));
+        return;
+      }
+
+      if (predicateData.parseException() != null)
+        event.setError(predicateData.parseException());
+    }
+  }
+
+  @EventHandler
+  public void onPredicateRemove(PredicateRemoveEvent event) {
+    var sign = tryResolveSignFromEventAndAcknowledge(event);
+
+    if (sign == null)
+      return;
+
+    var predicateData = dataHandler.remove(sign);
+
+    if (predicateData != null ) {
+      predicateData.restoreLines(sign);
+
+      if (predicateData.parsedPredicate() != null)
+        event.setRemovedPredicate(new PredicateAndLanguage(predicateData.parsedPredicate(), predicateData.predicateLanguage()));
+
+      Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(sign.getBlock()));
+    }
+  }
+
+  @EventHandler
+  public void onPredicateSet(PredicateSetEvent event) {
+    var sign = tryResolveSignFromEventAndAcknowledge(event);
+
+    if (sign == null)
+      return;
+
+    var oldPredicateData = dataHandler.access(sign);
+    PredicateData newPredicateData;
+
+    if (oldPredicateData == null)
+      newPredicateData = PredicateData.makeInitial(event.getValue().predicate, event.getValue().language, sign);
+    else
+      newPredicateData = PredicateData.makeUpdate(event.getValue().predicate, event.getValue().language, oldPredicateData);
+
+    sign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
+    sign.setLine(1, MarkerConstants.PIPE_MARKER);
+    sign.setLine(2, "");
+    sign.setLine(3, "");
+
+    // This call already saves the sign, so don't invoke saving twice
+    dataHandler.store(newPredicateData, sign);
+
+    Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(sign.getBlock()));
+  }
+
   private boolean handleInteractionSessionAndGetIfCancel(Player player, Block target) {
     var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
 
@@ -575,113 +581,14 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (!interactionSession.allowMultiUse)
       interactionSessionByPlayerId.remove(player.getUniqueId());
 
-    var resolveResult = tryResolvePistonSignFromTargetBlock(player, target);
+    var pistonBlock = BlockUtility.resolvePistonBlock(target);
 
-    if (resolveResult == null)
+    if (pistonBlock == null)
       return true;
-
-    if (interactionSession.requiresSign() && resolveResult.sign() == null) {
-      config.rootSection.playerMessages.commandPipePredicateNoSign.sendMessage(player);
-      return true;
-    }
 
     interactionSession.touchExpiry();
 
-    if (interactionSession instanceof PredicateGetSession) {
-      var pistonSign = Objects.requireNonNull(resolveResult.sign());
-      var predicateData = dataHandler.access(pistonSign);
-
-      if (predicateData == null) {
-        config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player);
-        return true;
-      }
-
-      if (predicateData.parseException() != null) {
-        config.rootSection.playerMessages.commandPipePredicateGetError.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("predicate_error", predicateHelper.createExceptionMessage(predicateData.parseException()))
-        );
-        return true;
-      }
-
-      var predicateLanguageName = TranslationLanguage.matcher.getNormalizedName(predicateData.predicateLanguage());
-      var predicateValue = predicateData.tokensPredicate();
-
-      var setCommand = "/" + config.rootSection.commands.pipePredicate.getShortestNameOrAlias() + " ";
-
-      if (predicateData.predicateLanguage() == predicateHelper.getSelectedLanguage(player)) {
-        setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateValue;
-      }
-      else {
-        setCommand += CommandAction.matcher.getNormalizedName(CommandAction.SET_LANGUAGE) + " " + predicateLanguageName + " " + predicateValue;
-      }
-
-      config.rootSection.playerMessages.commandPipePredicateGetPredicate.sendMessage(
-        player,
-        new InterpretationEnvironment()
-          .withVariable("predicate", predicateValue)
-          .withVariable("predicate_language", predicateLanguageName)
-          .withVariable("set_command", setCommand)
-      );
-
-      return true;
-    }
-
-    if (interactionSession instanceof PredicateSetSession setSession) {
-      var pistonSign = Objects.requireNonNull(resolveResult.sign());
-
-      if (setSession.valueToSet == null) {
-        PredicateData predicateData;
-
-        if ((predicateData = dataHandler.remove(pistonSign)) == null) {
-          config.rootSection.playerMessages.commandPipePredicateNoPredicate.sendMessage(player);
-          return true;
-        }
-
-        predicateData.restoreLines(pistonSign);
-        Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(resolveResult.sign().getBlock()));
-
-        config.rootSection.playerMessages.commandPipePredicateRemoveSuccess.sendMessage(
-          player,
-          new InterpretationEnvironment()
-            .withVariable("predicate", predicateData.tokensPredicate())
-        );
-
-        return true;
-      }
-
-      var predicate = setSession.valueToSet.predicate();
-      var language = setSession.valueToSet.language();
-      var existingPredicateData = dataHandler.access(pistonSign);
-
-      PredicateData newPredicateData;
-
-      if (existingPredicateData != null)
-        newPredicateData = PredicateData.makeUpdate(predicate, language, existingPredicateData);
-      else
-        newPredicateData = PredicateData.makeInitial(predicate, language, pistonSign);
-
-      pistonSign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
-      pistonSign.setLine(1, MarkerConstants.PIPE_MARKER);
-      pistonSign.setLine(2, "");
-      pistonSign.setLine(3, "");
-
-      // This call already saves the sign, so don't invoke saving twice
-      dataHandler.store(newPredicateData, pistonSign);
-      Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(resolveResult.sign().getBlock()));
-
-      config.rootSection.playerMessages.commandPipePredicateSetSuccess.sendMessage(
-        player,
-        new InterpretationEnvironment()
-          .withVariable("predicate", PlainStringifier.stringify(predicate, true))
-      );
-
-      return true;
-    }
-
     if (interactionSession instanceof FrameLockSession lockSession) {
-      var pistonBlock = resolveResult.piston();
       var containerBlock = pistonBlock.getRelative(((Directional) pistonBlock.getBlockData()).getFacing());
 
       var foundUnlockedFrame = new AtomicBoolean();
@@ -736,71 +643,36 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     return true;
   }
 
-  private @Nullable Block tryResolvePistonFromTargetBlock(Player executor, Block target) {
-    var pistonBlock = BlockUtility.resolvePistonBlock(target);
-
-    if (pistonBlock == null) {
-      config.rootSection.playerMessages.commandPipePredicateNoPiston.sendMessage(executor);
-      return null;
-    }
-
-    return pistonBlock;
-  }
-
-  private @Nullable SignAndPiston tryResolvePistonSignFromTargetBlock(Player executor, Block target) {
-    var pistonBlock = tryResolvePistonFromTargetBlock(executor, target);
+  private @Nullable Sign tryResolveSignFromEventAndAcknowledge(PredicateEvent predicateEvent) {
+    var pistonBlock = BlockUtility.resolvePistonBlock(predicateEvent.getBlock());
 
     if (pistonBlock == null)
       return null;
 
-    var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(executor);
+    var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(predicateEvent.getPlayer());
     var pistonSign = BlockUtility.getPistonSign(pistonBlock, allowInitialize);
 
     if (pistonSign == null)
-      return new SignAndPiston(null, pistonBlock);
+      return null;
 
-    if (!pipeEventHandler.canEditSign(executor, pistonSign)) {
-      config.rootSection.playerMessages.commandPipePredicateCannotEditSign.sendMessage(executor);
+    predicateEvent.acknowledge();
+
+    if (!pipeEventHandler.canEditSign(predicateEvent.getPlayer(), pistonSign)) {
+      predicateEvent.setDeniedAccessBlock(pistonSign.getBlock());
       return null;
     }
 
-    return new SignAndPiston(pistonSign, pistonBlock);
+    predicateEvent.setDataHoldingBlock(pistonSign.getBlock());
+
+    return pistonSign;
   }
 
-  private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args, boolean useSelectedLanguage) {
-    int predicateArgsOffset;
-    TranslationLanguage language;
-
-    if (useSelectedLanguage) {
-      language = predicateHelper.getSelectedLanguage(executor);
-      predicateArgsOffset = 1;
-    }
-
-    else {
-      if (args.length < 2) {
-        config.rootSection.playerMessages.commandPipePredicateMissingLanguage.sendMessage(executor);
-        return null;
-      }
-
-      var languageSelection = TranslationLanguage.matcher.matchFirst(args[1]);
-
-      if (languageSelection == null) {
-        config.rootSection.playerMessages.commandPipePredicateUnknownLanguage.sendMessage(
-          executor,
-          new InterpretationEnvironment()
-            .withVariable("input", args[1])
-        );
-        return null;
-      }
-
-      language = languageSelection.constant;
-      predicateArgsOffset = 2;
-    }
-
+  private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
+    var language = predicateHelper.getSelectedLanguage(executor);
     ItemPredicate predicate;
 
     try {
-      var tokens = predicateHelper.parseTokens(args, predicateArgsOffset);
+      var tokens = predicateHelper.parseTokens(args, 1);
       predicate = predicateHelper.parsePredicate(language, tokens);
     } catch (ItemPredicateParseException e) {
       config.rootSection.playerMessages.commandPipePredicatePredicateError.sendMessage(

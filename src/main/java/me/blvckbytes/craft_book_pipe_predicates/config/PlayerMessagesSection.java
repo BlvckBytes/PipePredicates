@@ -9,27 +9,16 @@ public class PlayerMessagesSection extends ConfigSection {
 
   public ComponentMarkup manualEditWhileInPredicateMode;
   public ComponentMarkup commandPipePredicateUsage;
-  public ComponentMarkup commandPipePredicateNoPiston;
-  public ComponentMarkup commandPipePredicateNoSign;
-  public ComponentMarkup commandPipePredicateCannotEditSign;
   public ComponentMarkup commandPipePredicateCannotBuild;
   public ComponentMarkup commandPipePredicateNotLookingAtPipe;
-  public ComponentMarkup commandPipePredicateNoPredicate;
   public ComponentMarkup commandPipePredicatePredicateError;
   public ComponentMarkup commandPipePredicateEmptyPredicate;
-  public ComponentMarkup commandPipePredicateRemoveInit;
-  public ComponentMarkup commandPipePredicateRemoveSuccess;
-  public ComponentMarkup commandPipePredicateSetInit;
-  public ComponentMarkup commandPipePredicateSetSuccess;
   public ComponentMarkup commandPipePredicateMissingLanguage;
   public ComponentMarkup commandPipePredicateUnknownLanguage;
   public ComponentMarkup commandPipePredicateInteractMultiEntered;
   public ComponentMarkup commandPipePredicateInteractMultiExited;
   public ComponentMarkup commandPipePredicateInteractMultiActionBarSignal;
   public ComponentMarkup commandPipePredicateInteractExpired;
-  public ComponentMarkup commandPipePredicateGetInit;
-  public ComponentMarkup commandPipePredicateGetPredicate;
-  public ComponentMarkup commandPipePredicateGetError;
   public ComponentMarkup commandPipePredicateFrameLockInit;
   public ComponentMarkup commandPipePredicateFrameUnlockInit;
   public ComponentMarkup commandPipePredicateFrameLockNoFrames;

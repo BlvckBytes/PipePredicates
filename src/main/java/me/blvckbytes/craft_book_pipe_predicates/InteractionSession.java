@@ -23,8 +23,4 @@ public abstract class InteractionSession {
   public boolean isExpired() {
     return System.currentTimeMillis() - lastUse >= EXPIRY_SECONDS * 1000;
   }
-
-  public boolean requiresSign() {
-    return true;
-  }
 }

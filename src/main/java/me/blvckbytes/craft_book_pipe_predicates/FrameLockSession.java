@@ -11,9 +11,4 @@ public class FrameLockSession extends InteractionSession {
 
     this.lockOrUnlock = lockOrUnlock;
   }
-
-  @Override
-  public boolean requiresSign() {
-    return false;
-  }
 }

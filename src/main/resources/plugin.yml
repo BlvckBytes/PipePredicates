@@ -10,12 +10,6 @@ commands:
   pipesearch:
   pipeteleport:
 permissions:
-  craftbookpipepredicates.command.pipepredicate.read:
-    description: 'Read predicates on pipe outputs'
-    default: op
-  craftbookpipepredicates.command.pipepredicate.modify:
-    description: 'Modify predicates on pipe outputs'
-    default: op
   craftbookpipepredicates.command.pipepredicate.reload:
     description: 'Reload the plugin''s configuration'
     default: op
