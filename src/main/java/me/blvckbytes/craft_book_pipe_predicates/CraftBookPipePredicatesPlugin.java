@@ -24,7 +24,6 @@ import java.util.logging.Level;
 
 public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listener {
 
-  private int sessionTickerTaskId = -1;
   private @Nullable SearchDisplayHandler searchDisplayHandler;
   private @Nullable CapacityDisplayHandler capacityDisplayHandler;
 
@@ -83,8 +82,6 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, cubeRenderer, config, this);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
-      sessionTickerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, pipePredicateCommandExecutor::tickSessions, 0L, 5L);
-
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));
       pipePredicateCommand.setExecutor(pipePredicateCommandExecutor);
 
@@ -113,9 +110,6 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
   @Override
   public void onDisable() {
-    if (sessionTickerTaskId >= 0)
-      Bukkit.getScheduler().cancelTask(sessionTickerTaskId);
-
     if (searchDisplayHandler != null) {
       searchDisplayHandler.onShutdown();
       searchDisplayHandler = null;

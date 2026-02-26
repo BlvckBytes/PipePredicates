@@ -14,7 +14,6 @@ import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import me.blvckbytes.syllables_matcher.TriState;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.NamespacedKey;
@@ -22,7 +21,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -34,20 +32,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +55,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final Map<UUID, InteractionSession> interactionSessionByPlayerId;
   private final NamespacedKey lockedFrameKey;
 
   public PipePredicateCommand(
@@ -81,27 +74,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.config = config;
     this.logger = plugin.getLogger();
 
-    this.interactionSessionByPlayerId = new HashMap<>();
     this.lockedFrameKey = new NamespacedKey(plugin, "locked-frame");
-  }
-
-  public void tickSessions() {
-    for (var iterator = interactionSessionByPlayerId.values().iterator(); iterator.hasNext();) {
-      var session = iterator.next();
-
-      if (session.isExpired()) {
-        iterator.remove();
-        config.rootSection.playerMessages.commandPipePredicateInteractExpired.sendMessage(session.player);
-
-        if (session.allowMultiUse)
-          session.player.sendActionBar(Component.empty()); // Immediately clear action-bar signal
-
-        continue;
-      }
-
-      if (session.allowMultiUse)
-        config.rootSection.playerMessages.commandPipePredicateInteractMultiActionBarSignal.sendActionBar(session.player);
-    }
   }
 
   @Override
@@ -171,17 +144,22 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       return true;
     }
 
-    if (normalizedAction.constant == CommandAction.LOCK_FRAMES) {
-      config.rootSection.playerMessages.commandPipePredicateFrameLockInit.sendMessage(sender);
+    if (normalizedAction.constant == CommandAction.LOCK_FRAMES || normalizedAction.constant == CommandAction.UNLOCK_FRAMES) {
+      var targetBlock = resolveFacedTargetBlock(player);
 
-      interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, true));
-      return true;
-    }
+      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
+        return true;
+      }
 
-    if (normalizedAction.constant == CommandAction.UNLOCK_FRAMES) {
-      config.rootSection.playerMessages.commandPipePredicateFrameUnlockInit.sendMessage(sender);
+      var lockFrames = normalizedAction.constant == CommandAction.LOCK_FRAMES;
+      var lockResult = pipeSearchHandler.handleFrameLocking(player, targetBlock, lockFrames, lockedFrameKey);
 
-      interactionSessionByPlayerId.put(player.getUniqueId(), new FrameLockSession(player, false));
+      if (lockResult == TriState.FALSE) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
+        return true;
+      }
+
       return true;
     }
 
@@ -367,11 +345,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   }
 
   @EventHandler
-  public void onQuit(PlayerQuitEvent event) {
-    interactionSessionByPlayerId.remove(event.getPlayer().getUniqueId());
-  }
-
-  @EventHandler
   public void onInteractAtEntity(PlayerInteractEntityEvent event) {
     var frame = getFrameIfLocked(event.getRightClicked());
 
@@ -428,47 +401,10 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
   @EventHandler
   public void onInteract(PlayerInteractEvent event) {
-    var player = event.getPlayer();
-    var action = event.getAction();
-
-    if (player.isSneaking() && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)) {
-      var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
-
-      if (interactionSession != null) {
-        event.setCancelled(true);
-
-        if (!interactionSession.allowMultiUse) {
-          interactionSession.allowMultiUse = true;
-          interactionSession.touchExpiry();
-          config.rootSection.playerMessages.commandPipePredicateInteractMultiEntered.sendMessage(player);
-          return;
-        }
-
-        interactionSessionByPlayerId.remove(player.getUniqueId());
-        player.sendActionBar(Component.empty()); // Immediately clear action-bar signal
-        config.rootSection.playerMessages.commandPipePredicateInteractMultiExited.sendMessage(player);
-        return;
-      }
-    }
-
-    if (!(action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK))
-      return;
-
-    if(event.getHand() == EquipmentSlot.OFF_HAND)
-      return;
-
     var clickedBlock = event.getClickedBlock();
 
     if (clickedBlock == null)
       return;
-
-    if (handleInteractionSessionAndGetIfCancel(player, clickedBlock)) {
-      event.setCancelled(true);
-      return;
-    }
-
-    // If there was no cancellation, and we're about to edit a sign, check if it's in predicate-mode, as
-    // opening an editor for a locked sign (predicate-signs cannot be manually added) will frustrate the user.
 
     if (event.getAction() != Action.RIGHT_CLICK_BLOCK || !(clickedBlock.getState() instanceof Sign sign))
       return;
@@ -481,30 +417,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
 
     event.setCancelled(true);
     config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer());
-  }
-
-  @EventHandler
-  public void onBlockPlace(BlockPlaceEvent event) {
-    var player = event.getPlayer();
-
-    if (handleInteractionSessionAndGetIfCancel(player, event.getBlockAgainst()))
-      event.setCancelled(true);
-  }
-
-  @EventHandler
-  public void onBlockBreak(BlockBreakEvent event) {
-    var player = event.getPlayer();
-
-    if (handleInteractionSessionAndGetIfCancel(player, event.getBlock()))
-      event.setCancelled(true);
-  }
-
-  @EventHandler
-  public void onBucketEmpty(PlayerBucketEmptyEvent event) {
-    var player = event.getPlayer();
-
-    if (handleInteractionSessionAndGetIfCancel(player, event.getBlockClicked()))
-      event.setCancelled(true);
   }
 
   @EventHandler
@@ -570,77 +482,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     dataHandler.store(newPredicateData, sign);
 
     Bukkit.getPluginManager().callEvent(new InvalidateCachedBlockEvent(sign.getBlock()));
-  }
-
-  private boolean handleInteractionSessionAndGetIfCancel(Player player, Block target) {
-    var interactionSession = interactionSessionByPlayerId.get(player.getUniqueId());
-
-    if (interactionSession == null)
-      return false;
-
-    if (!interactionSession.allowMultiUse)
-      interactionSessionByPlayerId.remove(player.getUniqueId());
-
-    var pistonBlock = BlockUtility.resolvePistonBlock(target);
-
-    if (pistonBlock == null)
-      return true;
-
-    interactionSession.touchExpiry();
-
-    if (interactionSession instanceof FrameLockSession lockSession) {
-      var containerBlock = pistonBlock.getRelative(((Directional) pistonBlock.getBlockData()).getFacing());
-
-      var foundUnlockedFrame = new AtomicBoolean();
-      var foundLockedFrame = new AtomicBoolean();
-
-      var frameCount = BlockUtility.forEachFrameOnContainer(containerBlock, frame -> {
-        var pdc = frame.getPersistentDataContainer();
-        var lockFlag = pdc.get(lockedFrameKey, PersistentDataType.BOOLEAN);
-
-        if (lockFlag != null && lockFlag) {
-          foundLockedFrame.set(true);
-
-          if (!lockSession.lockOrUnlock)
-            pdc.set(lockedFrameKey, PersistentDataType.BOOLEAN, false);
-
-          return;
-        }
-
-        foundUnlockedFrame.set(true);
-
-        if (lockSession.lockOrUnlock)
-          pdc.set(lockedFrameKey, PersistentDataType.BOOLEAN, true);
-      });
-
-      if (frameCount == 0) {
-        config.rootSection.playerMessages.commandPipePredicateFrameLockNoFrames.sendMessage(player);
-        return true;
-      }
-
-      var environment = new InterpretationEnvironment()
-        .withVariable("frame_count", frameCount);
-
-      if (lockSession.lockOrUnlock) {
-        if (!foundUnlockedFrame.get()) {
-          config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyLocked.sendMessage(player, environment);
-          return true;
-        }
-
-        config.rootSection.playerMessages.commandPipePredicateFrameLockFramesLocked.sendMessage(player, environment);
-        return true;
-      }
-
-      if (!foundLockedFrame.get()) {
-        config.rootSection.playerMessages.commandPipePredicateFrameLockAlreadyUnlocked.sendMessage(player, environment);
-        return true;
-      }
-
-      config.rootSection.playerMessages.commandPipePredicateFrameLockFramesUnlocked.sendMessage(player, environment);
-      return true;
-    }
-
-    return true;
   }
 
   private @Nullable Sign tryResolveSignFromEventAndAcknowledge(PredicateEvent predicateEvent) {

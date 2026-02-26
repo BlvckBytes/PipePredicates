@@ -1,7 +1,6 @@
 package me.blvckbytes.craft_book_pipe_predicates;
 
 import com.sk89q.craftbook.mechanics.pipe.*;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -11,14 +10,8 @@ import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.WallSign;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.function.Consumer;
 
 public class BlockUtility {
 
@@ -174,53 +167,5 @@ public class BlockUtility {
     }
 
     return null;
-  }
-
-  public static int forEachFrameOnContainer(Block containerBlock, Consumer<ItemFrame> frameHandler) {
-    if (!(containerBlock.getState() instanceof Container container))
-      return 0;
-
-    var containerBlocks = new ArrayList<Block>(2);
-
-    if (container.getInventory() instanceof DoubleChestInventory doubleInventory) {
-      if (doubleInventory.getRightSide().getHolder() instanceof Container rightContainer)
-        containerBlocks.add(rightContainer.getBlock());
-
-      if (doubleInventory.getLeftSide().getHolder() instanceof Container leftContainer)
-        containerBlocks.add(leftContainer.getBlock());
-    }
-
-    else
-      containerBlocks.add(containerBlock);
-
-    return forEachFrameOnBlocks(containerBlocks, frameHandler);
-  }
-
-  public static int forEachFrameOnBlocks(Collection<Block> blocks, Consumer<ItemFrame> frameHandler) {
-    var frameCount = 0;
-    var visitedChunks = new HashSet<Chunk>();
-
-    for (var block : blocks) {
-      var blockChunk = block.getChunk();
-
-      if (!visitedChunks.add(blockChunk))
-        continue;
-
-      for (var chunkEntity : blockChunk.getEntities()) {
-        if (!(chunkEntity instanceof ItemFrame itemFrame))
-          continue;
-
-        var frameFace = itemFrame.getAttachedFace();
-        var mountedOnBlock = itemFrame.getLocation().getBlock().getRelative(frameFace);
-
-        if (blocks.stream().noneMatch(mountedOnBlock::equals))
-          continue;
-
-        ++frameCount;
-        frameHandler.accept(itemFrame);
-      }
-    }
-
-    return frameCount;
   }
 }
