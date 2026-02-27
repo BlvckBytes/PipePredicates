@@ -6,6 +6,10 @@ import me.blvckbytes.syllables_matcher.MatchableEnum;
 import org.bukkit.command.CommandSender;
 
 public enum CommandAction implements MatchableEnum {
+  GET,
+  SET,
+  SET_LANGUAGE,
+  REMOVE,
   RELOAD,
   SEARCH,
   LOCATE_PREDICATES,
@@ -32,6 +36,8 @@ public enum CommandAction implements MatchableEnum {
   public static EnumPredicate<CommandAction> getPermissionFilterFor(CommandSender sender) {
     return value -> (
       switch (value.constant) {
+        case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
+        case SET, SET_LANGUAGE, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
         case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
         case CAPACITIES -> PluginPermission.PIPE_PREDICATE_COMMAND_CAPACITIES.has(sender);

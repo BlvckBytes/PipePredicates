@@ -40,12 +40,12 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       var configHandler = new ConfigHandler(this, "config");
       var config = new ConfigKeeper<>(configHandler, "config.yml", MainSection.class);
 
-      var parserPlugin = ItemPredicateParserPlugin.getInstance();
+      var ipp = ItemPredicateParserPlugin.getInstance();
 
-      if (parserPlugin == null)
+      if (ipp == null)
         throw new IllegalStateException("Depending on ItemPredicateParser to be successfully loaded");
 
-      var predicateHelper = parserPlugin.getPredicateHelper();
+      var predicateHelper = ipp.getPredicateHelper();
 
       FloodgateIntegration floodgateIntegration = player -> false;
 
@@ -79,7 +79,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       Bukkit.getServer().getPluginManager().registerEvents(pipeSearchHandler, this);
 
-      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, predicateHelper, cubeRenderer, config, this);
+      var pipePredicateCommandExecutor = new PipePredicateCommand(dataHandler, pipeEventHandler, pipeSearchHandler, ipp, cubeRenderer, config, this);
       getServer().getPluginManager().registerEvents(pipePredicateCommandExecutor, this);
 
       var pipePredicateCommand = Objects.requireNonNull(getCommand(PipePredicateCommandSection.INITIAL_NAME));

@@ -8,7 +8,7 @@ import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import me.blvckbytes.craft_book_pipe_predicates.search.PredicateAndLabels;
 import me.blvckbytes.craft_book_pipe_predicates.search.cubes.CubeRenderer;
 import me.blvckbytes.craft_book_pipe_predicates.search.PipeSearchHandler;
-import me.blvckbytes.item_predicate_parser.PredicateHelper;
+import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import me.blvckbytes.item_predicate_parser.event.*;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
@@ -50,7 +50,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   private final PredicateDataHandler dataHandler;
   private final PipeEventHandler pipeEventHandler;
   private final PipeSearchHandler pipeSearchHandler;
-  private final PredicateHelper predicateHelper;
+  private final ItemPredicateParserPlugin ipp;
   private final CubeRenderer cubeRenderer;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
@@ -61,7 +61,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     PredicateDataHandler dataHandler,
     PipeEventHandler pipeEventHandler,
     PipeSearchHandler pipeSearchHandler,
-    PredicateHelper predicateHelper,
+    ItemPredicateParserPlugin ipp,
     CubeRenderer cubeRenderer,
     ConfigKeeper<MainSection> config,
     Plugin plugin
@@ -69,7 +69,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.dataHandler = dataHandler;
     this.pipeEventHandler = pipeEventHandler;
     this.pipeSearchHandler = pipeSearchHandler;
-    this.predicateHelper = predicateHelper;
+    this.ipp = ipp;
     this.cubeRenderer = cubeRenderer;
     this.config = config;
     this.logger = plugin.getLogger();
@@ -98,6 +98,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
           .withVariable("action_names", CommandAction.matcher.createCompletions(null, actionFilter))
       );
       return true;
+    }
+
+    // Keep these aliases around, as they're already broadly known on our server
+    switch (normalizedAction.constant) {
+      case SET, SET_LANGUAGE, GET, REMOVE:
+        return ipp.getMainCommand().getExecutor().onCommand(sender, command, label, args);
     }
 
     if (normalizedAction.constant == CommandAction.RELOAD) {
@@ -325,9 +331,18 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (normalizedAction == null)
       return null;
 
+    // Keep these aliases around, as they're already broadly known on our server
+    switch (normalizedAction.constant) {
+      case SET, SET_LANGUAGE, GET, REMOVE: {
+        if (ipp.getMainCommand().getExecutor() instanceof TabCompleter tabCompleter)
+          return tabCompleter.onTabComplete(sender, command, label, args);
+      }
+    }
+
     if (normalizedAction.constant != CommandAction.SEARCH && normalizedAction.constant != CommandAction.CAPACITIES)
       return null;
 
+    var predicateHelper = ipp.getPredicateHelper();
     var language = predicateHelper.getSelectedLanguage(player);
 
     try {
@@ -509,7 +524,9 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   }
 
   private @Nullable PredicateAndLanguage tryParsePredicateAndLanguage(Player executor, String[] args) {
+    var predicateHelper = ipp.getPredicateHelper();
     var language = predicateHelper.getSelectedLanguage(executor);
+
     ItemPredicate predicate;
 
     try {
