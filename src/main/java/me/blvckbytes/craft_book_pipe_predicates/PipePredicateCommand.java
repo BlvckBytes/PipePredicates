@@ -30,6 +30,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -434,7 +435,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     config.rootSection.playerMessages.manualEditWhileInPredicateMode.sendMessage(event.getPlayer());
   }
 
-  @EventHandler
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onPredicateGet(PredicateGetEvent event) {
     var sign = tryResolveSignFromEventAndAcknowledge(event);
 
@@ -454,7 +455,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
   }
 
-  @EventHandler
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onPredicateRemove(PredicateRemoveEvent event) {
     var sign = tryResolveSignFromEventAndAcknowledge(event);
 
@@ -473,7 +474,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
   }
 
-  @EventHandler
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onPredicateSet(PredicateSetEvent event) {
     var sign = tryResolveSignFromEventAndAcknowledge(event);
 
@@ -500,6 +501,12 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   }
 
   private @Nullable Sign tryResolveSignFromEventAndAcknowledge(PredicateEvent predicateEvent) {
+    // We're using the highest priority as to let other handlers take precedence - if somebody
+    // responded already, that means that the piston's output-block is a predicate-keeper itself
+    // and the piston-predicate may only be accessed by interacting with said piston directly.
+    if (predicateEvent.isAcknowledged())
+      return null;
+
     var pistonBlock = BlockUtility.resolvePistonBlock(predicateEvent.getBlock());
 
     if (pistonBlock == null)
