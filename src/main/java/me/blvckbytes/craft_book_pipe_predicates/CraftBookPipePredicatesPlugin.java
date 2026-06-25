@@ -2,6 +2,7 @@ package me.blvckbytes.craft_book_pipe_predicates;
 
 import at.blvckbytes.cm_mapper.ConfigHandler;
 import at.blvckbytes.cm_mapper.ConfigKeeper;
+import at.blvckbytes.cm_mapper.ConfigKeeperReloadEvent;
 import at.blvckbytes.cm_mapper.section.command.CommandUpdater;
 import com.cryptomorin.xseries.XMaterial;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
@@ -14,6 +15,7 @@ import me.blvckbytes.craft_book_pipe_predicates.search.display.search.SearchDisp
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
@@ -26,6 +28,8 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
   private @Nullable SearchDisplayHandler searchDisplayHandler;
   private @Nullable CapacityDisplayHandler capacityDisplayHandler;
+  private @Nullable ConfigKeeper<MainSection> config;
+  private @Nullable Runnable updateCommands;
 
   @Override
   public void onEnable() {
@@ -38,7 +42,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       XMaterial.matchXMaterial(Material.AIR);
 
       var configHandler = new ConfigHandler(this, "config");
-      var config = new ConfigKeeper<>(configHandler, "config.yml", MainSection.class);
+      config = new ConfigKeeper<>(configHandler, "config.yml", MainSection.class);
 
       var ipp = ItemPredicateParserPlugin.getInstance();
 
@@ -91,7 +95,7 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
 
       var commandUpdater = new CommandUpdater(this);
 
-      Runnable updateCommands = () -> {
+      updateCommands = () -> {
         config.rootSection.commands.pipePredicate.apply(pipePredicateCommand, commandUpdater);
         config.rootSection.commands.pipeSearch.apply(pipeSearchCommand, commandUpdater);
 
@@ -99,13 +103,20 @@ public class CraftBookPipePredicatesPlugin extends JavaPlugin implements Listene
       };
 
       updateCommands.run();
-      config.registerReloadListener(updateCommands);
 
       Bukkit.getServer().getPluginManager().registerEvents(new CommandSendListener(this, config), this);
+
+      Bukkit.getServer().getPluginManager().registerEvents(this, this);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Could not initialize plugin", e);
       Bukkit.getPluginManager().disablePlugin(this);
     }
+  }
+
+  @EventHandler
+  public void onConfigReload(ConfigKeeperReloadEvent event) {
+    if (event.configKeeper == config && updateCommands != null)
+      updateCommands.run();
   }
 
   @Override

@@ -1,6 +1,7 @@
 package me.blvckbytes.craft_book_pipe_predicates.search.display;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
+import at.blvckbytes.cm_mapper.ConfigKeeperReloadEvent;
 import me.blvckbytes.craft_book_pipe_predicates.FloodgateIntegration;
 import me.blvckbytes.craft_book_pipe_predicates.config.MainSection;
 import org.bukkit.Bukkit;
@@ -14,7 +15,6 @@ import org.bukkit.plugin.Plugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public abstract class DisplayHandler<DisplayType extends Display<DisplayDataType>, DisplayDataType> implements Listener {
 
@@ -42,11 +42,15 @@ public abstract class DisplayHandler<DisplayType extends Display<DisplayDataType
     this.config = config;
     this.plugin = plugin;
     this.floodgateIntegration = floodgateIntegration;
+  }
 
-    config.registerReloadListener(() -> {
-      for (var display : displayByPlayerId.values())
-        display.onConfigReload();
-    });
+  @EventHandler
+  public void onConfigReload(ConfigKeeperReloadEvent event) {
+    if (event.configKeeper != config)
+      return;
+
+    for (var display : displayByPlayerId.values())
+      display.onConfigReload();
   }
 
   public abstract DisplayType instantiateDisplay(Player player, DisplayDataType displayData);
@@ -61,11 +65,6 @@ public abstract class DisplayHandler<DisplayType extends Display<DisplayDataType
   }
 
   protected abstract void handleClick(Player player, DisplayType display, ClickType clickType, int slot);
-
-  protected void forEachDisplay(Consumer<DisplayType> consumer) {
-    for (var display : displayByPlayerId.values())
-      consumer.accept(display);
-  }
 
   public void onShutdown() {
     for (var displayIterator = displayByPlayerId.entrySet().iterator(); displayIterator.hasNext();) {
