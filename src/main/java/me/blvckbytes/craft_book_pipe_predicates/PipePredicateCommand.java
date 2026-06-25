@@ -360,7 +360,7 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     }
   }
 
-  @EventHandler
+  @EventHandler(priority = EventPriority.LOW)
   public void onInteractAtEntity(PlayerInteractEntityEvent event) {
     var frame = getFrameIfLocked(event.getRightClicked());
 
