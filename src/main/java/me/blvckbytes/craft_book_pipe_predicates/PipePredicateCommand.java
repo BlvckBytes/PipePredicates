@@ -12,15 +12,18 @@ import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import me.blvckbytes.item_predicate_parser.event.*;
 import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
+import me.blvckbytes.item_predicate_parser.translation.keyed.DisjunctionKey;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -105,6 +108,93 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     switch (normalizedAction.constant) {
       case SET, SET_LANGUAGE, GET, REMOVE:
         return ipp.getMainCommand().getExecutor().onCommand(sender, command, label, args);
+    }
+
+    if (normalizedAction.constant == CommandAction.GENERATE) {
+      var pistonBlock = BlockUtility.resolvePistonBlock(resolveFacedTargetBlock(player));
+
+      if (pistonBlock == null || !(pistonBlock.getBlockData() instanceof Directional directional)) {
+        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
+        return true;
+      }
+
+      if (!(pistonBlock.getRelative(directional.getFacing()).getState() instanceof Container container)) {
+        config.rootSection.playerMessages.commandPipePredicateGenerateNoContainer.sendMessage(player);
+        return true;
+      }
+
+      var allowInitialize = PluginPermission.AUTO_INITIALIZE_SIGNS.has(player);
+      var pistonSign = BlockUtility.getPistonSign(pistonBlock, allowInitialize);
+
+      if (pistonSign == null) {
+        config.rootSection.playerMessages.commandPipePredicateGenerateNoSign.sendMessage(player);
+        return true;
+      }
+
+      if (!pipeEventHandler.canEditSign(player, pistonSign)) {
+        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
+        return true;
+      }
+
+      var predicateHelper = ipp.getPredicateHelper();
+      var targetLanguage = predicateHelper.getSelectedLanguage(player);
+      var translationRegistry = ipp.getTranslationLanguageRegistry().getTranslationRegistry(targetLanguage);
+
+      var containedMaterials = new HashSet<Material>();
+
+      for (var storedItem : container.getInventory().getStorageContents()) {
+        if (storedItem != null && !storedItem.getType().isAir())
+          containedMaterials.add(storedItem.getType());
+      }
+
+      if (containedMaterials.isEmpty()) {
+        config.rootSection.playerMessages.commandPipePredicateGenerateEmptyContainer.sendMessage(player);
+        return true;
+      }
+
+      var sortedMaterials = new ArrayList<>(containedMaterials);
+      sortedMaterials.sort(Comparator.comparingInt(Enum::ordinal));
+
+      var orTranslation = translationRegistry.getNormalizedPrefixedTranslationBySingleton(DisjunctionKey.INSTANCE);
+
+      if (orTranslation == null)
+        throw new IllegalStateException("Could not locate translation for the OR operator in language " + targetLanguage);
+
+      var predicateJoiner = new StringJoiner(" " + orTranslation + " ");
+
+      for (var material : sortedMaterials) {
+        var materialTranslation = translationRegistry.getNormalizedPrefixedTranslationBySingleton(material);
+
+        if (materialTranslation == null)
+          throw new IllegalStateException("Could not locate translation for " + material + " in language " + targetLanguage);
+
+        predicateJoiner.add(materialTranslation);
+      }
+
+      var predicateString = predicateJoiner.toString();
+
+      ItemPredicate predicate;
+
+      try {
+        var tokens = predicateHelper.parseTokens(predicateString);
+        predicate = predicateHelper.parsePredicate(targetLanguage, tokens);
+      } catch (ItemPredicateParseException e) {
+        throw new IllegalStateException("Could not parse the predicate, despite it having been auto-generated");
+      }
+
+      setPredicate(pistonSign, new PredicateAndLanguage(predicate, targetLanguage));
+
+      config.rootSection.playerMessages.commandPipePredicateGeneratePredicateSet.sendMessage(
+        player,
+        new InterpretationEnvironment()
+          .withVariable("predicate", predicateString)
+          .withVariable("set_command", "/" + label + " " + CommandAction.matcher.getNormalizedName(CommandAction.SET) + " " + predicateString)
+          .withVariable("sign_x", pistonSign.getX())
+          .withVariable("sign_y", pistonSign.getY())
+          .withVariable("sign_z", pistonSign.getZ())
+      );
+
+      return true;
     }
 
     if (normalizedAction.constant == CommandAction.RELOAD) {
@@ -481,13 +571,17 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     if (sign == null)
       return;
 
+    setPredicate(sign, event.getValue());
+  }
+
+  private void setPredicate(Sign sign, PredicateAndLanguage predicateAndLanguage) {
     var oldPredicateData = dataHandler.access(sign);
     PredicateData newPredicateData;
 
     if (oldPredicateData == null)
-      newPredicateData = PredicateData.makeInitial(event.getValue().predicate, event.getValue().language, sign);
+      newPredicateData = PredicateData.makeInitial(predicateAndLanguage.predicate, predicateAndLanguage.language, sign);
     else
-      newPredicateData = PredicateData.makeUpdate(event.getValue().predicate, event.getValue().language, oldPredicateData);
+      newPredicateData = PredicateData.makeUpdate(predicateAndLanguage.predicate, predicateAndLanguage.language, oldPredicateData);
 
     sign.setLine(0, "§" + MarkerConstants.PREDICATE_OK_COLOR + MarkerConstants.PREDICATE_MARKER);
     sign.setLine(1, MarkerConstants.PIPE_MARKER);

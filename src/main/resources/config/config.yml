@@ -77,6 +77,16 @@ playerMessages:
     {lut.prefix} <&7>Die Suche <&a>{query} <&7>ergab die o.g. <&a>{len(results)} Übereinstimmung(en)<&7>.
   commandPipeTeleportExpired: '{lut.prefix} <&c>Der temporäre Befehl zur Teleportation nach <&4>{x} {y} {z} <&c>ist abgelaufen; versuche ihn erneut ausstellen zu lassen!'
   commandPipeTeleportTeleported: '{lut.prefix} <&7>Du wurdest zu den Koordinaten <&a>{x} {y} {z} <&7>teleportiert.'
+  commandPipePredicateGenerateNoContainer: '{lut.prefix} <&c>Am angesehenen Kolben befindet sich kein Behälter an der Ausgangsseite!'
+  commandPipePredicateGenerateEmptyContainer: '{lut.prefix} <&c>Der Behälter des zugehörigen Kolben ist leer - bitte lege zuerst Items hinein, für die du den Filter generieren möchtest.'
+  commandPipePredicateGenerateNoSign: '{lut.prefix} <&c>Am Kolben befindet sich kein valides Pipe-Schild, an welches der Filter gebunden werden könnte.'
+  commandPipePredicateGeneratePredicateSet: |
+    {lut.prefix} <&7>Das generierte Prädikat<space/>
+    <hover-text value={<&a>Klicke, um einen Set-Befehl vorzuschlagen}>
+      <suggest-command value=`{set_command}`>
+        <&a><u>{predicate}
+    </hover-text>
+    <space/>wurde am Schild bei <&a>{sign_x} {sign_y} {sign_z} <&7>gesetzt.
 
 searchDisplay:
   title: '<&8>Pipesuche <&e>{current_page}<&8>/<&e>{number_pages}'

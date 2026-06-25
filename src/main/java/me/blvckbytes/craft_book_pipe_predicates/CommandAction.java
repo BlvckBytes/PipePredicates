@@ -15,6 +15,7 @@ public enum CommandAction implements MatchableEnum {
   LOCATE_PREDICATES,
   CAPACITIES,
   VISUALIZE,
+  GENERATE,
   CLEAR_VISUALIZE,
   LOCK_FRAMES,
   UNLOCK_FRAMES,
@@ -37,7 +38,7 @@ public enum CommandAction implements MatchableEnum {
     return value -> (
       switch (value.constant) {
         case GET -> PluginPermission.PIPE_PREDICATE_COMMAND_READ.has(sender);
-        case SET, SET_LANGUAGE, REMOVE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
+        case SET, SET_LANGUAGE, REMOVE, GENERATE -> PluginPermission.PIPE_PREDICATE_COMMAND_MODIFY.has(sender);
         case RELOAD -> PluginPermission.PIPE_PREDICATE_COMMAND_RELOAD.has(sender);
         case SEARCH -> PluginPermission.PIPE_PREDICATE_COMMAND_SEARCH.has(sender);
         case CAPACITIES -> PluginPermission.PIPE_PREDICATE_COMMAND_CAPACITIES.has(sender);

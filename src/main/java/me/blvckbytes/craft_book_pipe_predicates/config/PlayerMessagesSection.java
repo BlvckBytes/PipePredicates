@@ -48,6 +48,10 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateLocatePredicateNoMatches;
   public ComponentMarkup commandPipeTeleportExpired;
   public ComponentMarkup commandPipeTeleportTeleported;
+  public ComponentMarkup commandPipePredicateGenerateNoContainer;
+  public ComponentMarkup commandPipePredicateGenerateEmptyContainer;
+  public ComponentMarkup commandPipePredicateGenerateNoSign;
+  public ComponentMarkup commandPipePredicateGeneratePredicateSet;
 
   public PlayerMessagesSection(InterpretationEnvironment baseEnvironment, InterpreterLogger interpreterLogger) {
     super(baseEnvironment, interpreterLogger);
