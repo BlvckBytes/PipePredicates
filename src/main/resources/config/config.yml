@@ -35,7 +35,7 @@ playerMessages:
   commandPipePredicateSearchExceededPistons: '{lut.prefix} <&e>Das Limit von <&6>{limit} Ausgangskolben <&e>wurde überschritten; stoppe vorzeitig!'
   commandPipePredicateSearchExceededRetry: '{lut.prefix} <&e>Das Limit von <&6>{limit} Ladeversuchen <&e>wurde überschritten; stoppe vorzeitig!'
   commandPipePredicateSearchNoContainers: '{lut.prefix} <&c>Es konnten keine Behälter an Ausgangskolben gefunden werden (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>)!'
-  commandPipePredicateSearchActionbarWarmup: '<&6>[Pipe] Wärme auf... {tube_count} Rohre, {piston_count} Kolben'
+  commandPipePredicateSearchActionbarWarmup: '<&6>Pipe wärmt auf... {tube_count} Rohre, {piston_count} Kolben'
   commandPipePredicateSearchNoResults: |
     {lut.prefix} <&c>Die Suche <&4>{predicate} <&c>ergab bei <&4>{item_count} Items <&c>keine Ergebnisse (<&4>{piston_count} Kolben<&c>, <&4>{tube_count} Rohrblöcke<&c>, <u><hover-text value={
       <&c *for-entry="container_counts" *for-separator={<&7>,<space/>}>{entry.count}x <translate key=`{entry.translation_key}`/>
