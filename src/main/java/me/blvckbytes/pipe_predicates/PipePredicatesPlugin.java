@@ -13,12 +13,14 @@ import me.blvckbytes.pipe_predicates.search.PipeSearchHandler;
 import me.blvckbytes.pipe_predicates.search.display.capacity.CapacityDisplayHandler;
 import me.blvckbytes.pipe_predicates.search.display.search.SearchDisplayHandler;
 import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
+import net.kyori.adventure.key.KeyPattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -128,5 +130,12 @@ public class PipePredicatesPlugin extends JavaPlugin implements Listener {
       capacityDisplayHandler.onShutdown();
       capacityDisplayHandler = null;
     }
+  }
+
+  @KeyPattern.Namespace
+  @Override
+  public @NotNull String namespace() {
+    // There are countless namespaced keys on the server already, so we cannot break backwards-compatibility
+    return "craftbookpipepredicates";
   }
 }
