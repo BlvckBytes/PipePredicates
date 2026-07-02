@@ -2,8 +2,8 @@ package me.blvckbytes.pipe_predicates;
 
 import at.blvckbytes.cm_mapper.ConfigKeeper;
 import at.blvckbytes.component_markup.expression.interpreter.InterpretationEnvironment;
-import me.blvckbytes.bbtweaks.pipes.mechanic.CachedBlock;
-import me.blvckbytes.bbtweaks.pipes.mechanic.InvalidateCachedBlockEvent;
+import me.blvckbytes.bbtweaks.pipes.CachedBlock;
+import me.blvckbytes.bbtweaks.pipes.InvalidateCachedBlockEvent;
 import me.blvckbytes.pipe_predicates.config.MainSection;
 import me.blvckbytes.pipe_predicates.search.PredicateAndLabels;
 import me.blvckbytes.pipe_predicates.search.cubes.CubeRenderer;

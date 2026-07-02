@@ -2,10 +2,10 @@ package me.blvckbytes.pipe_predicates;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import me.blvckbytes.bbtweaks.pipes.mechanic.InvalidateCachedBlockEvent;
-import me.blvckbytes.bbtweaks.pipes.mechanic.PipePredicateEvent;
-import me.blvckbytes.bbtweaks.pipes.mechanic.PipeSignCacheCreatedEvent;
-import me.blvckbytes.bbtweaks.pipes.mechanic.PipeSignCacheInvalidedEvent;
+import me.blvckbytes.bbtweaks.pipes.InvalidateCachedBlockEvent;
+import me.blvckbytes.bbtweaks.pipes.PipePredicateEvent;
+import me.blvckbytes.bbtweaks.pipes.PipeSignCacheCreatedEvent;
+import me.blvckbytes.bbtweaks.pipes.PipeSignCacheInvalidedEvent;
 import me.blvckbytes.bbtweaks.util.CompactId;
 import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.translation.PredicateSourcesReloadEvent;

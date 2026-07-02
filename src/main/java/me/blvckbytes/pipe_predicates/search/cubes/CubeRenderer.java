@@ -3,7 +3,7 @@ package me.blvckbytes.pipe_predicates.search.cubes;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import me.blvckbytes.bbtweaks.pipes.mechanic.TubeColor;
+import me.blvckbytes.bbtweaks.pipes.TubeColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

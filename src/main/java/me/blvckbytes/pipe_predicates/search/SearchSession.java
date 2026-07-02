@@ -2,7 +2,7 @@ package me.blvckbytes.pipe_predicates.search;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import me.blvckbytes.bbtweaks.pipes.mechanic.*;
+import me.blvckbytes.bbtweaks.pipes.*;
 import me.blvckbytes.bbtweaks.util.CompactId;
 import me.blvckbytes.pipe_predicates.PistonPredicateRegistry;
 import org.bukkit.Material;

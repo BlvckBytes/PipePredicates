@@ -1,6 +1,6 @@
 package me.blvckbytes.pipe_predicates.search;
 
-import me.blvckbytes.bbtweaks.pipes.mechanic.*;
+import me.blvckbytes.bbtweaks.pipes.*;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;

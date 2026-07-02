@@ -1,8 +1,8 @@
 package me.blvckbytes.pipe_predicates.search;
 
-import me.blvckbytes.bbtweaks.pipes.mechanic.EnumerationBehavior;
-import me.blvckbytes.bbtweaks.pipes.mechanic.EnumerationDecision;
-import me.blvckbytes.bbtweaks.pipes.mechanic.PipesApi;
+import me.blvckbytes.bbtweaks.pipes.EnumerationBehavior;
+import me.blvckbytes.bbtweaks.pipes.EnumerationDecision;
+import me.blvckbytes.bbtweaks.pipes.PipesApi;
 import me.blvckbytes.pipe_predicates.PistonPredicateRegistry;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
