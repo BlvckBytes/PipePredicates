@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.blvckbytes</groupId>
-    <artifactId>CraftBookPipePredicates</artifactId>
+    <artifactId>PipePredicates</artifactId>
     <version>0.0.9</version>
 
     <properties>
@@ -20,10 +20,6 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>enginehub</id>
-            <url>https://maven.enginehub.org/repo/</url>
-        </repository>
-        <repository>
             <id>opencollab-snapshot</id>
             <url>https://repo.opencollab.dev/main/</url>
         </repository>
@@ -31,10 +27,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.sk89q.craftbook</groupId>
-            <artifactId>craftbook</artifactId>
-            <!-- Custom fork, from maven-local: https://github.com/BlvckBytes/CraftBook -->
-            <version>3.10.13-SNAPSHOT</version>
+            <groupId>me.blvckbytes</groupId>
+            <artifactId>BBTweaks</artifactId>
+            <version>0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -121,32 +116,32 @@
                     <relocations>
                         <relocation>
                             <pattern>me.blvckbytes.syllables_matcher</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>com.cryptomorin.xseries</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.com.cryptomorin.xseries</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates.com.cryptomorin.xseries</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>org.jetbrains.annotations</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.jetbrains_annotations</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates.jetbrains_annotations</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>org.intellij.lang.annotations</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.intellij_annotations</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates.intellij_annotations</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>at.blvckbytes.component_markup</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.component_markup</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates.component_markup</shadedPattern>
                         </relocation>
 
                         <relocation>
                             <pattern>at.blvckbytes.cm_mapper</pattern>
-                            <shadedPattern>me.blvckbytes.craft_book_pipe_predicates.cm_mapper</shadedPattern>
+                            <shadedPattern>me.blvckbytes.pipe_predicates.cm_mapper</shadedPattern>
                         </relocation>
                     </relocations>
 

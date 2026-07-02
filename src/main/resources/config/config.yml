@@ -1,13 +1,13 @@
-# _________             ____________________            ______ _____________             ________            _____________             _____
-# __  ____/____________ ___  __/_  /___  __ )______________  /____  __ \__(_)_______________  __ \_________________  /__(_)___________ __  /_____________
-# _  /    __  ___/  __ `/_  /_ _  __/_  __  |  __ \  __ \_  //_/_  /_/ /_  /___  __ \  _ \_  /_/ /_  ___/  _ \  __  /__  /_  ___/  __ `/  __/  _ \_  ___/
-# / /___  _  /   / /_/ /_  __/ / /_ _  /_/ // /_/ / /_/ /  ,<  _  ____/_  / __  /_/ /  __/  ____/_  /   /  __/ /_/ / _  / / /__ / /_/ // /_ /  __/(__  )
-# \____/  /_/    \__,_/ /_/    \__/ /_____/ \____/\____//_/|_| /_/     /_/  _  .___/\___//_/     /_/    \___/\__,_/  /_/  \___/ \__,_/ \__/ \___//____/
+# _____________             ________            _____________             _____
+# ___  __ \__(_)_______________  __ \_________________  /__(_)___________ __  /_____________
+# __  /_/ /_  /___  __ \  _ \_  /_/ /_  ___/  _ \  __  /__  /_  ___/  __ `/  __/  _ \_  ___/
+# _  ____/_  / __  /_/ /  __/  ____/_  /   /  __/ /_/ / _  / / /__ / /_/ // /_ /  __/(__  )
+# /_/     /_/  _  .___/\___//_/     /_/    \___/\__,_/  /_/  \___/ \__,_/ \__/ \___//____/
 # /_/
 #
-# CraftBookPipePredicates - Developed by BlvckBytes <blvckbytes@gmail.com>
-# Repository - https://github.com/BlvckBytes/CraftBookPipePredicates
-# ASCII-Art - https://patorjk.com/software/taag/#p=display<&f>=Speed
+# PipePredicates - Developed by BlvckBytes <blvckbytes@gmail.com>
+# Repository - https://github.com/BlvckBytes/PipePredicates
+# ASCII-Art - https://patorjk.com/software/taag/#p=display&f=Speed
 
 commands:
   pipePredicate:
@@ -351,12 +351,6 @@ capacityDisplay:
       name: " "
 
 defaultPredicateLanguage: 'GERMAN_DE'
-
-# Fully qualified names of classes which represent listeners for the SignChangeEvent - an event
-# called to determine whether the player has the privileges to alter a pipe's state.
-fakeEventSkippedListeners:
-  # Avoid the "Pipe created!" message; this listener has no say in protection either
-  - com.sk89q.craftbook.mechanics.pipe.Pipes
 
 # File-global component lookup-table
 cLut:

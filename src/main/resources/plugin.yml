@@ -1,27 +1,27 @@
-name: CraftBookPipePredicates
-main: me.blvckbytes.craft_book_pipe_predicates.CraftBookPipePredicatesPlugin
+name: PipePredicates
+main: me.blvckbytes.pipe_predicates.PipePredicatesPlugin
 version: 0.0.3
 author: BlvckBytes
 api-version: 1.14
-depend: [CraftBook, ItemPredicateParser, ProtocolLib]
+depend: [BBTweaks, ItemPredicateParser, ProtocolLib]
 softdepend: [floodgate]
 commands:
   pipepredicate:
   pipesearch:
   pipeteleport:
 permissions:
-  craftbookpipepredicates.command.pipepredicate.reload:
+  pipepredicates.command.pipepredicate.reload:
     description: 'Reload the plugin''s configuration'
     default: op
-  craftbookpipepredicates.command.pipepredicate.search:
+  pipepredicates.command.pipepredicate.search:
     description: 'Search the whole pipe using predicates'
     default: op
-  craftbookpipepredicates.command.pipepredicate.capacities:
+  pipepredicates.command.pipepredicate.capacities:
     description: 'Analyze the remaining capacities of a pipe''s containers'
     default: op
-  craftbookpipepredicates.command.pipepredicate.locate-predicates:
+  pipepredicates.command.pipepredicate.locate-predicates:
     description: 'Search for predicates in a pipe via string-contains'
     default: op
-  craftbookpipepredicates.auto-init-signs:
+  pipepredicates.auto-init-signs:
     description: 'Automatically initialize blank signs to a valid pipe sign'
     default: op
