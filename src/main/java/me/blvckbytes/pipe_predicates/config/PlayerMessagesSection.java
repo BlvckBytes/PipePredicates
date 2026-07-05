@@ -13,10 +13,6 @@ public class PlayerMessagesSection extends ConfigSection {
   public ComponentMarkup commandPipePredicateNotLookingAtPipe;
   public ComponentMarkup commandPipePredicatePredicateError;
   public ComponentMarkup commandPipePredicateEmptyPredicate;
-  public ComponentMarkup commandPipePredicateFrameLockDidLock;
-  public ComponentMarkup commandPipePredicateFrameLockAllLocked;
-  public ComponentMarkup commandPipePredicateFrameLockDidUnlock;
-  public ComponentMarkup commandPipePredicateFrameLockAllUnlocked;
   public ComponentMarkup commandPipePredicateReloadSuccess;
   public ComponentMarkup commandPipePredicateReloadFailure;
   public ComponentMarkup commandPipePredicateSearchInSession;

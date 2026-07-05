@@ -12,7 +12,6 @@ public enum PluginPermission {
   PIPE_PREDICATE_COMMAND_CAPACITIES("command.pipepredicate.capacities"),
   PIPE_PREDICATE_COMMAND_LOCATE_PREDICATES("command.pipepredicate.locate-predicates"),
   PIPE_PREDICATE_COMMAND_VISUALIZE("command.pipepredicate.visualize"),
-  PIPE_PREDICATE_COMMAND_LOCK_FRAMES("command.pipepredicate.lock-frames"),
   AUTO_INITIALIZE_SIGNS("auto-init-signs"),
   ;
 

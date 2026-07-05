@@ -22,7 +22,6 @@ import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.predicate.stringify.PlainStringifier;
 import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -77,43 +76,6 @@ public class PipeSearchHandler implements Listener {
       throw new IllegalStateException("Expected the PipesAPI of the BBTweaks-plugin to be available");
 
     this.enumerationSessionByPlayerId = new HashMap<>();
-  }
-
-  public TriState handleFrameLocking(Player player, Block origin, boolean lockFrames, NamespacedKey lockedFrameKey) {
-    return handleEnumeration(player, () -> (
-      new FrameLockSession(
-        origin, pipesApi, plugin,
-        session -> handleEnumerationWarmup(session, player),
-        session -> handleFrameLockingCompletion(session, player),
-        lockFrames, lockedFrameKey
-      )
-    ));
-  }
-
-  private void handleFrameLockingCompletion(FrameLockSession session, Player player) {
-    enumerationSessionByPlayerId.remove(player.getUniqueId());
-
-    if (!session.didEncounterPipeBlocks())
-      return;
-
-    if (session.getLockChangeCount() <= 0) {
-      if (session.isLockFrames()) {
-        config.rootSection.playerMessages.commandPipePredicateFrameLockAllLocked.sendMessage(player);
-        return;
-      }
-
-      config.rootSection.playerMessages.commandPipePredicateFrameLockAllUnlocked.sendMessage(player);
-      return;
-    }
-
-    var environment = new InterpretationEnvironment().withVariable("lock_count", session.getLockChangeCount());
-
-    if (session.isLockFrames()) {
-      config.rootSection.playerMessages.commandPipePredicateFrameLockDidLock.sendMessage(player, environment);
-      return;
-    }
-
-    config.rootSection.playerMessages.commandPipePredicateFrameLockDidUnlock.sendMessage(player, environment);
   }
 
   public TriState handleLocatePredicate(Player player, Block origin, String containedString) {

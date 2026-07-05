@@ -18,7 +18,6 @@ import me.blvckbytes.syllables_matcher.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
@@ -29,18 +28,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +52,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  private final NamespacedKey lockedFrameKey;
-
   public PipePredicateCommand(
     PredicateDataHandler dataHandler,
     PipeEventHandler pipeEventHandler,
@@ -77,8 +68,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
     this.cubeRenderer = cubeRenderer;
     this.config = config;
     this.logger = plugin.getLogger();
-
-    this.lockedFrameKey = new NamespacedKey(plugin, "locked-frame");
   }
 
   @Override
@@ -234,25 +223,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       var searchResult = pipeSearchHandler.handleVisualization(player, targetBlock);
 
       if (searchResult == TriState.FALSE) {
-        config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
-        return true;
-      }
-
-      return true;
-    }
-
-    if (normalizedAction.constant == CommandAction.LOCK_FRAMES || normalizedAction.constant == CommandAction.UNLOCK_FRAMES) {
-      var targetBlock = resolveFacedTargetBlock(player);
-
-      if (!pipeEventHandler.canBuildAt(player, targetBlock)) {
-        config.rootSection.playerMessages.commandPipePredicateCannotBuild.sendMessage(player);
-        return true;
-      }
-
-      var lockFrames = normalizedAction.constant == CommandAction.LOCK_FRAMES;
-      var lockResult = pipeSearchHandler.handleFrameLocking(player, targetBlock, lockFrames, lockedFrameKey);
-
-      if (lockResult == TriState.FALSE) {
         config.rootSection.playerMessages.commandPipePredicateNotLookingAtPipe.sendMessage(player);
         return true;
       }
@@ -448,61 +418,6 @@ public class PipePredicateCommand implements CommandExecutor, TabCompleter, List
       player.sendActionBar(predicateHelper.createExceptionMessage(e));
       return null;
     }
-  }
-
-  @EventHandler(priority = EventPriority.LOW)
-  public void onInteractAtEntity(PlayerInteractEntityEvent event) {
-    var frame = getFrameIfLocked(event.getRightClicked());
-
-    if (frame == null)
-      return;
-
-    event.setCancelled(true);
-
-    var frameFace = frame.getAttachedFace();
-    var mountedOnBlock = frame.getLocation().getBlock().getRelative(frameFace);
-
-    if (!(mountedOnBlock.getState() instanceof Container container))
-      return;
-
-    event.getPlayer().openInventory(container.getInventory());
-  }
-
-  @EventHandler
-  public void onHangingBreak(HangingBreakEvent event) {
-    var cause = event.getCause();
-
-    // Let it still be destroyed by physics/obstruction, as to not end up
-    // with forever-hanging-in-air item-frames.
-    if (cause != HangingBreakEvent.RemoveCause.ENTITY && cause != HangingBreakEvent.RemoveCause.EXPLOSION)
-      return;
-
-    if (getFrameIfLocked(event.getEntity()) != null)
-      event.setCancelled(true);
-  }
-
-  @EventHandler
-  public void onDamageByEntity(EntityDamageByEntityEvent event) {
-    if (getFrameIfLocked(event.getEntity()) != null)
-      event.setCancelled(true);
-  }
-
-  @EventHandler
-  public void onDamage(EntityDamageEvent event) {
-    if (getFrameIfLocked(event.getEntity()) != null)
-      event.setCancelled(true);
-  }
-
-  private @Nullable ItemFrame getFrameIfLocked(Entity entity) {
-    if (!(entity instanceof ItemFrame frame))
-      return null;
-
-    var lockFlag = frame.getPersistentDataContainer().get(lockedFrameKey, PersistentDataType.BOOLEAN);
-
-    if (lockFlag == null || !lockFlag)
-      return null;
-
-    return frame;
   }
 
   @EventHandler

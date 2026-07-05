@@ -17,8 +17,6 @@ public enum CommandAction implements MatchableEnum {
   VISUALIZE,
   GENERATE,
   CLEAR_VISUALIZE,
-  LOCK_FRAMES,
-  UNLOCK_FRAMES,
   ;
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
@@ -30,7 +28,6 @@ public enum CommandAction implements MatchableEnum {
         || PluginPermission.PIPE_PREDICATE_COMMAND_CAPACITIES.has(sender)
         || PluginPermission.PIPE_PREDICATE_COMMAND_LOCATE_PREDICATES.has(sender)
         || PluginPermission.PIPE_PREDICATE_COMMAND_VISUALIZE.has(sender)
-        || PluginPermission.PIPE_PREDICATE_COMMAND_LOCK_FRAMES.has(sender)
     );
   }
 
@@ -44,7 +41,6 @@ public enum CommandAction implements MatchableEnum {
         case CAPACITIES -> PluginPermission.PIPE_PREDICATE_COMMAND_CAPACITIES.has(sender);
         case LOCATE_PREDICATES -> PluginPermission.PIPE_PREDICATE_COMMAND_LOCATE_PREDICATES.has(sender);
         case VISUALIZE, CLEAR_VISUALIZE -> PluginPermission.PIPE_PREDICATE_COMMAND_VISUALIZE.has(sender);
-        case LOCK_FRAMES, UNLOCK_FRAMES -> PluginPermission.PIPE_PREDICATE_COMMAND_LOCK_FRAMES.has(sender);
       }
     );
   }
